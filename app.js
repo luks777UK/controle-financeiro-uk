@@ -121,13 +121,13 @@
           </div>
           <section class="current-version-card">
             <div class="version-orb">1.1.2</div>
-            <div><span>VERSÃO INSTALADA</span><strong>Nosso Controle 1.1.2</strong><small>Build de 03/08/2026 · correção de login</small></div>
+            <div><span>VERSÃO INSTALADA</span><strong>Nosso Controle 1.1.3</strong><small>Build de 03/08/2026 · correção de login</small></div>
             <span class="version-status">Atual</span>
           </section>
           <section class="updates-timeline">
             <article class="update-entry latest">
               <div class="update-marker"></div><div class="update-content">
-                <div class="update-entry-head"><div><span>Versão 1.1.2</span><strong>Central de atualizações</strong></div><small>03/08/2026</small></div>
+                <div class="update-entry-head"><div><span>Versão 1.1.3</span><strong>Central de atualizações</strong></div><small>03/08/2026</small></div>
                 <ul><li>Nova área <b>Atualizações</b> no menu de três pontos.</li><li>Versão instalada e histórico de mudanças.</li><li>Fluxo preparado para atualização pelo iPhone.</li></ul>
               </div>
             </article>
@@ -1223,3 +1223,322 @@ $("saveVaultDeposit").onclick=async e=>{
 };
 
 boot();
+
+
+/* =========================================================
+   NOSSO CONTROLE 1.1.3
+   Correção do menu •••, reset de dados e notas de atualização
+   ========================================================= */
+(function installMenuAndUpdatesFix(){
+  const byId=id=>document.getElementById(id);
+
+  function closeSettings(){
+    byId("settingsSheet")?.classList.add("hidden");
+  }
+
+  function openSettings(){
+    const sheet=byId("settingsSheet");
+    if(!sheet)return;
+    sheet.classList.remove("hidden");
+  }
+
+  function ensureUpdatesButton(){
+    const admin=byId("openAdminPanel");
+    if(!admin || byId("openUpdatesPanel"))return;
+    admin.insertAdjacentHTML("beforebegin",`
+      <button id="openUpdatesPanel" class="sheet-action updates-action" type="button">
+        <span class="sheet-action-icon">↻</span>
+        <span><b>Atualizações</b><small>Versão instalada, novidades e próximos passos</small></span>
+        <span class="updates-version-badge">1.1.3</span>
+      </button>
+    `);
+  }
+
+  function ensureUpdatesDialog(){
+    let dialog=byId("updatesDialog");
+    if(!dialog){
+      dialog=document.createElement("dialog");
+      dialog.id="updatesDialog";
+      dialog.className="updates-dialog";
+      document.body.appendChild(dialog);
+    }
+
+    dialog.innerHTML=`
+      <section class="updates-panel">
+        <div class="updates-header">
+          <div>
+            <span class="calendar-overline">NOSSO CONTROLE</span>
+            <h2>Atualizações</h2>
+            <p>Versão instalada, novidades e planejamento.</p>
+          </div>
+          <button id="closeUpdatesPanel" class="round-button" type="button">×</button>
+        </div>
+
+        <section class="current-version-card">
+          <div class="version-orb">1.1.3</div>
+          <div>
+            <span>VERSÃO INSTALADA</span>
+            <strong>Nosso Controle 1.1.3</strong>
+            <small>Correção do menu e gerenciamento de dados</small>
+          </div>
+          <span class="version-status">Atual</span>
+        </section>
+
+        <section class="updates-timeline">
+          <article class="update-entry latest">
+            <div class="update-marker"></div>
+            <div class="update-content">
+              <div class="update-entry-head">
+                <div><span>Versão 1.1.3</span><strong>Menu e manutenção</strong></div>
+                <small>03/08/2026</small>
+              </div>
+              <ul>
+                <li>Correção do botão de três pontos.</li>
+                <li>Área de atualizações funcionando.</li>
+                <li>Reset de reservas e depósitos.</li>
+                <li>Opção de apagar os dados financeiros com dupla confirmação.</li>
+                <li>Notas organizadas por versão.</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="update-entry">
+            <div class="update-marker"></div>
+            <div class="update-content">
+              <div class="update-entry-head">
+                <div><span>Versão 1.1 Premium</span><strong>Experiência financeira premium</strong></div>
+                <small>Instalada</small>
+              </div>
+              <ul>
+                <li>💎 Dashboard premium.</li>
+                <li>📊 Gráficos animados.</li>
+                <li>💰 Ganhos diários, semanais e mensais.</li>
+                <li>🏦 Cofre separado entre Cartão e Envelope.</li>
+                <li>🚗 Parcelas inteligentes do carro.</li>
+                <li>🧾 Bills inteligentes e editáveis.</li>
+                <li>📱 Visual inspirado em aplicativo para iPhone.</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="update-entry planned">
+            <div class="update-marker"></div>
+            <div class="update-content">
+              <div class="update-entry-head">
+                <div><span>Versão 1.2</span><strong>Histórico e produtividade</strong></div>
+                <small>Planejada</small>
+              </div>
+              <ul>
+                <li>📈 Histórico financeiro completo.</li>
+                <li>📆 Calendário interativo aprimorado.</li>
+                <li>🔍 Pesquisa de lançamentos.</li>
+                <li>🏷️ Categorias de gastos personalizáveis.</li>
+                <li>📤 Exportação de relatórios em PDF.</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="update-entry planned">
+            <div class="update-marker"></div>
+            <div class="update-content">
+              <div class="update-entry-head">
+                <div><span>Versão 1.3</span><strong>Nuvem e aplicativo</strong></div>
+                <small>Planejada</small>
+              </div>
+              <ul>
+                <li>☁️ Backup na nuvem.</li>
+                <li>👤 Login e perfis aprimorados.</li>
+                <li>📲 Instalação com experiência de aplicativo real.</li>
+                <li>🔔 Lembretes de Bills.</li>
+                <li>📉 Estatísticas avançadas.</li>
+              </ul>
+            </div>
+          </article>
+        </section>
+
+        <section class="data-maintenance-card">
+          <div>
+            <span class="calendar-overline">MANUTENÇÃO</span>
+            <h3>Gerenciar dados</h3>
+            <p>Use estas opções somente quando precisar recomeçar os registros.</p>
+          </div>
+          <button id="resetReservationsButton" class="secondary-button" type="button">
+            Zerar reservas e depósitos
+          </button>
+          <button id="resetAllFinanceButton" class="danger-button" type="button">
+            Apagar todos os dados financeiros
+          </button>
+        </section>
+
+        <p class="updates-footer-note">
+          Atualizar o aplicativo não apaga os dados armazenados no Supabase.
+        </p>
+      </section>
+    `;
+  }
+
+  async function resetReservations(){
+    if(!state)return;
+    const ok=confirm(
+      "Zerar todas as reservas das Bills e os depósitos destinados às contas?\n\nReceitas, gastos e Cofre serão mantidos."
+    );
+    if(!ok)return;
+
+    state.cash=0;
+    state.card=0;
+    (state.bills||[]).forEach(b=>{
+      b.reserved=0;
+      if(!b.completed)b.paid=false;
+    });
+    state.history=(state.history||[]).filter(item=>{
+      return item.type==="bill_payment";
+    });
+
+    await persist("Reservas e depósitos zerados");
+    byId("updatesDialog")?.close();
+  }
+
+  async function resetAllFinance(){
+    if(!state)return;
+    const first=confirm(
+      "ATENÇÃO: isso apagará receitas, gastos, Cofre, reservas e histórico financeiro.\n\nAs Bills cadastradas serão mantidas. Continuar?"
+    );
+    if(!first)return;
+
+    const phrase=prompt('Para confirmar, digite exatamente: APAGAR');
+    if(phrase!=="APAGAR"){
+      toast("Operação cancelada");
+      return;
+    }
+
+    state.cash=0;
+    state.card=0;
+    state.incomes=[];
+    state.expenses=[];
+    state.vaultEntries=[];
+    state.history=[];
+    (state.bills||[]).forEach(b=>{
+      b.reserved=0;
+      if(!b.completed)b.paid=false;
+    });
+
+    await persist("Dados financeiros apagados");
+    byId("updatesDialog")?.close();
+  }
+
+  function bindMenu(){
+    ensureUpdatesButton();
+    ensureUpdatesDialog();
+
+    const menu=byId("menuButton");
+    if(menu){
+      menu.onclick=null;
+      menu.addEventListener("click",event=>{
+        event.preventDefault();
+        event.stopPropagation();
+        openSettings();
+      });
+    }
+
+    const close=byId("closeSettings");
+    if(close){
+      close.onclick=null;
+      close.addEventListener("click",event=>{
+        event.preventDefault();
+        closeSettings();
+      });
+    }
+
+    const sheet=byId("settingsSheet");
+    if(sheet){
+      sheet.addEventListener("click",event=>{
+        if(event.target===sheet)closeSettings();
+      });
+    }
+
+    const updates=byId("openUpdatesPanel");
+    if(updates){
+      updates.onclick=event=>{
+        event.preventDefault();
+        closeSettings();
+        ensureUpdatesDialog();
+        byId("updatesDialog")?.showModal();
+        bindUpdatesActions();
+      };
+    }
+
+    const legacyReset=byId("resetFinance");
+    if(legacyReset){
+      legacyReset.onclick=event=>{
+        event.preventDefault();
+        resetReservations();
+      };
+    }
+  }
+
+  function bindUpdatesActions(){
+    const close=byId("closeUpdatesPanel");
+    if(close)close.onclick=()=>byId("updatesDialog")?.close();
+
+    const soft=byId("resetReservationsButton");
+    if(soft)soft.onclick=resetReservations;
+
+    const full=byId("resetAllFinanceButton");
+    if(full)full.onclick=resetAllFinance;
+  }
+
+  function addStyles(){
+    if(byId("menuFixStyles"))return;
+    const style=document.createElement("style");
+    style.id="menuFixStyles";
+    style.textContent=`
+      .update-entry.planned .update-marker{
+        background:#34374d;
+        border-color:#10121f;
+      }
+      .update-entry.planned .update-content{
+        opacity:.86;
+        border-style:dashed;
+      }
+      .data-maintenance-card{
+        margin-top:16px;
+        padding:16px;
+        border-radius:20px;
+        background:#171927;
+        border:1px solid var(--line);
+      }
+      .data-maintenance-card h3{
+        margin:5px 0 4px;
+        font-size:16px;
+      }
+      .data-maintenance-card p{
+        color:var(--muted);
+        font-size:10px;
+        line-height:1.45;
+        margin:0 0 13px;
+      }
+      .data-maintenance-card button+button{
+        margin-top:8px;
+      }
+      .danger-button{
+        width:100%;
+        border:1px solid rgba(255,112,132,.2);
+        background:rgba(255,112,132,.09);
+        color:#ff8395;
+        border-radius:15px;
+        padding:12px;
+        font-weight:800;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  addStyles();
+  bindMenu();
+  bindUpdatesActions();
+
+  // Reaplica os eventos caso alguma renderização futura altere a interface.
+  window.addEventListener("pageshow",bindMenu);
+  setTimeout(bindMenu,300);
+  setTimeout(bindMenu,1200);
+})();
