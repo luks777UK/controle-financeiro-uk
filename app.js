@@ -121,13 +121,13 @@
           </div>
           <section class="current-version-card">
             <div class="version-orb">1.1.2</div>
-            <div><span>VERSÃO INSTALADA</span><strong>Nosso Controle 1.1.5</strong><small>Build de 03/08/2026 · correção de login</small></div>
+            <div><span>VERSÃO INSTALADA</span><strong>Nosso Controle 1.1.6</strong><small>Build de 03/08/2026 · correção de login</small></div>
             <span class="version-status">Atual</span>
           </section>
           <section class="updates-timeline">
             <article class="update-entry latest">
               <div class="update-marker"></div><div class="update-content">
-                <div class="update-entry-head"><div><span>Versão 1.1.5</span><strong>Central de atualizações</strong></div><small>03/08/2026</small></div>
+                <div class="update-entry-head"><div><span>Versão 1.1.6</span><strong>Central de atualizações</strong></div><small>03/08/2026</small></div>
                 <ul><li>Nova área <b>Atualizações</b> no menu de três pontos.</li><li>Versão instalada e histórico de mudanças.</li><li>Fluxo preparado para atualização pelo iPhone.</li></ul>
               </div>
             </article>
@@ -1278,7 +1278,7 @@ boot();
           <div class="version-orb">1.1.3</div>
           <div>
             <span>VERSÃO INSTALADA</span>
-            <strong>Nosso Controle 1.1.5</strong>
+            <strong>Nosso Controle 1.1.6</strong>
             <small>Correção do menu e gerenciamento de dados</small>
           </div>
           <span class="version-status">Atual</span>
@@ -1289,7 +1289,7 @@ boot();
             <div class="update-marker"></div>
             <div class="update-content">
               <div class="update-entry-head">
-                <div><span>Versão 1.1.5</span><strong>Menu e manutenção</strong></div>
+                <div><span>Versão 1.1.6</span><strong>Menu e manutenção</strong></div>
                 <small>03/08/2026</small>
               </div>
               <ul>
@@ -1938,7 +1938,7 @@ boot();
   });
 
   document.querySelectorAll(".current-version-card strong").forEach(x=>{
-    if(x.textContent.includes("1.1.3"))x.textContent="Nosso Controle 1.1.5";
+    if(x.textContent.includes("1.1.3"))x.textContent="Nosso Controle 1.1.6";
   });
 })();
 
@@ -2167,6 +2167,440 @@ boot();
     if(el.textContent.trim()==="1.1.4")el.textContent="1.1.5";
   });
   document.querySelectorAll(".current-version-card strong").forEach(el=>{
-    if(el.textContent.includes("1.1.4"))el.textContent="Nosso Controle 1.1.5";
+    if(el.textContent.includes("1.1.4"))el.textContent="Nosso Controle 1.1.6";
   });
+})();
+
+
+/* =========================================================
+   NOSSO CONTROLE 1.1.6
+   Calendário, logout, notas organizadas e interface compacta
+   ========================================================= */
+(function installV116Fixes(){
+  const get=id=>document.getElementById(id);
+
+  function closeSheet(){
+    get("settingsSheet")?.classList.add("hidden");
+  }
+
+  function safeShowDialog(dialog){
+    if(!dialog)return;
+    if(dialog.open)return;
+    try{dialog.showModal()}catch{dialog.setAttribute("open","")}
+  }
+
+  function safeCloseDialog(dialog){
+    if(!dialog)return;
+    try{dialog.close()}catch{dialog.removeAttribute("open")}
+  }
+
+  function installCalendarEvents(){
+    const open=get("openCalendar");
+    const dialog=get("calendarDialog");
+    const close=get("closeCalendar");
+    const previous=get("calendarPrev");
+    const next=get("calendarNext");
+
+    if(open){
+      open.onclick=event=>{
+        event.preventDefault();
+        event.stopPropagation();
+        closeSheet();
+        calendarDate=new Date();
+        renderCalendar();
+        safeShowDialog(dialog);
+      };
+    }
+
+    if(close){
+      close.onclick=event=>{
+        event.preventDefault();
+        safeCloseDialog(dialog);
+      };
+    }
+
+    if(previous){
+      previous.onclick=event=>{
+        event.preventDefault();
+        calendarDate=new Date(
+          calendarDate.getFullYear(),
+          calendarDate.getMonth()-1,
+          1
+        );
+        renderCalendar();
+      };
+    }
+
+    if(next){
+      next.onclick=event=>{
+        event.preventDefault();
+        calendarDate=new Date(
+          calendarDate.getFullYear(),
+          calendarDate.getMonth()+1,
+          1
+        );
+        renderCalendar();
+      };
+    }
+
+    if(dialog){
+      dialog.addEventListener("click",event=>{
+        if(event.target===dialog)safeCloseDialog(dialog);
+      });
+    }
+
+    const dayDialog=get("dayDetailsDialog");
+    const closeDay=get("closeDayDetails");
+    if(closeDay){
+      closeDay.onclick=()=>safeCloseDialog(dayDialog);
+    }
+  }
+
+  async function logout(){
+    const button=get("logoutBtn");
+    if(button){
+      button.disabled=true;
+      button.textContent="Saindo…";
+    }
+
+    try{
+      if(channel){
+        try{await sb.removeChannel(channel)}catch{}
+        channel=null;
+      }
+
+      const {error}=await sb.auth.signOut();
+      if(error)throw error;
+
+      user=null;
+      householdId=null;
+      householdCode=null;
+      state=null;
+
+      document.querySelectorAll("dialog[open]").forEach(safeCloseDialog);
+      closeSheet();
+
+      const email=get("email");
+      const password=get("password");
+      if(email)email.value="";
+      if(password)password.value="";
+
+      show("authView");
+      feedback("authMsg","Você saiu da conta.");
+    }catch(error){
+      toast(error?.message||"Não foi possível sair da conta");
+    }finally{
+      if(button){
+        button.disabled=false;
+        button.textContent="Sair da conta";
+      }
+    }
+  }
+
+  function installLogout(){
+    const button=get("logoutBtn");
+    if(!button)return;
+    button.onclick=event=>{
+      event.preventDefault();
+      event.stopPropagation();
+      closeSheet();
+      const confirmed=confirm("Deseja realmente sair desta conta?");
+      if(confirmed)logout();
+    };
+  }
+
+  function rebuildUpdates(){
+    const dialog=get("updatesDialog");
+    if(!dialog)return;
+
+    dialog.innerHTML=`
+      <section class="updates-panel v116-updates">
+        <div class="updates-header">
+          <div>
+            <span class="calendar-overline">NOSSO CONTROLE</span>
+            <h2>Atualizações</h2>
+            <p>Recursos disponíveis e próximos passos do projeto.</p>
+          </div>
+          <button id="closeUpdatesPanel" class="round-button" type="button">×</button>
+        </div>
+
+        <section class="current-version-card">
+          <div class="version-orb">1.1.6</div>
+          <div>
+            <span>VERSÃO INSTALADA</span>
+            <strong>Nosso Controle 1.1.6</strong>
+            <small>Calendário, logout e organização visual</small>
+          </div>
+          <span class="version-status">Atual</span>
+        </section>
+
+        <div class="release-section">
+          <div class="release-section-title">
+            <span class="release-state installed">INSTALADO</span>
+            <strong>Recursos disponíveis agora</strong>
+          </div>
+
+          <details class="release-card" open>
+            <summary>
+              <span><b>v1.1.6</b> Correções e usabilidade</span>
+              <small>Atual</small>
+            </summary>
+            <ul>
+              <li>Calendário de depósitos corrigido.</li>
+              <li>Navegação entre meses funcionando.</li>
+              <li>Detalhes financeiros ao tocar em um dia.</li>
+              <li>Botão Sair da conta corrigido.</li>
+              <li>Notas de atualização reorganizadas.</li>
+              <li>Bills em formato horizontal e compacto.</li>
+            </ul>
+          </details>
+
+          <details class="release-card">
+            <summary>
+              <span><b>v1.1 Premium</b> Dashboard financeiro</span>
+              <small>Instalado</small>
+            </summary>
+            <ul>
+              <li>Dashboard premium.</li>
+              <li>Gráficos animados.</li>
+              <li>Ganhos diários, semanais e mensais.</li>
+              <li>Cofre separado entre Cartão e Envelope.</li>
+              <li>Parcelas inteligentes do carro.</li>
+              <li>Bills inteligentes e editáveis.</li>
+              <li>Visual inspirado em aplicativo para iPhone.</li>
+            </ul>
+          </details>
+        </div>
+
+        <div class="release-section">
+          <div class="release-section-title">
+            <span class="release-state planned">PLANEJADO</span>
+            <strong>Próximas versões</strong>
+          </div>
+
+          <details class="release-card">
+            <summary>
+              <span><b>v1.2</b> Histórico e produtividade</span>
+              <small>Próxima</small>
+            </summary>
+            <ul>
+              <li>Histórico financeiro completo.</li>
+              <li>Calendário interativo aprimorado.</li>
+              <li>Pesquisa de lançamentos.</li>
+              <li>Categorias de gastos personalizáveis.</li>
+              <li>Exportação de relatórios em PDF.</li>
+            </ul>
+          </details>
+
+          <details class="release-card">
+            <summary>
+              <span><b>v1.3</b> Nuvem e aplicativo</span>
+              <small>Planejada</small>
+            </summary>
+            <ul>
+              <li>Backup na nuvem.</li>
+              <li>Login e perfis aprimorados.</li>
+              <li>Instalação com experiência de aplicativo real.</li>
+              <li>Lembretes de Bills.</li>
+              <li>Estatísticas avançadas.</li>
+            </ul>
+          </details>
+        </div>
+
+        <section class="data-maintenance-card">
+          <span class="calendar-overline">MANUTENÇÃO</span>
+          <h3>Gerenciar dados</h3>
+          <p>As atualizações não apagam os dados salvos no Supabase.</p>
+          <button id="resetReservationsButton" class="secondary-button" type="button">
+            Zerar reservas e depósitos
+          </button>
+          <button id="resetAllFinanceButton" class="danger-button" type="button">
+            Apagar todos os dados financeiros
+          </button>
+        </section>
+      </section>
+    `;
+
+    get("closeUpdatesPanel").onclick=()=>safeCloseDialog(dialog);
+
+    get("resetReservationsButton").onclick=async()=>{
+      const ok=confirm(
+        "Zerar reservas das Bills e depósitos destinados às contas? Receitas, gastos e Cofre serão mantidos."
+      );
+      if(!ok)return;
+
+      state.cash=0;
+      state.card=0;
+      (state.bills||[]).forEach(bill=>{
+        bill.reserved=0;
+        if(!bill.completed)bill.paid=false;
+      });
+      state.history=(state.history||[]).filter(item=>item.type==="bill_payment");
+      await persist("Reservas e depósitos zerados");
+      safeCloseDialog(dialog);
+    };
+
+    get("resetAllFinanceButton").onclick=async()=>{
+      const ok=confirm(
+        "Isso apagará receitas, gastos, Cofre, reservas e histórico. As Bills cadastradas serão mantidas. Continuar?"
+      );
+      if(!ok)return;
+
+      const phrase=prompt('Digite APAGAR para confirmar');
+      if(phrase!=="APAGAR")return toast("Operação cancelada");
+
+      state.cash=0;
+      state.card=0;
+      state.incomes=[];
+      state.expenses=[];
+      state.vaultEntries=[];
+      state.history=[];
+      (state.bills||[]).forEach(bill=>{
+        bill.reserved=0;
+        if(!bill.completed)bill.paid=false;
+      });
+
+      await persist("Dados financeiros apagados");
+      safeCloseDialog(dialog);
+    };
+  }
+
+  function installUpdateEvents(){
+    const open=get("openUpdatesPanel");
+    const dialog=get("updatesDialog");
+    if(!open||!dialog)return;
+
+    open.onclick=event=>{
+      event.preventDefault();
+      event.stopPropagation();
+      closeSheet();
+      rebuildUpdates();
+      safeShowDialog(dialog);
+    };
+  }
+
+  function addStyles(){
+    if(get("v116Styles"))return;
+    const style=document.createElement("style");
+    style.id="v116Styles";
+    style.textContent=`
+      .v116-updates{
+        padding:14px !important;
+      }
+
+      .release-section{
+        margin-top:14px;
+      }
+
+      .release-section-title{
+        display:flex;
+        align-items:center;
+        gap:8px;
+        margin:0 2px 7px;
+      }
+
+      .release-section-title strong{
+        font-size:12px;
+      }
+
+      .release-state{
+        padding:4px 7px;
+        border-radius:999px;
+        font-size:7px;
+        font-weight:900;
+        letter-spacing:.7px;
+      }
+
+      .release-state.installed{
+        color:var(--green);
+        background:rgba(63,230,162,.09);
+      }
+
+      .release-state.planned{
+        color:var(--purple-2);
+        background:rgba(139,92,246,.1);
+      }
+
+      .release-card{
+        margin-top:6px;
+        border-radius:14px;
+        background:#171927;
+        border:1px solid var(--line);
+        overflow:hidden;
+      }
+
+      .release-card summary{
+        list-style:none;
+        cursor:pointer;
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:8px;
+        padding:11px 12px;
+      }
+
+      .release-card summary::-webkit-details-marker{
+        display:none;
+      }
+
+      .release-card summary span{
+        font-size:11px;
+      }
+
+      .release-card summary small{
+        color:var(--muted);
+        font-size:8px;
+      }
+
+      .release-card[open] summary{
+        border-bottom:1px solid var(--line);
+      }
+
+      .release-card ul{
+        margin:0;
+        padding:9px 12px 10px 28px;
+      }
+
+      .release-card li{
+        margin:3px 0;
+        color:#c8cad5;
+        font-size:9px;
+        line-height:1.45;
+      }
+
+      .calendar-dialog,
+      .day-details-panel{
+        z-index:80;
+      }
+
+      .calendar-nav-button{
+        min-width:36px;
+        min-height:34px;
+      }
+
+      #logoutBtn{
+        color:#ff8798;
+        border-color:rgba(255,112,132,.14);
+        background:rgba(255,112,132,.055);
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  function installAll(){
+    addStyles();
+    installCalendarEvents();
+    installLogout();
+    rebuildUpdates();
+    installUpdateEvents();
+
+    document.querySelectorAll(".updates-version-badge,.version-orb").forEach(el=>{
+      if(/^1\.1\./.test(el.textContent.trim()))el.textContent="1.1.6";
+    });
+  }
+
+  installAll();
+  window.addEventListener("pageshow",installAll);
+  setTimeout(installAll,250);
+  setTimeout(installAll,1000);
 })();
