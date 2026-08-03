@@ -1,3 +1,178 @@
+
+/*
+  NOSSO CONTROLE 1.1.1 -- ATUALIZAÇÃO EM UM ÚNICO ARQUIVO
+  Este bloco injeta automaticamente o novo layout e estilos.
+  Depois dele começa a lógica normal do aplicativo.
+*/
+(function preparePremiumInterface(){
+  const addHTML=(position,target,markup)=>{
+    if(target) target.insertAdjacentHTML(position,markup);
+  };
+
+  // Dashboard premium.
+  const overview=document.getElementById("overviewView");
+  if(overview && !document.getElementById("premiumNetWorth")){
+    addHTML("afterbegin",overview,`
+      <section class="premium-hero">
+        <div class="premium-hero-glow"></div>
+        <div class="premium-hero-top">
+          <div>
+            <span class="premium-eyebrow">PATRIMÔNIO DISPONÍVEL</span>
+            <strong id="premiumNetWorth">£0,00</strong>
+            <p id="premiumHeroCaption">Tudo o que vocês construíram neste mês.</p>
+          </div>
+          <div class="premium-score"><span>Economia</span><strong id="premiumSavingsRate">0%</strong></div>
+        </div>
+        <div class="premium-hero-bottom">
+          <div><span>Recebido</span><b id="premiumIncome">£0,00</b></div>
+          <div><span>Comprometido</span><b id="premiumCommitted">£0,00</b></div>
+          <div><span>Protegido</span><b id="premiumProtected">£0,00</b></div>
+        </div>
+      </section>
+      <section class="period-summary">
+        <article><span>Hoje</span><strong id="periodTodayIncome">£0,00</strong><small>ganhos</small></article>
+        <article><span>Esta semana</span><strong id="periodWeekIncome">£0,00</strong><small>ganhos</small></article>
+        <article><span>Este mês</span><strong id="periodMonthIncome">£0,00</strong><small>ganhos</small></article>
+      </section>
+    `);
+
+    const headings=[...overview.querySelectorAll(".section-heading")];
+    const incomeHeading=headings.find(x=>x.textContent.includes("Receitas do mês"));
+    if(incomeHeading){
+      addHTML("beforebegin",incomeHeading,`
+        <section class="finance-chart-card">
+          <div class="chart-card-heading">
+            <div><span>EVOLUÇÃO</span><h3>Patrimônio nos últimos 6 meses</h3></div>
+            <strong id="trendBadge">--</strong>
+          </div>
+          <div id="wealthChart" class="svg-chart"></div>
+          <div id="wealthChartLabels" class="chart-labels"></div>
+        </section>
+        <section class="finance-chart-grid">
+          <article class="finance-chart-card compact">
+            <div class="chart-card-heading"><div><span>SEMANA</span><h3>Ganhos por dia</h3></div></div>
+            <div id="weeklyIncomeChart" class="bar-chart"></div>
+          </article>
+          <article class="finance-chart-card compact">
+            <div class="chart-card-heading"><div><span>DISTRIBUIÇÃO</span><h3>Destino do dinheiro</h3></div></div>
+            <div class="donut-wrap">
+              <div id="moneyDonut" class="money-donut"><span id="donutCenter">£0</span></div>
+              <div class="donut-legend">
+                <span><i class="donut-dot bills"></i>Bills <b id="donutBills">0%</b></span>
+                <span><i class="donut-dot expenses"></i>Gastos <b id="donutExpenses">0%</b></span>
+                <span><i class="donut-dot vault"></i>Cofre <b id="donutVault">0%</b></span>
+                <span><i class="donut-dot free"></i>Livre <b id="donutFree">0%</b></span>
+              </div>
+            </div>
+          </article>
+        </section>
+      `);
+    }
+  }
+
+  // Menu Atualizações.
+  const adminButton=document.getElementById("openAdminPanel");
+  if(adminButton && !document.getElementById("openUpdatesPanel")){
+    addHTML("beforebegin",adminButton,`
+      <button id="openUpdatesPanel" class="sheet-action updates-action">
+        <span class="sheet-action-icon">↻</span>
+        <span><b>Atualizações</b><small>Versão instalada e novidades</small></span>
+        <span class="updates-version-badge">1.1.1</span>
+      </button>
+    `);
+  }
+
+  // Resumo detalhado do calendário.
+  const calendarDialog=document.getElementById("calendarDialog");
+  if(calendarDialog && !document.getElementById("dayDetailsDialog")){
+    addHTML("beforebegin",calendarDialog,`
+      <dialog id="dayDetailsDialog">
+        <section class="day-details-panel">
+          <div class="calendar-top">
+            <div>
+              <span class="calendar-overline">RESUMO DO DIA</span>
+              <h2 id="dayDetailsTitle">Dia</h2>
+              <p id="dayDetailsSubtitle">Movimentações financeiras.</p>
+            </div>
+            <button id="closeDayDetails" class="round-button" type="button">×</button>
+          </div>
+          <section class="day-details-summary">
+            <article class="income"><span>Ganhos</span><strong id="dayDetailIncome">£0,00</strong></article>
+            <article class="expense"><span>Gastos</span><strong id="dayDetailExpenses">£0,00</strong></article>
+            <article class="bills"><span>Bills</span><strong id="dayDetailBills">£0,00</strong></article>
+            <article class="vault"><span>Cofre</span><strong id="dayDetailVault">£0,00</strong></article>
+          </section>
+          <div class="day-net-card"><span>Saldo do dia</span><strong id="dayDetailNet">£0,00</strong></div>
+          <div id="dayDetailsList" class="day-details-list"></div>
+        </section>
+      </dialog>
+    `);
+  }
+
+  // Tela de histórico de versões.
+  const adminDialog=document.getElementById("adminDialog");
+  if(adminDialog && !document.getElementById("updatesDialog")){
+    addHTML("beforebegin",adminDialog,`
+      <dialog id="updatesDialog" class="updates-dialog">
+        <section class="updates-panel">
+          <div class="updates-header">
+            <div><span class="calendar-overline">NOSSO CONTROLE</span><h2>Atualizações</h2><p>Veja o que mudou em cada versão.</p></div>
+            <button id="closeUpdatesPanel" class="round-button" type="button">×</button>
+          </div>
+          <section class="current-version-card">
+            <div class="version-orb">1.1.1</div>
+            <div><span>VERSÃO INSTALADA</span><strong>Nosso Controle 1.1.1</strong><small>Build de 03/08/2026</small></div>
+            <span class="version-status">Atual</span>
+          </section>
+          <section class="updates-timeline">
+            <article class="update-entry latest">
+              <div class="update-marker"></div><div class="update-content">
+                <div class="update-entry-head"><div><span>Versão 1.1.1</span><strong>Central de atualizações</strong></div><small>03/08/2026</small></div>
+                <ul><li>Nova área <b>Atualizações</b> no menu de três pontos.</li><li>Versão instalada e histórico de mudanças.</li><li>Fluxo preparado para atualização pelo iPhone.</li></ul>
+              </div>
+            </article>
+            <article class="update-entry">
+              <div class="update-marker"></div><div class="update-content">
+                <div class="update-entry-head"><div><span>Versão 1.1 Premium</span><strong>Dashboard e análises</strong></div><small>03/08/2026</small></div>
+                <ul><li>Dashboard premium e patrimônio disponível.</li><li>Ganhos de hoje, semana e mês.</li><li>Gráficos financeiros animados.</li><li>Calendário interativo com resumo por dia.</li><li>Categorias Casa, Carro e Saúde.</li></ul>
+              </div>
+            </article>
+            <article class="update-entry">
+              <div class="update-marker"></div><div class="update-content">
+                <div class="update-entry-head"><div><span>Versão 1.0</span><strong>Base do aplicativo</strong></div><small>03/08/2026</small></div>
+                <ul><li>Bills inteligentes e editáveis.</li><li>Parcela semanal do carro.</li><li>Cofre em Envelope e Cartão.</li><li>Sincronização pelo Supabase.</li></ul>
+              </div>
+            </article>
+          </section>
+          <p class="updates-footer-note">Seus dados permanecem salvos no Supabase durante as atualizações.</p>
+        </section>
+      </dialog>
+    `);
+  }
+
+  // Categorias extras de gastos.
+  const expenseCategory=document.getElementById("expenseCategory");
+  if(expenseCategory){
+    const extras=[["casa","Casa"],["carro","Carro"],["saude","Saúde"]];
+    for(const [value,label] of extras){
+      if(!expenseCategory.querySelector(`option[value="${value}"]`)){
+        const option=document.createElement("option");
+        option.value=value; option.textContent=label;
+        expenseCategory.insertBefore(option,expenseCategory.querySelector('option[value="outros"]'));
+      }
+    }
+  }
+
+  // Estilos da nova versão inseridos pelo próprio app.js.
+  if(!document.getElementById("premiumRuntimeStyles")){
+    const style=document.createElement("style");
+    style.id="premiumRuntimeStyles";
+    style.textContent="\n\n/* ===== Nosso Controle 1.1 Premium ===== */\nbody{\n  background:\n    radial-gradient(circle at 18% -10%,rgba(123,82,255,.18),transparent 33%),\n    radial-gradient(circle at 92% 16%,rgba(35,199,164,.09),transparent 28%),\n    linear-gradient(180deg,#070812,#090a15 48%,#070812);\n}\n.app{max-width:760px}\n.header{position:sticky;top:0;z-index:20;margin:0 -16px 18px;padding:calc(12px + env(safe-area-inset-top)) 18px 12px;\n  background:rgba(7,8,18,.76);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);\n  border-bottom:1px solid rgba(255,255,255,.045)}\n.header h1{font-size:25px;letter-spacing:-.6px}\n\n.premium-hero{position:relative;overflow:hidden;padding:23px;border-radius:31px;background:\n  linear-gradient(145deg,rgba(97,59,210,.98),rgba(38,28,88,.98) 60%,rgba(19,70,70,.94));\n  border:1px solid rgba(177,151,255,.28);box-shadow:0 28px 70px rgba(43,24,104,.38)}\n.premium-hero-glow{position:absolute;width:270px;height:270px;border-radius:50%;right:-105px;top:-140px;\n  background:radial-gradient(circle,rgba(255,255,255,.24),transparent 66%)}\n.premium-hero-top,.premium-hero-bottom{position:relative;z-index:1}\n.premium-hero-top{display:flex;justify-content:space-between;align-items:flex-start;gap:14px}\n.premium-eyebrow{font-size:9px;letter-spacing:1.35px;font-weight:850;color:rgba(255,255,255,.66)}\n.premium-hero-top>div:first-child>strong{display:block;font-size:45px;margin-top:8px;letter-spacing:-1.5px}\n.premium-hero-top p{font-size:11px;color:rgba(255,255,255,.68);margin:6px 0 0}\n.premium-score{width:83px;height:83px;border-radius:27px;background:rgba(255,255,255,.11);border:1px solid rgba(255,255,255,.13);\n  display:grid;place-items:center;align-content:center;text-align:center;backdrop-filter:blur(15px)}\n.premium-score span{font-size:9px;color:rgba(255,255,255,.63)}.premium-score strong{font-size:20px;margin-top:4px}\n.premium-hero-bottom{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:23px}\n.premium-hero-bottom>div{padding:11px;border-radius:16px;background:rgba(255,255,255,.075);border:1px solid rgba(255,255,255,.08)}\n.premium-hero-bottom span,.premium-hero-bottom b{display:block}.premium-hero-bottom span{font-size:8px;color:rgba(255,255,255,.58);text-transform:uppercase}\n.premium-hero-bottom b{font-size:14px;margin-top:4px}\n\n.period-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:12px}\n.period-summary article{padding:14px 11px;border-radius:20px;background:linear-gradient(145deg,#151727,#111321);border:1px solid var(--line)}\n.period-summary span,.period-summary strong,.period-summary small{display:block}\n.period-summary span{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}\n.period-summary strong{font-size:18px;margin-top:6px}.period-summary small{font-size:8px;color:var(--muted);margin-top:2px}\n.period-summary article:first-child strong{color:var(--green)}\n\n.finance-chart-card{margin-top:12px;padding:17px;border-radius:23px;background:linear-gradient(145deg,#141625,#10121f);\n  border:1px solid var(--line);box-shadow:var(--shadow)}\n.chart-card-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}\n.chart-card-heading span{font-size:8px;color:var(--purple-2);font-weight:850;letter-spacing:1px}\n.chart-card-heading h3{font-size:15px;margin:4px 0 0}.chart-card-heading>strong{font-size:10px;color:var(--green);\n  padding:6px 8px;border-radius:999px;background:rgba(63,230,162,.09)}\n.svg-chart{height:150px;margin-top:14px}.svg-chart svg{width:100%;height:100%;overflow:visible}\n.wealth-area{fill:url(#wealthGradient)}.wealth-line{fill:none;stroke:#9d7cff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;\n  filter:drop-shadow(0 4px 8px rgba(139,92,246,.35));stroke-dasharray:500;stroke-dashoffset:500;animation:drawChart 1.1s ease forwards}\n.wealth-point{fill:#10121f;stroke:#c2adff;stroke-width:3;opacity:0;animation:pointIn .3s ease forwards}\n.chart-grid-line{stroke:rgba(255,255,255,.055);stroke-width:1}\n.chart-labels{display:grid;grid-template-columns:repeat(6,1fr);margin-top:5px;color:var(--muted);font-size:8px;text-align:center}\n\n.finance-chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}\n.finance-chart-card.compact{min-width:0}\n.bar-chart{height:145px;display:flex;align-items:flex-end;justify-content:space-between;gap:5px;padding-top:14px}\n.week-bar-column{height:100%;flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:6px}\n.week-bar-track{height:105px;width:100%;max-width:24px;border-radius:9px;background:rgba(255,255,255,.045);display:flex;align-items:flex-end;overflow:hidden}\n.week-bar-fill{width:100%;height:0;border-radius:9px;background:linear-gradient(180deg,#9b7cff,#5aa7ff);transition:height .7s cubic-bezier(.2,.8,.2,1)}\n.week-bar-column.today .week-bar-fill{background:linear-gradient(180deg,#54efb3,#22b98a)}\n.week-bar-column span{font-size:8px;color:var(--muted)}.week-bar-column b{font-size:7px;color:#c6c8d3;white-space:nowrap}\n\n.donut-wrap{display:flex;align-items:center;gap:13px;margin-top:16px}\n.money-donut{width:105px;height:105px;border-radius:50%;display:grid;place-items:center;position:relative;flex:none;\n  background:conic-gradient(var(--purple) 0 0%,#f06dad 0 0%,var(--blue) 0 0%,var(--green) 0 100%)}\n.money-donut:after{content:\"\";position:absolute;inset:16px;border-radius:50%;background:#121421;box-shadow:inset 0 0 0 1px var(--line)}\n.money-donut span{position:relative;z-index:1;font-size:14px;font-weight:850}\n.donut-legend{display:grid;gap:8px;flex:1}.donut-legend span{display:flex;align-items:center;gap:6px;font-size:8px;color:var(--muted)}\n.donut-legend b{margin-left:auto;color:var(--ink)}.donut-dot{width:7px;height:7px;border-radius:50%}\n.donut-dot.bills{background:var(--purple)}.donut-dot.expenses{background:#f06dad}\n.donut-dot.vault{background:var(--blue)}.donut-dot.free{background:var(--green)}\n\n.bill-card{transition:transform .18s ease,border-color .18s ease}.bill-card:active{transform:scale(.985)}\n.bill-illustration{font-family:-apple-system,BlinkMacSystemFont,sans-serif}\n.bottom-nav{background:rgba(18,20,34,.84);border-color:rgba(255,255,255,.1);box-shadow:0 25px 65px rgba(0,0,0,.58)}\n.nav-item.active{background:linear-gradient(145deg,rgba(122,82,235,.42),rgba(56,39,125,.48));box-shadow:inset 0 0 0 1px rgba(180,155,255,.22),0 8px 20px rgba(64,36,137,.16)}\n\n.calendar-day:not(.blank){cursor:pointer}.calendar-day:not(.blank):active{transform:scale(.94)}\n.day-details-panel{background:#111321;border:1px solid var(--line);border-radius:28px;padding:18px;color:var(--ink);max-height:86vh;overflow:auto}\n.day-details-summary{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:17px}\n.day-details-summary article{padding:13px;border-radius:17px;background:#181a2b;border:1px solid var(--line)}\n.day-details-summary span{display:block;color:var(--muted);font-size:9px;text-transform:uppercase}\n.day-details-summary strong{display:block;font-size:17px;margin-top:5px}\n.day-details-summary .income strong{color:var(--green)}.day-details-summary .expense strong{color:#ff8ebd}\n.day-details-summary .bills strong{color:var(--purple-2)}.day-details-summary .vault strong{color:var(--blue)}\n.day-net-card{margin-top:9px;padding:15px;border-radius:18px;background:rgba(63,230,162,.08);border:1px solid rgba(63,230,162,.16);\n  display:flex;justify-content:space-between;align-items:center}\n.day-net-card span{font-size:10px;color:var(--muted)}.day-net-card strong{font-size:21px;color:var(--green)}\n.day-net-card.negative{background:rgba(255,112,132,.08);border-color:rgba(255,112,132,.16)}\n.day-net-card.negative strong{color:var(--red)}\n.day-details-list{display:grid;gap:7px;margin-top:12px}\n.day-detail-item{padding:11px 12px;border-radius:15px;background:#181a29;border:1px solid var(--line);display:flex;justify-content:space-between;gap:9px}\n.day-detail-item b,.day-detail-item small{display:block}.day-detail-item small{font-size:9px;color:var(--muted);margin-top:3px}\n.day-detail-item strong.income{color:var(--green)}.day-detail-item strong.expense{color:#ff8ebd}\n.day-detail-item strong.bills{color:var(--purple-2)}.day-detail-item strong.vault{color:var(--blue)}\n\n@keyframes drawChart{to{stroke-dashoffset:0}}\n@keyframes pointIn{to{opacity:1}}\n@media(max-width:520px){\n  .premium-hero-top>div:first-child>strong{font-size:39px}\n  .finance-chart-grid{grid-template-columns:1fr}\n  .finance-chart-card.compact{min-height:205px}\n  .bar-chart{height:130px}\n}\n\n.expense-icon.casa{background:rgba(90,167,255,.13)}\n.expense-icon.carro{background:rgba(255,189,92,.13)}\n.expense-icon.saude{background:rgba(255,112,132,.12)}\n\n\n/* ===== Central de atualizações 1.1.1 ===== */\n.updates-action{position:relative}\n.updates-version-badge{margin-left:auto;padding:5px 8px;border-radius:999px;background:rgba(90,167,255,.12);\n  color:var(--blue);font-size:9px;font-weight:850}\n.updates-dialog{width:min(94vw,680px);max-height:92vh}\n.updates-panel{background:#10121f;border:1px solid var(--line);border-radius:29px;padding:19px;color:var(--ink);\n  max-height:90vh;overflow:auto;box-shadow:0 32px 90px rgba(0,0,0,.52)}\n.updates-header{display:flex;justify-content:space-between;align-items:flex-start;gap:14px}\n.updates-header h2{font-size:25px;margin:5px 0 4px}.updates-header p{font-size:11px;color:var(--muted);margin:0}\n.current-version-card{display:flex;align-items:center;gap:12px;margin-top:18px;padding:15px;border-radius:21px;\n  background:linear-gradient(145deg,rgba(91,67,184,.22),rgba(20,24,42,.92));border:1px solid rgba(151,124,255,.2)}\n.version-orb{width:55px;height:55px;border-radius:18px;display:grid;place-items:center;background:linear-gradient(145deg,#8b5cf6,#4c6fff);\n  color:#fff;font-size:14px;font-weight:900;box-shadow:0 12px 25px rgba(94,70,197,.28)}\n.current-version-card>div:nth-child(2){min-width:0;flex:1}\n.current-version-card span,.current-version-card strong,.current-version-card small{display:block}\n.current-version-card>div:nth-child(2)>span{font-size:8px;letter-spacing:.8px;color:var(--muted)}\n.current-version-card strong{font-size:15px;margin-top:4px}.current-version-card small{font-size:9px;color:var(--muted);margin-top:3px}\n.version-status{padding:6px 8px;border-radius:999px;background:rgba(63,230,162,.1);color:var(--green);font-size:9px;font-weight:850}\n.updates-timeline{position:relative;margin-top:17px}\n.updates-timeline:before{content:\"\";position:absolute;left:7px;top:10px;bottom:10px;width:1px;background:rgba(255,255,255,.08)}\n.update-entry{position:relative;display:grid;grid-template-columns:16px 1fr;gap:10px;padding-bottom:14px}\n.update-entry:last-child{padding-bottom:0}.update-marker{width:15px;height:15px;border-radius:50%;background:#25283d;border:3px solid #10121f;\n  box-shadow:0 0 0 1px rgba(255,255,255,.11);z-index:1;margin-top:4px}\n.update-entry.latest .update-marker{background:var(--green);box-shadow:0 0 0 1px rgba(63,230,162,.2),0 0 18px rgba(63,230,162,.25)}\n.update-content{padding:14px;border-radius:18px;background:#171927;border:1px solid var(--line)}\n.update-entry.latest .update-content{border-color:rgba(63,230,162,.18);background:linear-gradient(145deg,rgba(63,230,162,.065),#171927)}\n.update-entry-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}\n.update-entry-head span,.update-entry-head strong{display:block}.update-entry-head span{font-size:9px;color:var(--purple-2);font-weight:850}\n.update-entry-head strong{font-size:14px;margin-top:3px}.update-entry-head>small{font-size:8px;color:var(--muted);white-space:nowrap}\n.update-content ul{margin:11px 0 0;padding-left:16px;color:#c6c8d3}.update-content li{font-size:10px;line-height:1.55;margin:4px 0}\n.update-content li::marker{color:var(--purple-2)}\n.updates-footer-note{font-size:9px;color:var(--muted);text-align:center;line-height:1.45;margin:15px 4px 1px}\n";
+    document.head.appendChild(style);
+  }
+})();
+
+
 const cfg=window.APP_CONFIG||{};
 const sb=supabase.createClient(cfg.SUPABASE_URL,cfg.SUPABASE_ANON_KEY);
 const $=id=>document.getElementById(id);
@@ -290,6 +465,143 @@ function render(){
 
 
 
+
+function startOfWeek(date=new Date()){
+  const d=new Date(date);d.setHours(12,0,0,0);
+  const day=(d.getDay()+6)%7;
+  d.setDate(d.getDate()-day);
+  return d;
+}
+function dateKeyFromDate(d){
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+}
+function currentWeekItems(items){
+  const start=startOfWeek(),end=new Date(start);end.setDate(end.getDate()+7);
+  return (items||[]).filter(x=>{
+    if(!x.date)return false;
+    const d=new Date(x.date+"T12:00:00");
+    return d>=start&&d<end;
+  });
+}
+function monthKeyFromDateValue(value){
+  const d=new Date(value.includes("T")?value:value+"T12:00:00");
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
+}
+function lastMonths(count=6){
+  const result=[],now=new Date();
+  for(let i=count-1;i>=0;i--){
+    const d=new Date(now.getFullYear(),now.getMonth()-i,1,12);
+    result.push({
+      key:`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`,
+      label:new Intl.DateTimeFormat("pt-BR",{month:"short"}).format(d).replace(".","")
+    });
+  }
+  return result;
+}
+function billPaymentsForMonth(key){
+  return (state.history||[]).filter(h=>h.type==="bill_payment"&&monthKeyFromDateValue(h.date)===key)
+    .reduce((s,h)=>s+Number(h.amount||0),0);
+}
+function monthlyFinancialSeries(){
+  return lastMonths(6).map(m=>{
+    const income=(state.incomes||[]).filter(x=>monthKeyFromDateValue(x.date)===m.key).reduce((s,x)=>s+Number(x.amount||0),0);
+    const expenses=(state.expenses||[]).filter(x=>monthKeyFromDateValue(x.date)===m.key).reduce((s,x)=>s+Number(x.amount||0),0);
+    const vault=(state.vaultEntries||[]).filter(x=>monthKeyFromDateValue(x.date)===m.key).reduce((s,x)=>s+Number(x.amount||0),0);
+    const bills=billPaymentsForMonth(m.key);
+    return {...m,income,expenses,vault,bills,wealth:income-expenses-bills};
+  });
+}
+function renderWealthChart(series){
+  const el=$("wealthChart"),labels=$("wealthChartLabels");
+  if(!el||!labels)return;
+  const values=series.map(x=>x.wealth);
+  const min=Math.min(0,...values),max=Math.max(1,...values);
+  const width=600,height=150,pad=12,range=Math.max(1,max-min);
+  const points=values.map((v,i)=>{
+    const x=pad+i*((width-pad*2)/Math.max(1,values.length-1));
+    const y=height-pad-((v-min)/range)*(height-pad*2);
+    return {x,y,v};
+  });
+  const line=points.map(p=>`${p.x},${p.y}`).join(" ");
+  const area=`${points[0].x},${height-pad} ${line} ${points[points.length-1].x},${height-pad}`;
+  const grid=[.25,.5,.75].map(n=>`<line class="chart-grid-line" x1="0" x2="${width}" y1="${height*n}" y2="${height*n}"/>`).join("");
+  const circles=points.map((p,i)=>`<circle class="wealth-point" style="animation-delay:${.55+i*.08}s" cx="${p.x}" cy="${p.y}" r="4"><title>${series[i].label}: ${money(p.v)}</title></circle>`).join("");
+  el.innerHTML=`<svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="none">
+    <defs><linearGradient id="wealthGradient" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#8b5cf6" stop-opacity=".32"/>
+      <stop offset="100%" stop-color="#8b5cf6" stop-opacity="0"/>
+    </linearGradient></defs>
+    ${grid}<polygon class="wealth-area" points="${area}"/><polyline class="wealth-line" points="${line}"/>${circles}
+  </svg>`;
+  labels.innerHTML=series.map(x=>`<span>${x.label}</span>`).join("");
+  const first=values[0]||0,last=values[values.length-1]||0;
+  const diff=last-first;
+  $("trendBadge").textContent=diff===0?"Estável":`${diff>0?"↑":"↓"} ${money(Math.abs(diff))}`;
+  $("trendBadge").style.color=diff>=0?"var(--green)":"var(--red)";
+}
+function renderWeeklyIncomeChart(){
+  const start=startOfWeek(),names=["Seg","Ter","Qua","Qui","Sex","Sáb","Dom"],today=currentLocalDate();
+  const values=[];
+  for(let i=0;i<7;i++){
+    const d=new Date(start);d.setDate(start.getDate()+i);
+    const key=dateKeyFromDate(d);
+    const value=(state.incomes||[]).filter(x=>x.date===key).reduce((s,x)=>s+Number(x.amount||0),0);
+    values.push({key,label:names[i],value});
+  }
+  const max=Math.max(1,...values.map(x=>x.value));
+  $("weeklyIncomeChart").innerHTML=values.map(x=>`
+    <div class="week-bar-column ${x.key===today?"today":""}">
+      <b>${x.value?money(x.value):"--"}</b>
+      <div class="week-bar-track"><i class="week-bar-fill" data-height="${Math.max(x.value?8:0,(x.value/max)*100)}"></i></div>
+      <span>${x.label}</span>
+    </div>`).join("");
+  requestAnimationFrame(()=>document.querySelectorAll(".week-bar-fill").forEach(x=>x.style.height=x.dataset.height+"%"));
+}
+function renderMoneyDonut(bills,expenses,vault,free,income){
+  const total=Math.max(income,bills+expenses+vault+Math.max(0,free),.01);
+  const bp=Math.max(0,bills/total*100),ep=Math.max(0,expenses/total*100),vp=Math.max(0,vault/total*100),fp=Math.max(0,100-bp-ep-vp);
+  const bEnd=bp,eEnd=bEnd+ep,vEnd=eEnd+vp;
+  $("moneyDonut").style.background=`conic-gradient(
+    var(--purple) 0 ${bEnd}%,
+    #f06dad ${bEnd}% ${eEnd}%,
+    var(--blue) ${eEnd}% ${vEnd}%,
+    var(--green) ${vEnd}% 100%)`;
+  $("donutCenter").textContent=money(total).replace(",00","");
+  $("donutBills").textContent=bp.toFixed(0)+"%";
+  $("donutExpenses").textContent=ep.toFixed(0)+"%";
+  $("donutVault").textContent=vp.toFixed(0)+"%";
+  $("donutFree").textContent=fp.toFixed(0)+"%";
+}
+function showDayDetails(key){
+  const incomeItems=(state.incomes||[]).filter(x=>x.date===key);
+  const expenseItems=(state.expenses||[]).filter(x=>x.date===key);
+  const vaultItems=(state.vaultEntries||[]).filter(x=>x.date===key);
+  const billItems=(state.history||[]).filter(x=>x.type==="bill_payment"&&localDateKey(x.date)===key);
+  const deposits=(state.history||[]).filter(x=>x.type!=="bill_payment"&&x.date&&localDateKey(x.date)===key&&((Number(x.cash)||0)+(Number(x.card)||0)>0));
+  const income=sumItems(incomeItems),expenses=sumItems(expenseItems),vault=sumItems(vaultItems);
+  const bills=billItems.reduce((s,x)=>s+Number(x.amount||0),0);
+  const net=income-expenses-bills-vault;
+  const date=new Date(key+"T12:00:00");
+  $("dayDetailsTitle").textContent=new Intl.DateTimeFormat("pt-BR",{weekday:"long",day:"numeric",month:"long"}).format(date);
+  $("dayDetailIncome").textContent=money(income);
+  $("dayDetailExpenses").textContent=money(expenses);
+  $("dayDetailBills").textContent=money(bills);
+  $("dayDetailVault").textContent=money(vault);
+  $("dayDetailNet").textContent=money(net);
+  $("dayDetailNet").closest(".day-net-card").classList.toggle("negative",net<0);
+  const rows=[
+    ...incomeItems.map(x=>({label:x.description||"Receita",sub:"Receita",amount:x.amount,type:"income",sign:"+"})),
+    ...expenseItems.map(x=>({label:x.description||expenseNames[x.category]||"Gasto",sub:expenseNames[x.category]||"Gasto",amount:x.amount,type:"expense",sign:"−"})),
+    ...billItems.map(x=>({label:x.bill||x.text||"Bill paga",sub:"Bill paga",amount:x.amount,type:"bills",sign:"−"})),
+    ...vaultItems.map(x=>({label:x.description||"Cofre",sub:(x.location||"envelope")==="card"?"Cofre · Cartão":"Cofre · Envelope",amount:x.amount,type:"vault",sign:"−"})),
+    ...deposits.map(x=>({label:x.text||x.label||"Depósito para Bills",sub:"Reserva para Bills",amount:(Number(x.cash)||0)+(Number(x.card)||0),type:"bills",sign:""}))
+  ];
+  $("dayDetailsList").innerHTML=rows.length?rows.map(x=>`<article class="day-detail-item">
+    <div><b>${x.label}</b><small>${x.sub}</small></div><strong class="${x.type}">${x.sign}${money(x.amount)}</strong>
+  </article>`).join(""):'<div class="empty-state">Nenhuma movimentação neste dia.</div>';
+  $("dayDetailsDialog").showModal();
+}
+
 function isInCurrentMonth(dateValue){
   const d=new Date(`${dateValue}T12:00:00`),now=new Date();
   return d.getFullYear()===now.getFullYear()&&d.getMonth()===now.getMonth();
@@ -311,6 +623,7 @@ function renderOverview(){
   const vaultMonth=currentMonthItems(state.vaultEntries);
 
   const income=sumItems(incomeMonth);
+  const weekIncome=sumItems(currentWeekItems(state.incomes));
   const expenses=sumItems(expensesMonth);
   const vault=sumItems(vaultMonth);
   const vaultEnvelope=sumItems(vaultMonth.filter(x=>(x.location||"envelope")==="envelope"));
@@ -331,6 +644,18 @@ function renderOverview(){
   const safeIncome=Math.max(income,0.0001);
   const usedPct=income>0?Math.min(100,allocated/income*100):0;
   const freePct=income>0?Math.max(0,Math.min(100,free/income*100)):0;
+
+  const patrimony=Math.max(0,free)+vault;
+  const savingsRate=income>0?Math.max(0,Math.min(100,(vault+Math.max(0,free))/income*100)):0;
+  $("premiumNetWorth").textContent=money(patrimony);
+  $("premiumSavingsRate").textContent=savingsRate.toFixed(0)+"%";
+  $("premiumIncome").textContent=money(income);
+  $("premiumCommitted").textContent=money(bills+expenses);
+  $("premiumProtected").textContent=money(vault);
+  $("premiumHeroCaption").textContent=income>0?`Vocês preservaram ${savingsRate.toFixed(0)}% do que receberam.`:"Registre as receitas para acompanhar o patrimônio.";
+  $("periodTodayIncome").textContent=money(todayIncome);
+  $("periodWeekIncome").textContent=money(weekIncome);
+  $("periodMonthIncome").textContent=money(income);
 
   $("overviewTodayIncome").textContent=money(todayIncome);
   $("overviewTodayExpenses").textContent=money(todayExpenses);
@@ -365,6 +690,9 @@ function renderOverview(){
   $("legendExpensesPct").textContent=expPct.toFixed(1).replace(".",",")+"%";
   $("legendVaultPct").textContent=vaultPct.toFixed(1).replace(".",",")+"%";
   $("legendFreePct").textContent=unallocatedPct.toFixed(1).replace(".",",")+"%";
+  renderWealthChart(monthlyFinancialSeries());
+  renderWeeklyIncomeChart();
+  renderMoneyDonut(bills,expenses,vault,free,income);
 
   if(income<=0)$("overviewStatus").textContent="Adicione a primeira receita para calcular o saldo.";
   else if(free<0)$("overviewStatus").textContent=`Vocês comprometeram ${money(Math.abs(free))} acima das receitas registradas.`;
@@ -397,8 +725,8 @@ async function deleteIncome(id){
   await persist("Receita excluída");
 }
 
-const expenseIcons={gasolina:"⛽",mercado:"🛒",lanche:"🍔",lazer:"🎮",outros:"🧾"};
-const expenseNames={gasolina:"Gasolina",mercado:"Mercado",lanche:"Lanche",lazer:"Lazer",outros:"Outros"};
+const expenseIcons={gasolina:"⛽",mercado:"🛒",lanche:"🍔",lazer:"🎮",casa:"⌂",carro:"🚘",saude:"✚",outros:"🧾"};
+const expenseNames={gasolina:"Combustível",mercado:"Mercado",lanche:"Alimentação",lazer:"Lazer",casa:"Casa",carro:"Carro",saude:"Saúde",outros:"Outros"};
 
 function currentLocalDate(){
   const d=new Date();
@@ -414,7 +742,7 @@ function renderExpenses(){
   });
   const total=monthItems.reduce((s,x)=>s+Number(x.amount||0),0);
   $("expenseMonthTotal").textContent=money(total);
-  const cats={gasolina:0,mercado:0,lanche:0,lazer:0,outros:0};
+  const cats={gasolina:0,mercado:0,lanche:0,lazer:0,casa:0,carro:0,saude:0,outros:0};
   monthItems.forEach(x=>cats[x.category]=(cats[x.category]||0)+Number(x.amount||0));
   $("expenseCategoryStrip").innerHTML=Object.entries(cats).filter(([,v])=>v>0)
     .map(([k,v])=>`<span class="category-pill">${expenseIcons[k]} ${expenseNames[k]} <b>${money(v)}</b></span>`).join("")
@@ -562,6 +890,11 @@ $("openCompletedBills").onclick=()=>{
 $("closeCompletedBills").onclick=()=>$("completedBillsDialog").close();
 
 
+$("openUpdatesPanel").onclick=()=>{
+  $("settingsSheet").classList.add("hidden");
+  $("updatesDialog").showModal();
+};
+$("closeUpdatesPanel").onclick=()=>$("updatesDialog").close();
 $("openAdminPanel").onclick=openAdminPanel;
 $("closeAdminPanel").onclick=()=>$("adminDialog").close();
 $("saveAdminSettings").onclick=async()=>{
@@ -623,8 +956,9 @@ function renderCalendar(){
     cell.className=`calendar-day${amount>0?(met?" goal":" partial"):""}${key===todayKey?" today":""}`;
     cell.innerHTML=`<span class="calendar-day-number">${day}</span>
       ${met?'<span class="calendar-goal-check">✓</span>':""}
-      <span class="calendar-day-amount">${amount>0?money(amount):"—"}</span>`;
+      <span class="calendar-day-amount">${amount>0?money(amount):"--"}</span>`;
     cell.title=amount>0?`${money(amount)} depositados`:"Nenhum depósito";
+    cell.onclick=()=>showDayDetails(key);
     grid.appendChild(cell);
   }
   $("calendarMonthTotal").textContent=money(monthTotal);
