@@ -121,13 +121,13 @@
           </div>
           <section class="current-version-card">
             <div class="version-orb">1.1.2</div>
-            <div><span>VERSÃO INSTALADA</span><strong>Nosso Controle 1.1.3</strong><small>Build de 03/08/2026 · correção de login</small></div>
+            <div><span>VERSÃO INSTALADA</span><strong>Nosso Controle 1.1.4</strong><small>Build de 03/08/2026 · correção de login</small></div>
             <span class="version-status">Atual</span>
           </section>
           <section class="updates-timeline">
             <article class="update-entry latest">
               <div class="update-marker"></div><div class="update-content">
-                <div class="update-entry-head"><div><span>Versão 1.1.3</span><strong>Central de atualizações</strong></div><small>03/08/2026</small></div>
+                <div class="update-entry-head"><div><span>Versão 1.1.4</span><strong>Central de atualizações</strong></div><small>03/08/2026</small></div>
                 <ul><li>Nova área <b>Atualizações</b> no menu de três pontos.</li><li>Versão instalada e histórico de mudanças.</li><li>Fluxo preparado para atualização pelo iPhone.</li></ul>
               </div>
             </article>
@@ -1278,7 +1278,7 @@ boot();
           <div class="version-orb">1.1.3</div>
           <div>
             <span>VERSÃO INSTALADA</span>
-            <strong>Nosso Controle 1.1.3</strong>
+            <strong>Nosso Controle 1.1.4</strong>
             <small>Correção do menu e gerenciamento de dados</small>
           </div>
           <span class="version-status">Atual</span>
@@ -1289,7 +1289,7 @@ boot();
             <div class="update-marker"></div>
             <div class="update-content">
               <div class="update-entry-head">
-                <div><span>Versão 1.1.3</span><strong>Menu e manutenção</strong></div>
+                <div><span>Versão 1.1.4</span><strong>Menu e manutenção</strong></div>
                 <small>03/08/2026</small>
               </div>
               <ul>
@@ -1541,4 +1541,403 @@ boot();
   window.addEventListener("pageshow",bindMenu);
   setTimeout(bindMenu,300);
   setTimeout(bindMenu,1200);
+})();
+
+
+/* =========================================================
+   NOSSO CONTROLE 1.1.4 -- LAYOUT COMPACTO
+   ========================================================= */
+(function installCompactLayout(){
+  const style=document.createElement("style");
+  style.id="compactLayoutStyles";
+  style.textContent=`
+    :root{
+      --compact-radius:18px;
+      --compact-gap:9px;
+    }
+
+    body{
+      font-size:14px;
+    }
+
+    .app{
+      max-width:720px;
+      padding-left:12px;
+      padding-right:12px;
+    }
+
+    .header{
+      margin-left:-12px;
+      margin-right:-12px;
+      padding-left:14px;
+      padding-right:14px;
+      padding-bottom:8px;
+    }
+
+    .header h1{
+      font-size:20px;
+      letter-spacing:-.35px;
+    }
+
+    .header p,
+    .section-heading p{
+      font-size:10px;
+    }
+
+    .app-section{
+      gap:9px;
+    }
+
+    .premium-hero{
+      padding:17px;
+      border-radius:23px;
+    }
+
+    .premium-hero-top>div:first-child>strong{
+      font-size:34px;
+      margin-top:5px;
+    }
+
+    .premium-hero-top p{
+      font-size:9px;
+      margin-top:4px;
+    }
+
+    .premium-score{
+      width:65px;
+      height:65px;
+      border-radius:20px;
+    }
+
+    .premium-score strong{
+      font-size:16px;
+    }
+
+    .premium-hero-bottom{
+      gap:6px;
+      margin-top:15px;
+    }
+
+    .premium-hero-bottom>div{
+      padding:8px;
+      border-radius:13px;
+    }
+
+    .premium-hero-bottom b{
+      font-size:12px;
+    }
+
+    .period-summary{
+      gap:7px;
+      margin-top:8px;
+    }
+
+    .period-summary article{
+      padding:10px 8px;
+      border-radius:15px;
+    }
+
+    .period-summary strong{
+      font-size:15px;
+      margin-top:4px;
+    }
+
+    .finance-chart-card{
+      padding:13px;
+      border-radius:18px;
+      margin-top:8px;
+    }
+
+    .chart-card-heading h3{
+      font-size:13px;
+    }
+
+    .svg-chart{
+      height:105px;
+      margin-top:9px;
+    }
+
+    .bar-chart{
+      height:110px;
+      padding-top:8px;
+    }
+
+    .week-bar-track{
+      height:76px;
+    }
+
+    .donut-wrap{
+      margin-top:10px;
+      gap:9px;
+    }
+
+    .money-donut{
+      width:80px;
+      height:80px;
+    }
+
+    .money-donut:after{
+      inset:12px;
+    }
+
+    .money-donut span{
+      font-size:11px;
+    }
+
+    .donut-legend{
+      gap:6px;
+    }
+
+    .summary-grid,
+    .overview-grid,
+    .quick-actions,
+    .finance-chart-grid{
+      gap:8px;
+    }
+
+    .summary-card,
+    .overview-card,
+    .quick-action,
+    .bill-card,
+    .expense-card,
+    .vault-card,
+    .income-card{
+      border-radius:18px;
+      padding:13px;
+    }
+
+    .summary-card strong,
+    .overview-card strong{
+      font-size:20px;
+    }
+
+    .quick-action{
+      min-height:auto;
+    }
+
+    .quick-action h3{
+      font-size:14px;
+    }
+
+    .quick-action p{
+      font-size:9px;
+    }
+
+    .section-heading{
+      margin-top:15px;
+      margin-bottom:7px;
+    }
+
+    .section-heading h2{
+      font-size:20px;
+    }
+
+    .bill-card{
+      display:grid;
+      gap:9px;
+    }
+
+    .bill-card h3{
+      font-size:17px;
+    }
+
+    .bill-card .bill-amount,
+    .bill-card .reserved-amount{
+      font-size:20px;
+    }
+
+    .bill-card button,
+    .primary-button,
+    .secondary-button,
+    .danger-button{
+      padding:10px 12px;
+      min-height:40px;
+      border-radius:13px;
+      font-size:12px;
+    }
+
+    .bill-actions{
+      gap:7px;
+    }
+
+    .status-badge,
+    .days-badge{
+      padding:5px 8px;
+      font-size:9px;
+    }
+
+    .bottom-nav{
+      padding:7px;
+      border-radius:22px;
+    }
+
+    .nav-item{
+      padding:8px 5px;
+      border-radius:16px;
+    }
+
+    .nav-item span{
+      font-size:9px;
+    }
+
+    dialog{
+      width:min(94vw,620px);
+    }
+
+    .updates-panel,
+    .day-details-panel,
+    .admin-panel,
+    .calendar-panel{
+      padding:15px;
+      border-radius:22px;
+    }
+
+    .updates-header h2,
+    .calendar-top h2{
+      font-size:21px;
+    }
+
+    .current-version-card{
+      padding:12px;
+      border-radius:17px;
+    }
+
+    .version-orb{
+      width:45px;
+      height:45px;
+      border-radius:14px;
+      font-size:12px;
+    }
+
+    .update-content{
+      padding:11px;
+      border-radius:15px;
+    }
+
+    .update-content li{
+      font-size:9px;
+      line-height:1.45;
+    }
+
+    .day-details-summary{
+      gap:6px;
+      margin-top:12px;
+    }
+
+    .day-details-summary article{
+      padding:10px;
+      border-radius:14px;
+    }
+
+    .day-details-summary strong{
+      font-size:15px;
+    }
+
+    .calendar-grid{
+      gap:4px;
+    }
+
+    .calendar-day{
+      min-height:43px;
+      border-radius:11px;
+      font-size:10px;
+    }
+
+    .calendar-day strong{
+      font-size:10px;
+    }
+
+    .calendar-day small{
+      font-size:7px;
+    }
+
+    .modal-card,
+    .form-card{
+      padding:14px;
+      border-radius:19px;
+    }
+
+    input,
+    select,
+    textarea{
+      min-height:42px;
+      padding:10px 12px;
+      border-radius:13px;
+      font-size:14px;
+    }
+
+    .settings-sheet-content{
+      max-width:520px;
+      border-radius:23px 23px 0 0;
+      padding:14px;
+    }
+
+    .sheet-action{
+      padding:11px;
+      border-radius:15px;
+    }
+
+    .sheet-action b{
+      font-size:13px;
+    }
+
+    .sheet-action small{
+      font-size:9px;
+    }
+
+    @media(max-width:520px){
+      .premium-hero-top>div:first-child>strong{
+        font-size:31px;
+      }
+
+      .finance-chart-grid{
+        grid-template-columns:1fr 1fr;
+      }
+
+      .finance-chart-card.compact{
+        min-height:auto;
+      }
+
+      .donut-wrap{
+        align-items:flex-start;
+      }
+
+      .summary-grid,
+      .overview-grid{
+        grid-template-columns:1fr 1fr;
+      }
+
+      .bill-card{
+        padding:12px;
+      }
+    }
+
+    @media(max-width:390px){
+      .finance-chart-grid{
+        grid-template-columns:1fr;
+      }
+
+      .premium-hero-bottom{
+        grid-template-columns:1fr 1fr 1fr;
+      }
+
+      .premium-hero-bottom span{
+        font-size:7px;
+      }
+
+      .premium-hero-bottom b{
+        font-size:10px;
+      }
+    }
+  `;
+  document.head.appendChild(style);
+
+  const versionBadges=document.querySelectorAll(".updates-version-badge,.version-orb");
+  versionBadges.forEach(x=>{
+    if(x.textContent.trim()==="1.1.3")x.textContent="1.1.4";
+  });
+
+  document.querySelectorAll(".current-version-card strong").forEach(x=>{
+    if(x.textContent.includes("1.1.3"))x.textContent="Nosso Controle 1.1.4";
+  });
 })();
