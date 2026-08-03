@@ -121,13 +121,13 @@
           </div>
           <section class="current-version-card">
             <div class="version-orb">1.1.2</div>
-            <div><span>VERSÃO INSTALADA</span><strong>Nosso Controle 1.1.4</strong><small>Build de 03/08/2026 · correção de login</small></div>
+            <div><span>VERSÃO INSTALADA</span><strong>Nosso Controle 1.1.5</strong><small>Build de 03/08/2026 · correção de login</small></div>
             <span class="version-status">Atual</span>
           </section>
           <section class="updates-timeline">
             <article class="update-entry latest">
               <div class="update-marker"></div><div class="update-content">
-                <div class="update-entry-head"><div><span>Versão 1.1.4</span><strong>Central de atualizações</strong></div><small>03/08/2026</small></div>
+                <div class="update-entry-head"><div><span>Versão 1.1.5</span><strong>Central de atualizações</strong></div><small>03/08/2026</small></div>
                 <ul><li>Nova área <b>Atualizações</b> no menu de três pontos.</li><li>Versão instalada e histórico de mudanças.</li><li>Fluxo preparado para atualização pelo iPhone.</li></ul>
               </div>
             </article>
@@ -1278,7 +1278,7 @@ boot();
           <div class="version-orb">1.1.3</div>
           <div>
             <span>VERSÃO INSTALADA</span>
-            <strong>Nosso Controle 1.1.4</strong>
+            <strong>Nosso Controle 1.1.5</strong>
             <small>Correção do menu e gerenciamento de dados</small>
           </div>
           <span class="version-status">Atual</span>
@@ -1289,7 +1289,7 @@ boot();
             <div class="update-marker"></div>
             <div class="update-content">
               <div class="update-entry-head">
-                <div><span>Versão 1.1.4</span><strong>Menu e manutenção</strong></div>
+                <div><span>Versão 1.1.5</span><strong>Menu e manutenção</strong></div>
                 <small>03/08/2026</small>
               </div>
               <ul>
@@ -1938,6 +1938,235 @@ boot();
   });
 
   document.querySelectorAll(".current-version-card strong").forEach(x=>{
-    if(x.textContent.includes("1.1.3"))x.textContent="Nosso Controle 1.1.4";
+    if(x.textContent.includes("1.1.3"))x.textContent="Nosso Controle 1.1.5";
+  });
+})();
+
+
+/* =========================================================
+   NOSSO CONTROLE 1.1.5 -- BILLS HORIZONTAIS E COMPACTAS
+   ========================================================= */
+(function installCompactBills(){
+  const style=document.createElement("style");
+  style.id="compactBillsStyles";
+  style.textContent=`
+    .bill-list{
+      gap:7px !important;
+    }
+
+    .bill-group-title{
+      margin:15px 3px 6px !important;
+      min-height:22px;
+    }
+
+    .bill-card{
+      position:relative;
+      padding:11px 12px !important;
+      border-radius:17px !important;
+      box-shadow:0 8px 24px rgba(0,0,0,.16) !important;
+      display:grid !important;
+      grid-template-columns:minmax(0,1fr) auto !important;
+      grid-template-areas:
+        "main actions"
+        "values values"
+        "progress progress"
+        "installment installment" !important;
+      column-gap:9px !important;
+      row-gap:7px !important;
+      min-height:0 !important;
+    }
+
+    .bill-main{
+      grid-area:main;
+      min-width:0;
+      gap:9px !important;
+      align-items:center !important;
+    }
+
+    .bill-illustration{
+      width:39px !important;
+      height:39px !important;
+      border-radius:12px !important;
+      font-size:19px !important;
+    }
+
+    .bill-info{
+      display:grid;
+      grid-template-columns:minmax(0,1fr) auto;
+      grid-template-areas:
+        "name pill"
+        "due due";
+      align-items:center;
+      column-gap:7px;
+    }
+
+    .bill-name{
+      grid-area:name;
+      font-size:14px !important;
+      line-height:1.15;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .bill-due{
+      grid-area:due;
+      font-size:9px !important;
+      margin-top:3px !important;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .bill-frequency-badge{
+      display:none !important;
+    }
+
+    .days-pill{
+      position:absolute;
+      top:10px;
+      right:10px;
+      padding:4px 7px !important;
+      font-size:8px !important;
+      max-width:104px;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .bill-main{
+      padding-right:96px;
+    }
+
+    .bill-values{
+      grid-area:values;
+      display:flex !important;
+      align-items:center;
+      justify-content:flex-start;
+      gap:15px !important;
+      margin-top:0 !important;
+      padding-left:48px;
+    }
+
+    .reserved-box,
+    .remaining-box{
+      display:flex !important;
+      align-items:baseline;
+      gap:5px;
+      padding:0 !important;
+      border:0 !important;
+      background:transparent !important;
+      min-width:0;
+    }
+
+    .bill-values span{
+      font-size:8px !important;
+      letter-spacing:.25px !important;
+      white-space:nowrap;
+    }
+
+    .bill-values b,
+    .reserved-box b,
+    .remaining-box b{
+      font-size:12px !important;
+      margin:0 !important;
+      letter-spacing:0 !important;
+      white-space:nowrap;
+    }
+
+    .bill-progress{
+      grid-area:progress;
+      height:4px !important;
+      margin:0 0 0 48px !important;
+    }
+
+    .installment-progress{
+      grid-area:installment;
+      margin:0 0 0 48px !important;
+      padding-top:2px !important;
+    }
+
+    .installment-progress-head{
+      font-size:8px !important;
+    }
+
+    .installment-progress-track{
+      height:4px !important;
+      margin-top:4px !important;
+    }
+
+    .bill-actions{
+      grid-area:actions;
+      align-self:end;
+      display:flex !important;
+      gap:5px !important;
+      margin:0 !important;
+      padding-top:31px;
+    }
+
+    .small-button{
+      width:35px;
+      height:32px;
+      padding:0 !important;
+      border-radius:10px !important;
+      font-size:0 !important;
+      display:grid;
+      place-items:center;
+    }
+
+    .small-button.edit::before{
+      content:"✎";
+      font-size:15px;
+    }
+
+    .small-button.pay::before{
+      content:"✓";
+      font-size:16px;
+    }
+
+    .small-button.pay{
+      width:39px;
+    }
+
+    @media(max-width:390px){
+      .bill-card{
+        grid-template-columns:minmax(0,1fr) auto !important;
+      }
+
+      .bill-main{
+        padding-right:78px;
+      }
+
+      .days-pill{
+        max-width:86px;
+      }
+
+      .bill-values{
+        gap:10px !important;
+      }
+
+      .bill-values span{
+        display:none !important;
+      }
+
+      .reserved-box::before{
+        content:"Guardado";
+        color:var(--muted);
+        font-size:8px;
+      }
+
+      .remaining-box::before{
+        content:"Falta";
+        color:var(--muted);
+        font-size:8px;
+      }
+    }
+  `;
+  document.head.appendChild(style);
+
+  document.querySelectorAll(".updates-version-badge,.version-orb").forEach(el=>{
+    if(el.textContent.trim()==="1.1.4")el.textContent="1.1.5";
+  });
+  document.querySelectorAll(".current-version-card strong").forEach(el=>{
+    if(el.textContent.includes("1.1.4"))el.textContent="Nosso Controle 1.1.5";
   });
 })();
