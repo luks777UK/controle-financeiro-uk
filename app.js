@@ -77,7 +77,7 @@
       <button id="openUpdatesPanel" class="sheet-action updates-action">
         <span class="sheet-action-icon">↻</span>
         <span><b>Atualizações</b><small>Versão instalada e novidades</small></span>
-        <span class="updates-version-badge">1.1.1</span>
+        <span class="updates-version-badge">1.1.2</span>
       </button>
     `);
   }
@@ -120,14 +120,14 @@
             <button id="closeUpdatesPanel" class="round-button" type="button">×</button>
           </div>
           <section class="current-version-card">
-            <div class="version-orb">1.1.1</div>
-            <div><span>VERSÃO INSTALADA</span><strong>Nosso Controle 1.1.1</strong><small>Build de 03/08/2026</small></div>
+            <div class="version-orb">1.1.2</div>
+            <div><span>VERSÃO INSTALADA</span><strong>Nosso Controle 1.1.2</strong><small>Build de 03/08/2026 · correção de login</small></div>
             <span class="version-status">Atual</span>
           </section>
           <section class="updates-timeline">
             <article class="update-entry latest">
               <div class="update-marker"></div><div class="update-content">
-                <div class="update-entry-head"><div><span>Versão 1.1.1</span><strong>Central de atualizações</strong></div><small>03/08/2026</small></div>
+                <div class="update-entry-head"><div><span>Versão 1.1.2</span><strong>Central de atualizações</strong></div><small>03/08/2026</small></div>
                 <ul><li>Nova área <b>Atualizações</b> no menu de três pontos.</li><li>Versão instalada e histórico de mudanças.</li><li>Fluxo preparado para atualização pelo iPhone.</li></ul>
               </div>
             </article>
@@ -173,7 +173,15 @@
 })();
 
 
-const cfg=window.APP_CONFIG||{};
+const cfg={
+  SUPABASE_URL:"https://lhihsssbsjfliggtlaza.supabase.co",
+  SUPABASE_ANON_KEY:"sb_publishable_0bttyUW7ASI8ylAyZjLkPA_NS8eThfO",
+  ...(window.APP_CONFIG||{})
+};
+if(!cfg.SUPABASE_URL||!cfg.SUPABASE_ANON_KEY){
+  alert("Configuração do Supabase ausente. Atualize o app.js.");
+  throw new Error("Supabase configuration missing");
+}
 const sb=supabase.createClient(cfg.SUPABASE_URL,cfg.SUPABASE_ANON_KEY);
 const $=id=>document.getElementById(id);
 let user=null,householdId=null,householdCode=null,state=null,channel=null;
