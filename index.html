@@ -1,0 +1,581 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#080914">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="styles.css">
+  <title>Nosso Controle</title>
+</head>
+<body>
+  <section id="authView" class="auth-screen">
+    <div class="app-mark">£</div>
+    <h1>Nosso Controle</h1>
+    <p>As contas do casal, organizadas em um só lugar.</p>
+    <div class="panel auth-panel">
+      <label>E-mail<input id="email" type="email" autocomplete="email" placeholder="nome@email.com"></label>
+      <label>Senha<input id="password" type="password" autocomplete="current-password" placeholder="Mínimo 6 caracteres"></label>
+      <button id="loginBtn" class="primary-button">Entrar</button>
+      <button id="signupBtn" class="secondary-button">Criar conta</button>
+      <div id="authMsg" class="feedback"></div>
+    </div>
+  </section>
+
+  <section id="householdView" class="auth-screen hidden">
+    <div class="app-mark">⌂</div>
+    <h1>Vincular o casal</h1>
+    <p>Crie o grupo ou use o código compartilhado.</p>
+    <div class="panel auth-panel">
+      <button id="createHouseholdBtn" class="primary-button">Criar nosso grupo</button>
+      <div class="or">ou</div>
+      <label>Código do grupo<input id="joinCode" maxlength="8" placeholder="Ex.: A7K9P2QX"></label>
+      <button id="joinHouseholdBtn" class="secondary-button">Entrar no grupo</button>
+      <div id="householdMsg" class="feedback"></div>
+    </div>
+  </section>
+
+  <main id="appView" class="app hidden">
+    <header class="header">
+      <div>
+        <span id="greeting" class="overline">BOA TARDE</span>
+        <h1>Olá, <span id="displayNameText">Lucas</span> 👋</h1>
+      </div>
+      <button id="menuButton" class="round-button" aria-label="Abrir configurações">•••</button>
+    </header>
+
+    <section id="overviewView" class="app-section active-section">
+      <div class="section-page-header overview-header">
+        <div>
+          <span class="page-overline">CONTROLE GERAL</span>
+          <h2>Visão Geral</h2>
+          <p>Receitas, compromissos, gastos e o que realmente sobrou.</p>
+        </div>
+        <button id="openIncome" class="page-add-button income-add">＋</button>
+      </div>
+
+
+      <section class="daily-flow-card">
+        <div class="daily-flow-header">
+          <div>
+            <span>Hoje</span>
+            <strong id="dailyDateLabel">3 de agosto</strong>
+          </div>
+          <span class="daily-live-dot">Ao vivo</span>
+        </div>
+
+        <div class="daily-flow-main">
+          <div class="daily-income-highlight">
+            <span>Ganhos totais do dia</span>
+            <strong id="overviewTodayIncome">£0,00</strong>
+          </div>
+          <button id="openIncomeToday" class="daily-add-income" type="button">＋ Receita</button>
+        </div>
+
+        <div class="daily-flow-grid">
+          <article>
+            <span>Gastos de hoje</span>
+            <strong id="overviewTodayExpenses">£0,00</strong>
+          </article>
+          <article>
+            <span>Para Bills hoje</span>
+            <strong id="overviewTodayBills">£0,00</strong>
+          </article>
+          <article>
+            <span>Para o Cofre hoje</span>
+            <strong id="overviewTodayVault">£0,00</strong>
+          </article>
+          <article class="daily-net">
+            <span>Sobrou hoje</span>
+            <strong id="overviewTodayNet">£0,00</strong>
+          </article>
+        </div>
+      </section>
+
+      <section class="net-balance-card">
+        <span>Saldo livre neste mês</span>
+        <strong id="overviewFreeBalance">£0,00</strong>
+        <p id="overviewStatus">Adicione a primeira receita para começar.</p>
+        <div class="net-progress"><i id="overviewNetBar"></i></div>
+        <div class="net-progress-labels">
+          <span>Usado <b id="overviewUsedPercent">0%</b></span>
+          <span>Livre <b id="overviewFreePercent">0%</b></span>
+        </div>
+      </section>
+
+      <section class="overview-metrics">
+        <article class="overview-metric income">
+          <span>Receitas</span>
+          <strong id="overviewIncome">£0,00</strong>
+          <small>Total recebido no mês</small>
+        </article>
+        <article class="overview-metric bills">
+          <span>Bills reservadas</span>
+          <strong id="overviewBills">£0,00</strong>
+          <small>Separado para contas</small>
+        </article>
+        <article class="overview-metric expenses">
+          <span>Gastos</span>
+          <strong id="overviewExpenses">£0,00</strong>
+          <small>Despesas do dia a dia</small>
+        </article>
+        <article class="overview-metric vault">
+          <span>Cofre</span>
+          <strong id="overviewVault">£0,00</strong>
+          <small>Dinheiro protegido</small>
+        </article>
+      </section>
+
+      
+      <section class="vault-location-overview">
+        <div class="vault-location-title">
+          <div>
+            <span>COFRE</span>
+            <h3>Onde o dinheiro está guardado</h3>
+          </div>
+          <strong id="overviewVaultTotalSplit">£0,00</strong>
+        </div>
+        <div class="vault-location-grid">
+          <article>
+            <div class="vault-location-icon envelope">£</div>
+            <div><span>Envelope</span><strong id="overviewVaultEnvelope">£0,00</strong></div>
+          </article>
+          <article>
+            <div class="vault-location-icon card">▰</div>
+            <div><span>Cartão</span><strong id="overviewVaultCard">£0,00</strong></div>
+          </article>
+        </div>
+        <p>Estes valores são apenas do Cofre. As Bills continuam separadas.</p>
+      </section>
+
+      <section class="allocation-card">
+        <div class="allocation-title">
+          <div><h3>Destino das receitas</h3><p>Proporção automática deste mês.</p></div>
+          <strong id="overviewAllocated">£0,00</strong>
+        </div>
+        <div class="allocation-bar">
+          <i id="allocationBills"></i>
+          <i id="allocationExpenses"></i>
+          <i id="allocationVault"></i>
+          <i id="allocationFree"></i>
+        </div>
+        <div class="allocation-legend">
+          <span><i class="legend bills"></i>Bills <b id="legendBillsPct">0%</b></span>
+          <span><i class="legend expenses"></i>Gastos <b id="legendExpensesPct">0%</b></span>
+          <span><i class="legend vault"></i>Cofre <b id="legendVaultPct">0%</b></span>
+          <span><i class="legend free"></i>Livre <b id="legendFreePct">0%</b></span>
+        </div>
+      </section>
+
+      <div class="section-heading compact-heading">
+        <div><h2>Receitas do mês</h2><p>Ganhos registrados por vocês.</p></div>
+      </div>
+      <section id="incomeList" class="income-list"></section>
+    </section>
+
+    <section id="billsView" class="app-section">
+    <section class="today-card">
+      <div class="today-copy">
+        <span>Meta de hoje</span>
+        <strong>£70</strong>
+        <p id="dailyMessage">Continue firme para manter todas as contas dentro da meta.</p>
+      </div>
+      <div class="goal-art" aria-hidden="true">
+        <div class="goal-ring"><span>£</span></div>
+        <div class="coin coin-one"></div>
+        <div class="coin coin-two"></div>
+      </div>
+    </section>
+
+    <section class="balance-grid">
+      <article class="mini-card cash-card">
+        <div class="mini-art wallet-art"><span>£</span></div>
+        <div><span>Envelope</span><strong id="cashTotal">£0,00</strong></div>
+      </article>
+      <article class="mini-card card-card">
+        <div class="mini-art bank-art"><i></i></div>
+        <div><span>Cartão</span><strong id="cardTotal">£0,00</strong></div>
+      </article>
+    </section>
+
+    <section class="progress-card">
+      <div class="progress-heading">
+        <div><span>Total reservado</span><strong id="totalReserved" data-money="0">£0,00</strong></div>
+        <div class="progress-percent" id="overallBadge">0%</div>
+      </div>
+      <div class="progress-track"><i id="overallBar"></i></div>
+      <div class="progress-footer">
+        <span>Meta mensal <b id="monthlyTarget">£0,00</b></span>
+        <span>Ainda falta <b id="missingTotal">£0,00</b></span>
+      </div>
+    </section>
+
+    <section class="quick-actions">
+      <button id="openDeposit" class="deposit-button">
+        <span class="deposit-plus">＋</span>
+        <span><b>Novo depósito</b><small>Envelope ou cartão</small></span>
+      </button>
+      <button id="copyCode" class="share-button">
+        <span class="share-icon">↗</span>
+        <span><b>Compartilhar</b><small id="groupCodeText">Código</small></span>
+      </button>
+    </section>
+
+    <div class="section-heading">
+      <div><h2>Próximos vencimentos</h2><p>Quanto já está reservado e quanto ainda falta.</p></div>
+      <button id="openNewBill" class="new-bill-button" type="button">＋ Nova Bill</button>
+    </div>
+
+    <section id="billList" class="bill-list"></section>
+
+    <details class="activity panel">
+      <summary>Atividade recente <span>Ver histórico</span></summary>
+      <div id="historyList" class="history-list"></div>
+    </details>
+
+    </section>
+
+    <section id="expensesView" class="app-section">
+      <div class="section-page-header">
+        <div>
+          <span class="page-overline">DIA A DIA</span>
+          <h2>Gastos</h2>
+          <p>Registre mercado, gasolina, lanches e lazer.</p>
+        </div>
+        <button id="openExpense" class="page-add-button">＋</button>
+      </div>
+
+      <section class="expense-summary-card">
+        <span>Gasto neste mês</span>
+        <strong id="expenseMonthTotal">£0,00</strong>
+        <div class="expense-category-strip" id="expenseCategoryStrip"></div>
+      </section>
+
+      <div class="section-heading compact-heading">
+        <div><h2>Últimos gastos</h2><p>Organizados do mais recente.</p></div>
+      </div>
+      <section id="expenseList" class="expense-list"></section>
+    </section>
+
+    <section id="vaultView" class="app-section">
+      <div class="section-page-header">
+        <div>
+          <span class="page-overline">RESERVA EXTRA</span>
+          <h2>Cofre</h2>
+          <p>Guarde o que sobrar dos depósitos diários.</p>
+        </div>
+        <button id="openVaultDeposit" class="page-add-button vault-add">＋</button>
+      </div>
+
+      <section class="vault-hero">
+        <div>
+          <span>Saldo no cofre</span>
+          <strong id="vaultBalance">£0,00</strong>
+          <p>Dinheiro livre após separar as contas.</p>
+        </div>
+        <div class="vault-art">🔒</div>
+      </section>
+
+      <section class="vault-stats">
+        <article><span>Entradas no mês</span><strong id="vaultMonthTotal">£0,00</strong></article>
+        <article><span>Total de registros</span><strong id="vaultEntryCount">0</strong></article>
+      </section>
+
+      <div class="section-heading compact-heading">
+        <div><h2>Movimentações</h2><p>Valores adicionados ao cofre.</p></div>
+      </div>
+      <section id="vaultList" class="vault-list"></section>
+    </section>
+
+    <nav class="bottom-nav">
+      <button class="nav-item active" data-view="overviewView"><span>◉</span><b>Geral</b></button>
+      <button class="nav-item" data-view="billsView"><span>▤</span><b>Bills</b></button>
+      <button class="nav-item" data-view="expensesView"><span>₤</span><b>Gastos</b></button>
+      <button class="nav-item" data-view="vaultView"><span>◆</span><b>Cofre</b></button>
+    </nav>
+
+    <div id="settingsSheet" class="sheet-backdrop hidden">
+      <section class="settings-sheet">
+        <div class="sheet-title"><h2>Configurações</h2><button id="closeSettings" class="round-button">×</button></div>
+        <button id="openAdminPanel" class="sheet-action admin-action">
+          <span class="sheet-action-icon">⚙</span>
+          <span><b>Painel administrativo</b><small>Gerencie todo o controle pelo app</small></span>
+        </button>
+        <button id="openCompletedBills" class="sheet-action calendar-action">
+          <span class="sheet-action-icon">✓</span>
+          <span><b>Bills concluídas</b><small>Parcelamentos finalizados</small></span>
+        </button>
+        <button id="openCalendar" class="sheet-action calendar-action">
+          <span class="sheet-action-icon">▦</span>
+          <span><b>Calendário de depósitos</b><small>Veja a meta atingida em cada dia</small></span>
+        </button>
+        <button id="resetFinance" class="sheet-action danger">Zerar reservas e depósitos</button>
+        <button id="logoutBtn" class="sheet-action">Sair da conta</button>
+      </section>
+    </div>
+  </main>
+
+
+  <dialog id="calendarDialog" class="calendar-dialog">
+    <section class="calendar-panel">
+      <div class="calendar-top">
+        <div>
+          <span class="calendar-overline">ACOMPANHAMENTO DIÁRIO</span>
+          <h2>Calendário de depósitos</h2>
+          <p>O dia fica verde quando vocês atingem a meta diária.</p>
+        </div>
+        <button id="closeCalendar" class="round-button" type="button">×</button>
+      </div>
+
+      <div class="calendar-summary">
+        <div>
+          <span>Depositado no mês</span>
+          <strong id="calendarMonthTotal">£0,00</strong>
+        </div>
+        <div>
+          <span>Dias com meta</span>
+          <strong id="calendarGoalDays">0</strong>
+        </div>
+      </div>
+
+      <div class="calendar-navigation">
+        <button id="calendarPrev" class="calendar-nav-button" type="button">‹</button>
+        <strong id="calendarMonthLabel">Agosto de 2026</strong>
+        <button id="calendarNext" class="calendar-nav-button" type="button">›</button>
+      </div>
+
+      <div class="calendar-weekdays">
+        <span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span>
+        <span>Qui</span><span>Sex</span><span>Sáb</span>
+      </div>
+      <div id="calendarGrid" class="calendar-grid"></div>
+
+      <div class="calendar-legend">
+        <span><i class="legend-dot goal"></i> Meta atingida</span>
+        <span><i class="legend-dot partial"></i> Depósito parcial</span>
+        <span><i class="legend-dot empty"></i> Sem depósito</span>
+      </div>
+    </section>
+  </dialog>
+
+
+
+  <dialog id="incomeDialog">
+    <form method="dialog" class="dialog-card">
+      <input id="incomeEditId" type="hidden">
+      <div class="dialog-heading">
+        <div><h2 id="incomeDialogTitle">Adicionar receita</h2><p>Registre um valor recebido por vocês.</p></div>
+        <button value="cancel" class="round-button">×</button>
+      </div>
+      <label>Valor<input id="incomeAmount" type="number" step="0.01" min="0" placeholder="0,00"></label>
+      <label>Descrição<input id="incomeDescription" type="text" maxlength="80" placeholder="Ex.: Limpezas da semana"></label>
+      <label>Recebido por
+        <select id="incomePerson">
+          <option value="casal">Casal</option>
+          <option value="lucas">Lucas</option>
+          <option value="namorada">Namorada</option>
+        </select>
+      </label>
+      <label>Data<input id="incomeDate" type="date"></label>
+      <button id="saveIncome" value="cancel" class="primary-button">Salvar receita</button>
+    </form>
+  </dialog>
+
+
+
+  <dialog id="adminDialog" class="admin-dialog">
+    <section class="admin-panel">
+      <div class="admin-header">
+        <div>
+          <span class="calendar-overline">MODO ADMINISTRADOR</span>
+          <h2>Painel administrativo</h2>
+          <p>Altere os dados do sistema sem mexer em código.</p>
+        </div>
+        <button id="closeAdminPanel" class="round-button" type="button">×</button>
+      </div>
+
+      <section class="admin-summary-grid">
+        <article><span>Bills ativas</span><strong id="adminBillsCount">0</strong></article>
+        <article><span>Receitas</span><strong id="adminIncomeCount">0</strong></article>
+        <article><span>Gastos</span><strong id="adminExpenseCount">0</strong></article>
+        <article><span>Cofre</span><strong id="adminVaultCount">0</strong></article>
+      </section>
+
+      <section class="admin-settings-card">
+        <div class="admin-section-title">
+          <div><h3>Configurações gerais</h3><p>Valores usados nos cálculos automáticos.</p></div>
+        </div>
+        <label>Meta diária
+          <input id="adminDailyGoal" type="number" min="0" step="0.01" placeholder="70,00">
+        </label>
+        <label>Nome exibido
+          <input id="adminDisplayName" type="text" maxlength="40" placeholder="Lucas">
+        </label>
+        <button id="saveAdminSettings" class="primary-button" type="button">Salvar configurações</button>
+      </section>
+
+      <section class="admin-actions-grid">
+        <button class="admin-nav-card" data-admin-view="billsView" type="button">
+          <span class="admin-card-icon bills">▤</span>
+          <span><b>Gerenciar Bills</b><small>Criar, editar, pagar e concluir</small></span>
+        </button>
+        <button class="admin-nav-card" data-admin-view="overviewView" type="button">
+          <span class="admin-card-icon income">£</span>
+          <span><b>Gerenciar receitas</b><small>Adicionar, editar ou excluir ganhos</small></span>
+        </button>
+        <button class="admin-nav-card" data-admin-view="expensesView" type="button">
+          <span class="admin-card-icon expense">₤</span>
+          <span><b>Gerenciar gastos</b><small>Corrigir despesas e categorias</small></span>
+        </button>
+        <button class="admin-nav-card" data-admin-view="vaultView" type="button">
+          <span class="admin-card-icon vault">◆</span>
+          <span><b>Gerenciar Cofre</b><small>Editar valores e localização</small></span>
+        </button>
+      </section>
+
+      <section class="admin-backup-card">
+        <div>
+          <h3>Backup dos dados</h3>
+          <p>Baixe uma cópia completa do controle em formato JSON.</p>
+        </div>
+        <button id="exportBackup" class="secondary-button" type="button">Exportar backup</button>
+      </section>
+
+      <p class="admin-note">
+        O painel altera os dados e configurações. Novas funções visuais ou de programação ainda exigem uma atualização do site.
+      </p>
+    </section>
+  </dialog>
+
+  <dialog id="billCreateDialog">
+    <form method="dialog" class="dialog-card">
+      <input id="billCreateEditId" type="hidden">
+      <div class="dialog-heading">
+        <div><h2 id="billCreateTitle">Nova Bill</h2><p>Crie uma conta fixa, recorrente ou parcelada.</p></div>
+        <button value="cancel" class="round-button">×</button>
+      </div>
+
+      <label>Nome<input id="newBillName" type="text" maxlength="60" placeholder="Ex.: Parcela do carro"></label>
+      <label>Valor<input id="newBillAmount" type="number" min="0" step="0.01" placeholder="0,00"></label>
+      <label>Próximo vencimento<input id="newBillDue" type="date"></label>
+
+      <label>Frequência
+        <select id="newBillFrequency">
+          <option value="once">Única</option>
+          <option value="weekly">Semanal</option>
+          <option value="biweekly">Quinzenal</option>
+          <option value="monthly" selected>Mensal</option>
+          <option value="yearly">Anual</option>
+        </select>
+      </label>
+
+      <label>Tipo
+        <select id="newBillType">
+          <option value="fixed">Fixa</option>
+          <option value="installment">Parcelada</option>
+        </select>
+      </label>
+
+      <div id="installmentFields" class="installment-fields hidden">
+        <label>Parcela atual<input id="newBillCurrentInstallment" type="number" min="1" step="1" value="1"></label>
+        <label>Total de parcelas<input id="newBillTotalInstallments" type="number" min="1" step="1" value="12"></label>
+      </div>
+
+      <button id="saveNewBill" value="cancel" class="primary-button">Salvar Bill</button>
+    </form>
+  </dialog>
+
+  <dialog id="completedBillsDialog">
+    <section class="calendar-panel">
+      <div class="calendar-top">
+        <div>
+          <span class="calendar-overline">HISTÓRICO</span>
+          <h2>Bills concluídas</h2>
+          <p>Parcelamentos e contas únicas finalizadas.</p>
+        </div>
+        <button id="closeCompletedBills" class="round-button" type="button">×</button>
+      </div>
+      <div id="completedBillsList" class="completed-bills-list"></div>
+    </section>
+  </dialog>
+
+  <dialog id="expenseDialog">
+    <form method="dialog" class="dialog-card">
+      <input id="expenseEditId" type="hidden">
+      <div class="dialog-heading">
+        <div><h2 id="expenseDialogTitle">Novo gasto</h2><p>Registre uma despesa do dia a dia.</p></div>
+        <button value="cancel" class="round-button">×</button>
+      </div>
+      <label>Valor<input id="expenseAmount" type="number" step="0.01" min="0" placeholder="0,00"></label>
+      <label>Categoria
+        <select id="expenseCategory">
+          <option value="gasolina">Gasolina</option>
+          <option value="mercado">Mercado</option>
+          <option value="lanche">Lanche</option>
+          <option value="lazer">Lazer</option>
+          <option value="outros">Outros</option>
+        </select>
+      </label>
+      <label>Descrição<input id="expenseDescription" type="text" maxlength="80" placeholder="Ex.: Tesco, combustível..."></label>
+      <label>Data<input id="expenseDate" type="date"></label>
+      <button id="saveExpense" value="cancel" class="primary-button">Salvar gasto</button>
+    </form>
+  </dialog>
+
+  <dialog id="vaultDialog">
+    <form method="dialog" class="dialog-card">
+      <input id="vaultEditId" type="hidden">
+      <div class="dialog-heading">
+        <div><h2 id="vaultDialogTitle">Adicionar ao cofre</h2><p>Registre o valor que sobrou.</p></div>
+        <button value="cancel" class="round-button">×</button>
+      </div>
+      <label>Valor<input id="vaultAmount" type="number" step="0.01" min="0" placeholder="0,00"></label>
+      <label>Descrição<input id="vaultDescription" type="text" maxlength="80" placeholder="Ex.: Sobra de hoje"></label>
+      <label>Onde ficou guardado
+        <select id="vaultLocation">
+          <option value="envelope">Envelope</option>
+          <option value="card">Cartão</option>
+        </select>
+      </label>
+      <label>Data<input id="vaultDate" type="date"></label>
+      <button id="saveVaultDeposit" value="cancel" class="primary-button">Guardar no cofre</button>
+    </form>
+  </dialog>
+
+  <dialog id="depositDialog">
+    <form method="dialog" class="dialog-card">
+      <div class="dialog-heading"><div><h2>Novo depósito</h2><p>Informe onde o dinheiro foi guardado.</p></div><button value="cancel" class="round-button">×</button></div>
+      <div class="field-grid">
+        <label>Envelope<input id="cashInput" type="number" step="0.01" min="0" placeholder="0,00"></label>
+        <label>Cartão<input id="cardInput" type="number" step="0.01" min="0" placeholder="0,00"></label>
+      </div>
+      <label>Destinar para<select id="billSelect"></select></label>
+      <button id="saveDeposit" value="cancel" class="primary-button">Salvar depósito</button>
+    </form>
+  </dialog>
+
+  <dialog id="editDialog">
+    <form method="dialog" class="dialog-card">
+      <div class="dialog-heading"><div><h2 id="editTitle">Editar conta</h2><p>Ajuste os dados desta conta.</p></div><button value="cancel" class="round-button">×</button></div>
+      <input id="editId" type="hidden">
+      <label>Valor da conta<input id="editAmount" type="number" step="0.01"></label>
+      <label>Próximo vencimento<input id="editDue" type="date"></label>
+      <label>Valor reservado<input id="editReserved" type="number" step="0.01"></label>
+      <button id="saveEdit" value="cancel" class="primary-button">Salvar alterações</button>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast"></div>
+  <canvas id="confetti"></canvas>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js").catch(()=>{}));
+}
+</script>
+</body>
+</html>
