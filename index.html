@@ -9,7 +9,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="styles.css?v=2.1.6">
+  <link rel="stylesheet" href="styles.css?v=2.1.7">
   <title>Nosso Controle 2.1.1</title>
 </head>
 <body>
@@ -763,12 +763,12 @@
       if(dialog){try{if(dialog.open)dialog.close()}catch{} dialog.removeAttribute("open");}
     });
   </script>
-  <script src="app.js?v=2.1.6"></script>
+  <script src="app.js?v=2.1.7"></script>
 <script>
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", async () => {
     try {
-      const registration = await navigator.serviceWorker.register("./sw.js?v=2.1.6", { updateViaCache: "none" });
+      const registration = await navigator.serviceWorker.register("./sw.js?v=2.1.7", { updateViaCache: "none" });
       await registration.update();
       let refreshing = false;
       navigator.serviceWorker.addEventListener("controllerchange", () => {

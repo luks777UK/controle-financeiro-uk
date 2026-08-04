@@ -5566,3 +5566,251 @@ boot();
   setTimeout(install,250);
   setTimeout(install,1000);
 })();
+
+
+/* =========================================================
+   NOSSO CONTROLE 2.1.7 — LIMPEZAS DIÁRIAS E RELEASE NOTES
+   ========================================================= */
+(function installV217CleaningControl(){
+  const VERSION="2.1.7";
+  const $=id=>document.getElementById(id);
+  const qs=(s,r=document)=>r.querySelector(s);
+  const qsa=(s,r=document)=>[...r.querySelectorAll(s)];
+  const today=()=>currentLocalDate();
+  const safeOpen=d=>{if(!d)return;try{d.showModal()}catch{d.setAttribute("open","")}};
+  const safeClose=d=>{if(!d)return;try{d.close()}catch{d.removeAttribute("open")}};
+
+  function dateAtNoon(value){return new Date(`${value||today()}T12:00:00`)}
+  function dateKey(value){
+    if(!value)return today();
+    if(/^\d{4}-\d{2}-\d{2}$/.test(value))return value;
+    const d=new Date(value);
+    if(Number.isNaN(d.getTime()))return today();
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+  }
+  function startOfWeekKey(){
+    const d=dateAtNoon(today());
+    const day=(d.getDay()+6)%7;
+    d.setDate(d.getDate()-day);
+    return dateKey(d.toISOString());
+  }
+  function cleanings(){
+    state.incomes=Array.isArray(state.incomes)?state.incomes:[];
+    return state.incomes.filter(x=>x.source==="cleaning");
+  }
+  function total(items){return items.reduce((sum,x)=>sum+Number(x.amount||0),0)}
+  function periodTotals(){
+    const all=cleanings();
+    const day=today(), week=startOfWeekKey(), month=day.slice(0,7);
+    return {
+      today:total(all.filter(x=>dateKey(x.date)===day)),
+      week:total(all.filter(x=>dateKey(x.date)>=week&&dateKey(x.date)<=day)),
+      month:total(all.filter(x=>dateKey(x.date).slice(0,7)===month))
+    };
+  }
+
+  function ensureDialog(){
+    if($("cleaningDialog"))return;
+    const dialog=document.createElement("dialog");
+    dialog.id="cleaningDialog";
+    dialog.innerHTML=`
+      <form method="dialog" class="dialog-card">
+        <input id="cleaningEditId" type="hidden">
+        <div class="dialog-heading">
+          <div><h2 id="cleaningDialogTitle">Registrar limpeza</h2><p>Controle cada pagamento recebido no dia correto.</p></div>
+          <button value="cancel" class="round-button">×</button>
+        </div>
+        <div class="v217-cleaning-dialog-intro">O pagamento entra automaticamente em Receitas e atualiza o saldo, o calendário, o histórico e os resumos mensais.</div>
+        <label>Cliente ou casa<input id="cleaningClient" type="text" maxlength="80" placeholder="Ex.: Casa da Sarah"></label>
+        <label>Valor recebido<input id="cleaningAmount" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0,00"></label>
+        <label>Recebido por
+          <select id="cleaningPerson">
+            <option value="casal">Casal</option>
+            <option value="lucas">Lucas</option>
+            <option value="namorada">Namorada</option>
+          </select>
+        </label>
+        <label>Data <span>(opcional)</span><input id="cleaningDate" type="date"><small class="v217-optional-hint">Se deixar vazio, será usada a data de hoje.</small></label>
+        <label>Observação<input id="cleaningNotes" type="text" maxlength="120" placeholder="Ex.: Limpeza semanal, pagamento em dinheiro"></label>
+        <button id="saveCleaning" value="cancel" class="primary-button">Salvar pagamento</button>
+      </form>`;
+    document.body.appendChild(dialog);
+    $("saveCleaning").onclick=saveCleaning;
+  }
+
+  function openCleaning(id=""){
+    ensureDialog();
+    const item=id?cleanings().find(x=>x.id===id):null;
+    $("cleaningEditId").value=item?.id||"";
+    $("cleaningDialogTitle").textContent=item?"Editar pagamento":"Registrar limpeza";
+    $("cleaningClient").value=item?.client||item?.description||"";
+    $("cleaningAmount").value=item?.amount||"";
+    $("cleaningPerson").value=item?.person||"casal";
+    $("cleaningDate").value=item?.date||"";
+    $("cleaningNotes").value=item?.notes||"";
+    safeOpen($("cleaningDialog"));
+    setTimeout(()=>$("cleaningClient")?.focus(),120);
+  }
+
+  async function saveCleaning(event){
+    event.preventDefault();
+    const amount=Number($("cleaningAmount").value)||0;
+    const client=$("cleaningClient").value.trim();
+    if(!client)return toast("Informe o cliente ou a casa");
+    if(amount<=0)return toast("Digite um valor válido");
+    const editId=$("cleaningEditId").value;
+    const payload={
+      amount,
+      description:client,
+      client,
+      notes:$("cleaningNotes").value.trim(),
+      person:$("cleaningPerson").value,
+      date:$("cleaningDate").value||today(),
+      source:"cleaning",
+      category:"limpeza"
+    };
+    state.incomes=Array.isArray(state.incomes)?state.incomes:[];
+    if(editId){
+      const item=state.incomes.find(x=>x.id===editId);
+      if(item)Object.assign(item,payload);
+    }else{
+      state.incomes.push({id:crypto.randomUUID(),...payload});
+    }
+    safeClose($("cleaningDialog"));
+    try{document.activeElement?.blur()}catch{}
+    await persist(editId?"Pagamento da limpeza atualizado":"Pagamento da limpeza registrado");
+  }
+
+  async function deleteCleaning(id){
+    const item=cleanings().find(x=>x.id===id);
+    if(!item)return;
+    if(!confirm(`Excluir o pagamento de ${item.client||item.description}?`))return;
+    state.incomes=state.incomes.filter(x=>x.id!==id);
+    await persist("Pagamento da limpeza excluído");
+  }
+
+  function installAction(){
+    const actions=qs("#v21Dashboard .v21-actions");
+    if(!actions||$("v217CleaningAction"))return;
+    const button=document.createElement("button");
+    button.id="v217CleaningAction";
+    button.className="v217-cleaning-action";
+    button.innerHTML='<span>＋</span><div><b>Registrar limpeza</b><small>Pagamento diário por cliente</small></div>';
+    actions.prepend(button);
+    button.onclick=()=>openCleaning();
+  }
+
+  function renderCleaningSection(){
+    const dashboard=$("v21Dashboard");
+    if(!dashboard||!state)return;
+    let section=$("v217CleaningSummary");
+    if(!section){
+      section=document.createElement("section");
+      section.id="v217CleaningSummary";
+      section.className="v217-cleaning-summary";
+      const recent=qs(".v21-recent",dashboard);
+      recent?.insertAdjacentElement("beforebegin",section);
+    }
+    const totals=periodTotals();
+    const todays=cleanings().filter(x=>dateKey(x.date)===today()).sort((a,b)=>String(b.createdAt||b.id).localeCompare(String(a.createdAt||a.id)));
+    section.innerHTML=`
+      <div class="v217-cleaning-head">
+        <div><span>LIMPEZAS</span><h3>Pagamentos de hoje</h3></div>
+        <button id="v217AddCleaningInline">+ Registrar</button>
+      </div>
+      <div class="v217-cleaning-metrics">
+        <article><span>Hoje</span><strong>${money(totals.today)}</strong></article>
+        <article><span>Esta semana</span><strong>${money(totals.week)}</strong></article>
+        <article><span>Este mês</span><strong>${money(totals.month)}</strong></article>
+      </div>
+      <div class="v217-cleaning-list">
+        ${todays.length?todays.map(item=>`
+          <article class="v217-cleaning-item">
+            <span class="v217-cleaning-icon">↗</span>
+            <div><b>${item.client||item.description||"Limpeza"}</b><small>${item.person==="lucas"?"Lucas":item.person==="namorada"?"Namorada":"Casal"}${item.notes?` · ${item.notes}`:""}</small></div>
+            <span class="v217-cleaning-value">+${money(Number(item.amount||0))}</span>
+            <div class="v217-cleaning-actions"><button data-cleaning-edit="${item.id}">✎</button><button data-cleaning-delete="${item.id}">×</button></div>
+          </article>`).join(""):'<div class="v217-cleaning-empty">Nenhum pagamento de limpeza registrado hoje.</div>'}
+      </div>`;
+    $("v217AddCleaningInline").onclick=()=>openCleaning();
+    qsa("[data-cleaning-edit]",section).forEach(button=>button.onclick=()=>openCleaning(button.dataset.cleaningEdit));
+    qsa("[data-cleaning-delete]",section).forEach(button=>button.onclick=()=>deleteCleaning(button.dataset.cleaningDelete));
+  }
+
+  const RELEASES=[
+    {version:"2.1.7",date:"04/08/2026",title:"Controle diário de limpezas",changes:[
+      "Restaurado o registro específico dos pagamentos das limpezas.",
+      "Cliente, valor, responsável, data opcional e observação.",
+      "Totais separados de hoje, semana e mês.",
+      "Edição e exclusão dos pagamentos.",
+      "Integração automática com Receitas, saldo, calendário, histórico e PDF.",
+      "Aba Atualizações reconstruída para mostrar sempre a versão instalada."
+    ]},
+    {version:"2.1.6",date:"04/08/2026",title:"Estabilidade da interface",changes:[
+      "Remoção do dashboard duplicado.","Scroll estabilizado no Safari.","Atualização dos arquivos diretamente pela rede."
+    ]},
+    {version:"2.1.5",date:"04/08/2026",title:"Inicialização correta",changes:[
+      "Atualizações deixam de abrir sozinhas.","Dialogs fechados ao restaurar a página no Safari."
+    ]},
+    {version:"2.1.4",date:"04/08/2026",title:"Username e sessão",changes:[
+      "Login aceita Username ou e-mail durante a migração.","Cadastro de Username para contas antigas.","Correções no controle de versão dos arquivos."
+    ]},
+    {version:"2.1.3",date:"04/08/2026",title:"Bills e configurações",changes:[
+      "Layout organizado das Configurações restaurado.","Resumo e filtros duplicados das Bills removidos."
+    ]},
+    {version:"2.1.1",date:"04/08/2026",title:"Experiência no iPhone",changes:[
+      "Correção do zoom automático.","Filtros das Bills refeitos.","Sessão persistente no iPhone."
+    ]},
+    {version:"2.0.1",date:"03/08/2026",title:"Clean Premium",changes:[
+      "Novo dashboard com saldo livre.","Bills compactas.","Ações rápidas e visual simplificado."
+    ]}
+  ];
+
+  function renderReleaseNotes(){
+    const panel=qs("#updatesDialog .updates-panel");
+    if(!panel)return;
+    const header=qs(".updates-header",panel);
+    qsa(":scope > *",panel).forEach(child=>{if(child!==header)child.remove()});
+    const current=RELEASES[0];
+    const currentCard=document.createElement("section");
+    currentCard.className="release-current-v217";
+    currentCard.innerHTML=`<div><span class="release-orb-v217">${current.version}</span><div><small>VERSÃO INSTALADA</small><strong>Nosso Controle ${current.version}</strong><p>${current.title}</p></div></div><span>Atual</span>`;
+    panel.appendChild(currentCard);
+    const history=document.createElement("section");
+    history.className="release-history-v217";
+    history.innerHTML=RELEASES.map((release,index)=>`
+      <article class="release-card-v217 ${index===0?"current":""}">
+        <header><span>Versão ${release.version}${index===0?" · Atual":""}</span><time>${release.date}</time></header>
+        <h3>${release.title}</h3>
+        <ul>${release.changes.map(change=>`<li>${change}</li>`).join("")}</ul>
+      </article>`).join("");
+    panel.appendChild(history);
+    qsa(".updates-version-badge,.settings-version").forEach(el=>el.textContent=VERSION);
+  }
+
+  const previousRender=typeof render==="function"?render:null;
+  if(previousRender&&!window.__v217RenderWrapped){
+    window.__v217RenderWrapped=true;
+    render=function(){
+      previousRender();
+      ensureDialog();
+      installAction();
+      renderCleaningSection();
+      renderReleaseNotes();
+    };
+  }
+
+  function install(){
+    ensureDialog();
+    installAction();
+    renderCleaningSection();
+    renderReleaseNotes();
+    const dialog=$("updatesDialog");
+    if(dialog?.open)safeClose(dialog);
+  }
+
+  install();
+  window.addEventListener("pageshow",()=>requestAnimationFrame(install));
+  setTimeout(install,300);
+  setTimeout(install,1100);
+})();
