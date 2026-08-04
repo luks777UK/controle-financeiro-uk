@@ -17,7 +17,7 @@
         <div class="premium-hero-glow"></div>
         <div class="premium-hero-top">
           <div>
-            <span class="premium-eyebrow">PATRIMÔNIO DISPONÍVEL</span>
+            <span class="premium-eyebrow">PATRIMÔNIO DISPONÍVEL HOHE</span>
             <strong id="premiumNetWorth">£0,00</strong>
             <p id="premiumHeroCaption">Tudo o que vocês construíram neste mês.</p>
           </div>
