@@ -955,3 +955,11 @@ body,
 #loginBtn:disabled{
   cursor:wait;
 }
+
+
+/* Nosso Controle 2.2.0 — guards da refatoração */
+#overviewView>.premium-hero,#overviewView>.period-summary,#overviewView>.daily-flow-card,#overviewView>.net-balance-card,#overviewView>.overview-grid,#overviewView>.vault-overview-card,#overviewView>.allocation-card,#overviewView>.finance-chart-card,#overviewView>.finance-chart-grid,#overviewView>.section-heading,#overviewView>#incomeList{display:none!important}
+#v22Dashboard{display:grid;gap:10px}
+#v22Dashboard .v21-actions{grid-template-columns:repeat(3,1fr)}
+@media(max-width:560px){#v22Dashboard .v21-actions{grid-template-columns:1fr 1fr}#v22Cleaning{grid-column:1/-1}}
+#v201Dashboard,#v21Dashboard,#v201BillsSummary,#v201BillFilters,#v21BillSummary,#v21BillFilters{display:none!important}
