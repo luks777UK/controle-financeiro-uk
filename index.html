@@ -47,6 +47,45 @@
     </header>
 
     <section id="overviewView" class="app-section active-section">
+
+      <section class="premium-hero">
+        <div class="premium-hero-glow"></div>
+        <div class="premium-hero-top">
+          <div>
+            <span class="premium-eyebrow">PATRIMÔNIO DISPONÍVEL</span>
+            <strong id="premiumNetWorth">£0,00</strong>
+            <p id="premiumHeroCaption">Tudo o que vocês construíram neste mês.</p>
+          </div>
+          <div class="premium-score">
+            <span>Economia</span>
+            <strong id="premiumSavingsRate">0%</strong>
+          </div>
+        </div>
+        <div class="premium-hero-bottom">
+          <div><span>Recebido</span><b id="premiumIncome">£0,00</b></div>
+          <div><span>Comprometido</span><b id="premiumCommitted">£0,00</b></div>
+          <div><span>Protegido</span><b id="premiumProtected">£0,00</b></div>
+        </div>
+      </section>
+
+      <section class="period-summary">
+        <article>
+          <span>Hoje</span>
+          <strong id="periodTodayIncome">£0,00</strong>
+          <small>ganhos</small>
+        </article>
+        <article>
+          <span>Esta semana</span>
+          <strong id="periodWeekIncome">£0,00</strong>
+          <small>ganhos</small>
+        </article>
+        <article>
+          <span>Este mês</span>
+          <strong id="periodMonthIncome">£0,00</strong>
+          <small>ganhos</small>
+        </article>
+      </section>
+
       <div class="section-page-header overview-header">
         <div>
           <span class="page-overline">CONTROLE GERAL</span>
@@ -167,6 +206,40 @@
           <span><i class="legend vault"></i>Cofre <b id="legendVaultPct">0%</b></span>
           <span><i class="legend free"></i>Livre <b id="legendFreePct">0%</b></span>
         </div>
+      </section>
+
+      
+      <section class="finance-chart-card">
+        <div class="chart-card-heading">
+          <div><span>EVOLUÇÃO</span><h3>Patrimônio nos últimos 6 meses</h3></div>
+          <strong id="trendBadge">—</strong>
+        </div>
+        <div id="wealthChart" class="svg-chart"></div>
+        <div id="wealthChartLabels" class="chart-labels"></div>
+      </section>
+
+      <section class="finance-chart-grid">
+        <article class="finance-chart-card compact">
+          <div class="chart-card-heading">
+            <div><span>SEMANA</span><h3>Ganhos por dia</h3></div>
+          </div>
+          <div id="weeklyIncomeChart" class="bar-chart"></div>
+        </article>
+
+        <article class="finance-chart-card compact">
+          <div class="chart-card-heading">
+            <div><span>DISTRIBUIÇÃO</span><h3>Destino do dinheiro</h3></div>
+          </div>
+          <div class="donut-wrap">
+            <div id="moneyDonut" class="money-donut"><span id="donutCenter">£0</span></div>
+            <div class="donut-legend">
+              <span><i class="donut-dot bills"></i>Bills <b id="donutBills">0%</b></span>
+              <span><i class="donut-dot expenses"></i>Gastos <b id="donutExpenses">0%</b></span>
+              <span><i class="donut-dot vault"></i>Cofre <b id="donutVault">0%</b></span>
+              <span><i class="donut-dot free"></i>Livre <b id="donutFree">0%</b></span>
+            </div>
+          </div>
+        </article>
       </section>
 
       <div class="section-heading compact-heading">
@@ -299,6 +372,11 @@
     <div id="settingsSheet" class="sheet-backdrop hidden">
       <section class="settings-sheet">
         <div class="sheet-title"><h2>Configurações</h2><button id="closeSettings" class="round-button">×</button></div>
+        <button id="openUpdatesPanel" class="sheet-action updates-action">
+          <span class="sheet-action-icon">↻</span>
+          <span><b>Atualizações</b><small>Versão instalada e novidades</small></span>
+          <span class="updates-version-badge">1.1.1</span>
+        </button>
         <button id="openAdminPanel" class="sheet-action admin-action">
           <span class="sheet-action-icon">⚙</span>
           <span><b>Painel administrativo</b><small>Gerencie todo o controle pelo app</small></span>
@@ -317,6 +395,28 @@
     </div>
   </main>
 
+
+
+  <dialog id="dayDetailsDialog">
+    <section class="day-details-panel">
+      <div class="calendar-top">
+        <div>
+          <span class="calendar-overline">RESUMO DO DIA</span>
+          <h2 id="dayDetailsTitle">Dia</h2>
+          <p id="dayDetailsSubtitle">Movimentações financeiras.</p>
+        </div>
+        <button id="closeDayDetails" class="round-button" type="button">×</button>
+      </div>
+      <section class="day-details-summary">
+        <article class="income"><span>Ganhos</span><strong id="dayDetailIncome">£0,00</strong></article>
+        <article class="expense"><span>Gastos</span><strong id="dayDetailExpenses">£0,00</strong></article>
+        <article class="bills"><span>Bills</span><strong id="dayDetailBills">£0,00</strong></article>
+        <article class="vault"><span>Cofre</span><strong id="dayDetailVault">£0,00</strong></article>
+      </section>
+      <div class="day-net-card"><span>Saldo do dia</span><strong id="dayDetailNet">£0,00</strong></div>
+      <div id="dayDetailsList" class="day-details-list"></div>
+    </section>
+  </dialog>
 
   <dialog id="calendarDialog" class="calendar-dialog">
     <section class="calendar-panel">
@@ -384,6 +484,86 @@
   </dialog>
 
 
+
+
+  <dialog id="updatesDialog" class="updates-dialog">
+    <section class="updates-panel">
+      <div class="updates-header">
+        <div>
+          <span class="calendar-overline">NOSSO CONTROLE</span>
+          <h2>Atualizações</h2>
+          <p>Veja o que mudou em cada versão.</p>
+        </div>
+        <button id="closeUpdatesPanel" class="round-button" type="button">×</button>
+      </div>
+
+      <section class="current-version-card">
+        <div class="version-orb">1.1.1</div>
+        <div>
+          <span>VERSÃO INSTALADA</span>
+          <strong>Nosso Controle 1.1.1</strong>
+          <small>Build de 03/08/2026</small>
+        </div>
+        <span class="version-status">Atual</span>
+      </section>
+
+      <section class="updates-timeline">
+        <article class="update-entry latest">
+          <div class="update-marker"></div>
+          <div class="update-content">
+            <div class="update-entry-head">
+              <div><span>Versão 1.1.1</span><strong>Central de atualizações</strong></div>
+              <small>03/08/2026</small>
+            </div>
+            <ul>
+              <li>Nova opção <b>Atualizações</b> no menu de três pontos.</li>
+              <li>Resumo de recursos adicionados e correções por versão.</li>
+              <li>Identificação clara da versão instalada.</li>
+              <li>Melhor controle para futuras atualizações pelo iPhone.</li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="update-entry">
+          <div class="update-marker"></div>
+          <div class="update-content">
+            <div class="update-entry-head">
+              <div><span>Versão 1.1 Premium</span><strong>Dashboard e análises</strong></div>
+              <small>03/08/2026</small>
+            </div>
+            <ul>
+              <li>Dashboard premium com patrimônio disponível.</li>
+              <li>Ganhos diários, semanais e mensais.</li>
+              <li>Gráficos de evolução, semana e distribuição do dinheiro.</li>
+              <li>Calendário interativo com resumo financeiro por dia.</li>
+              <li>Novas categorias: Casa, Carro e Saúde.</li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="update-entry">
+          <div class="update-marker"></div>
+          <div class="update-content">
+            <div class="update-entry-head">
+              <div><span>Versão 1.0</span><strong>Base do aplicativo</strong></div>
+              <small>03/08/2026</small>
+            </div>
+            <ul>
+              <li>Bills inteligentes e editáveis.</li>
+              <li>Parcela do carro semanal, de 9/12 até 12/12.</li>
+              <li>Cofre separado entre Envelope e Cartão.</li>
+              <li>Receitas e gastos editáveis.</li>
+              <li>Sincronização em tempo real pelo Supabase.</li>
+            </ul>
+          </div>
+        </article>
+      </section>
+
+      <p class="updates-footer-note">
+        Seus dados permanecem salvos no Supabase mesmo quando o aplicativo é atualizado.
+      </p>
+    </section>
+  </dialog>
 
   <dialog id="adminDialog" class="admin-dialog">
     <section class="admin-panel">
@@ -515,6 +695,9 @@
           <option value="mercado">Mercado</option>
           <option value="lanche">Lanche</option>
           <option value="lazer">Lazer</option>
+          <option value="casa">Casa</option>
+          <option value="carro">Carro</option>
+          <option value="saude">Saúde</option>
           <option value="outros">Outros</option>
         </select>
       </label>

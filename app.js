@@ -1,6 +1,6 @@
 
 /*
-  NOSSO CONTROLE 1.1.1 -- ATUALIZAÇÃO EM UM ÚNICO ARQUIVO
+  NOSSO CONTROLE 1.1.1 — ATUALIZAÇÃO EM UM ÚNICO ARQUIVO
   Este bloco injeta automaticamente o novo layout e estilos.
   Depois dele começa a lógica normal do aplicativo.
 */
@@ -43,7 +43,7 @@
         <section class="finance-chart-card">
           <div class="chart-card-heading">
             <div><span>EVOLUÇÃO</span><h3>Patrimônio nos últimos 6 meses</h3></div>
-            <strong id="trendBadge">--</strong>
+            <strong id="trendBadge">—</strong>
           </div>
           <div id="wealthChart" class="svg-chart"></div>
           <div id="wealthChartLabels" class="chart-labels"></div>
@@ -559,7 +559,7 @@ function renderWeeklyIncomeChart(){
   const max=Math.max(1,...values.map(x=>x.value));
   $("weeklyIncomeChart").innerHTML=values.map(x=>`
     <div class="week-bar-column ${x.key===today?"today":""}">
-      <b>${x.value?money(x.value):"--"}</b>
+      <b>${x.value?money(x.value):"—"}</b>
       <div class="week-bar-track"><i class="week-bar-fill" data-height="${Math.max(x.value?8:0,(x.value/max)*100)}"></i></div>
       <span>${x.label}</span>
     </div>`).join("");
@@ -964,7 +964,7 @@ function renderCalendar(){
     cell.className=`calendar-day${amount>0?(met?" goal":" partial"):""}${key===todayKey?" today":""}`;
     cell.innerHTML=`<span class="calendar-day-number">${day}</span>
       ${met?'<span class="calendar-goal-check">✓</span>':""}
-      <span class="calendar-day-amount">${amount>0?money(amount):"--"}</span>`;
+      <span class="calendar-day-amount">${amount>0?money(amount):"—"}</span>`;
     cell.title=amount>0?`${money(amount)} depositados`:"Nenhum depósito";
     cell.onclick=()=>showDayDetails(key);
     grid.appendChild(cell);
@@ -1545,7 +1545,7 @@ boot();
 
 
 /* =========================================================
-   NOSSO CONTROLE 1.1.4 -- LAYOUT COMPACTO
+   NOSSO CONTROLE 1.1.4 — LAYOUT COMPACTO
    ========================================================= */
 (function installCompactLayout(){
   const style=document.createElement("style");
@@ -1944,7 +1944,7 @@ boot();
 
 
 /* =========================================================
-   NOSSO CONTROLE 1.1.5 -- BILLS HORIZONTAIS E COMPACTAS
+   NOSSO CONTROLE 1.1.5 — BILLS HORIZONTAIS E COMPACTAS
    ========================================================= */
 (function installCompactBills(){
   const style=document.createElement("style");
@@ -2607,7 +2607,7 @@ boot();
 
 
 /* =========================================================
-   NOSSO CONTROLE 1.2 -- PREMIUM, CONTA COMPARTILHADA E UX
+   NOSSO CONTROLE 1.2 — PREMIUM, CONTA COMPARTILHADA E UX
    ========================================================= */
 (function installV12Premium(){
   const get=id=>document.getElementById(id);
@@ -2759,7 +2759,7 @@ boot();
     if(!content)return;
 
     const email=user?.email || localStorage.getItem("nosso-controle-email") || "Conta conectada";
-    const code=householdCode || "--";
+    const code=householdCode || "—";
 
     content.innerHTML=`
       <div class="settings-premium-head">
@@ -4665,7 +4665,7 @@ boot();
 
 
 /* =========================================================
-   NOSSO CONTROLE 2.0.1 -- REBUILD CLEAN
+   NOSSO CONTROLE 2.0.1 — REBUILD CLEAN
    Estrutura nova, Bills corrigidas e dashboard simplificado
    ========================================================= */
 (function installV201Rebuild(){
@@ -5051,7 +5051,7 @@ boot();
 
 
 /* =========================================================
-   NOSSO CONTROLE 2.0.2 -- HOTFIX
+   NOSSO CONTROLE 2.0.2 — HOTFIX
    Bills por ID • botões únicos • menu sem sobreposição
    ========================================================= */
 (function installV202Hotfix(){
@@ -5360,7 +5360,7 @@ boot();
 
 
 /* =========================================================
-   NOSSO CONTROLE 2.1.1 -- HOTFIX LOGIN + ATUALIZAÇÃO SEGURA
+   NOSSO CONTROLE 2.1.1 — HOTFIX LOGIN + ATUALIZAÇÃO SEGURA
    ========================================================= */
 (function installV211SafeUpdater(){
   "use strict";

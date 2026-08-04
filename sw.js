@@ -1,5 +1,5 @@
 /*
-  NOSSO CONTROLE -- Service Worker 2.1.1
+  NOSSO CONTROLE — Service Worker 2.1.1
 
   Rede primeiro para todos os arquivos principais.
   Cache somente quando a internet estiver indisponível.
