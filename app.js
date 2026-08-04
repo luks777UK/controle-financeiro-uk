@@ -5230,9 +5230,9 @@ boot();
 
   function updateNotes(){
     const panel=$('updatesDialog')?.querySelector('.updates-panel'); if(!panel||qs('.v21-note',panel))return;
-    const note=document.createElement('section');note.className='v12-release-note v21-note';note.innerHTML='<span>VERSÃO 2.1.1 · INSTALADA</span><h3>Clean System</h3><ul><li>Dashboard reconstruído e mais enxuto.</li><li>Saldo livre como informação principal.</li><li>Alerta inteligente de prioridade.</li><li>Bills totalmente redesenhadas e compactas.</li><li>Filtros rápidos para Bills.</li><li>Configurações mais limpas.</li><li>Sessão persistente no iPhone.</li><li>Service Worker atualizado para evitar cache antigo.</li></ul>';
+    const note=document.createElement('section');note.className='v12-release-note v21-note';note.innerHTML='<span>VERSÃO 2.1.3 · INSTALADA</span><h3>Clean System</h3><ul><li>Dashboard reconstruído e mais enxuto.</li><li>Saldo livre como informação principal.</li><li>Alerta inteligente de prioridade.</li><li>Bills totalmente redesenhadas e compactas.</li><li>Filtros rápidos para Bills.</li><li>Configurações mais limpas.</li><li>Sessão persistente no iPhone.</li><li>Service Worker atualizado para evitar cache antigo.</li></ul>';
     const current=qs('.current-version-card',panel); if(current)current.after(note);
-    qsa('.version-orb',panel).forEach(x=>x.textContent='2.1.1'); const t=qs('.current-version-card strong',panel);if(t)t.textContent='Nosso Controle 2.1.2';
+    qsa('.version-orb',panel).forEach(x=>x.textContent='2.1.1'); const t=qs('.current-version-card strong',panel);if(t)t.textContent='Nosso Controle 2.1.3';
   }
 
   const oldRender=window.render;
@@ -5315,61 +5315,66 @@ boot();
   requestAnimationFrame(applyActiveBillFilter);
 })();
 
-
 /* =========================================================
-   NOSSO CONTROLE 2.1.2 — correção de duplicação em Bills
+   NOSSO CONTROLE 2.1.3 — correção segura de Bills duplicadas
+   Mantém integralmente o layout estável da versão 2.1.1.
    ========================================================= */
-(function installV212BillsCleanup(){
-  function removeLegacyBillsUI(){
-    [
-      "v201BillsSummary",
-      "v201BillFilters"
-    ].forEach(id=>document.getElementById(id)?.remove());
+(function installV213SafeBillsCleanup(){
+  function cleanupBillsDuplicates(){
+    document.getElementById("v201BillsSummary")?.remove();
+    document.getElementById("v201BillFilters")?.remove();
 
-    // Remove qualquer cópia anterior dos componentes novos,
-    // preservando somente a primeira instância válida.
     ["v21BillSummary","v21BillFilters"].forEach(id=>{
-      const matches=[...document.querySelectorAll(`#${id}`)];
-      matches.slice(1).forEach(node=>node.remove());
+      const nodes=[...document.querySelectorAll(`#${id}`)];
+      nodes.slice(1).forEach(node=>node.remove());
     });
   }
 
-  function updateV212Notes(){
+  function updateV213Notes(){
     const panel=document.getElementById("updatesDialog")?.querySelector(".updates-panel");
-    if(!panel||panel.querySelector(".v212-note"))return;
+    if(!panel||panel.querySelector(".v213-note"))return;
+
     const note=document.createElement("section");
-    note.className="v12-release-note v212-note";
+    note.className="v12-release-note v213-note";
     note.innerHTML=`
-      <span>VERSÃO 2.1.2 · CORREÇÃO</span>
-      <h3>Bills sem componentes duplicados</h3>
+      <span>VERSÃO 2.1.3 · CORREÇÃO SEGURA</span>
+      <h3>Layout 2.1.1 restaurado</h3>
       <ul>
-        <li>Removido o resumo antigo de Bills que aparecia acima do novo.</li>
-        <li>Removidos os filtros antigos duplicados.</li>
-        <li>Mantido somente o resumo Clean System e seus filtros funcionais.</li>
+        <li>Restaurada integralmente a organização visual da versão 2.1.1.</li>
+        <li>Removido apenas o resumo antigo duplicado da tela de Bills.</li>
+        <li>Removidos apenas os filtros antigos duplicados.</li>
+        <li>Configurações e demais telas não são mais observadas ou modificadas pela correção.</li>
       </ul>
     `;
+
     const current=panel.querySelector(".current-version-card");
     if(current)current.insertAdjacentElement("afterend",note);
-    panel.querySelectorAll(".version-orb").forEach(el=>el.textContent="2.1.2");
+    panel.querySelectorAll(".version-orb").forEach(el=>el.textContent="2.1.3");
     const title=panel.querySelector(".current-version-card strong");
-    if(title)title.textContent="Nosso Controle 2.1.2";
+    if(title)title.textContent="Nosso Controle 2.1.3";
+  }
+
+  const previousRender=window.render;
+  if(typeof previousRender==="function"&&!window.__v213RenderWrapped){
+    window.__v213RenderWrapped=true;
+    window.render=function(...args){
+      const result=previousRender.apply(this,args);
+      requestAnimationFrame(cleanupBillsDuplicates);
+      setTimeout(cleanupBillsDuplicates,80);
+      return result;
+    };
   }
 
   function install(){
-    removeLegacyBillsUI();
-    updateV212Notes();
+    cleanupBillsDuplicates();
+    updateV213Notes();
     document.querySelectorAll(".updates-version-badge,.settings-version,.version-orb").forEach(el=>{
-      if(/^\d/.test(el.textContent.trim()))el.textContent="2.1.2";
+      if(/^\d/.test(el.textContent.trim()))el.textContent="2.1.3";
     });
   }
 
   install();
-  window.addEventListener("pageshow",install);
-  setTimeout(install,100);
-  setTimeout(install,700);
-  setTimeout(install,1600);
-
-  // Observa recriações da lista para impedir que a interface antiga volte.
-  const observer=new MutationObserver(()=>removeLegacyBillsUI());
-  observer.observe(document.documentElement,{childList:true,subtree:true});
+  window.addEventListener("pageshow",install,{once:false});
+  setTimeout(install,250);
+  setTimeout(cleanupBillsDuplicates,900);
 })();
