@@ -26,7 +26,7 @@
         <div class="premium-hero-bottom">
           <div><span>Recebido</span><b id="premiumIncome">£0,00</b></div>
           <div><span>Comprometido</span><b id="premiumCommitted">£0,00</b></div>
-          <div><span>Guardado</span><b id="premiumProtected">£0,00</b></div>
+          <div><span>Protegido</span><b id="premiumProtected">£0,00</b></div>
         </div>
       </section>
       <section class="period-summary">
@@ -121,13 +121,13 @@
           </div>
           <section class="current-version-card">
             <div class="version-orb">1.1.2</div>
-            <div><span>VERSÃO INSTALADA</span><strong>Nosso Controle 1.1.6</strong><small>Build de 03/08/2026 · correção de login</small></div>
+            <div><span>VERSÃO INSTALADA</span><strong>Nosso Controle 1.3</strong><small>Build de 03/08/2026 · correção de login</small></div>
             <span class="version-status">Atual</span>
           </section>
           <section class="updates-timeline">
             <article class="update-entry latest">
               <div class="update-marker"></div><div class="update-content">
-                <div class="update-entry-head"><div><span>Versão 1.1.6</span><strong>Central de atualizações</strong></div><small>03/08/2026</small></div>
+                <div class="update-entry-head"><div><span>Versão 1.3</span><strong>Central de atualizações</strong></div><small>03/08/2026</small></div>
                 <ul><li>Nova área <b>Atualizações</b> no menu de três pontos.</li><li>Versão instalada e histórico de mudanças.</li><li>Fluxo preparado para atualização pelo iPhone.</li></ul>
               </div>
             </article>
@@ -1278,7 +1278,7 @@ boot();
           <div class="version-orb">1.1.3</div>
           <div>
             <span>VERSÃO INSTALADA</span>
-            <strong>Nosso Controle 1.1.6</strong>
+            <strong>Nosso Controle 1.3</strong>
             <small>Correção do menu e gerenciamento de dados</small>
           </div>
           <span class="version-status">Atual</span>
@@ -1289,7 +1289,7 @@ boot();
             <div class="update-marker"></div>
             <div class="update-content">
               <div class="update-entry-head">
-                <div><span>Versão 1.1.6</span><strong>Menu e manutenção</strong></div>
+                <div><span>Versão 1.3</span><strong>Menu e manutenção</strong></div>
                 <small>03/08/2026</small>
               </div>
               <ul>
@@ -1325,7 +1325,7 @@ boot();
             <div class="update-marker"></div>
             <div class="update-content">
               <div class="update-entry-head">
-                <div><span>Versão 1.2</span><strong>Histórico e produtividade</strong></div>
+                <div><span>Versão 1.3</span><strong>Histórico e produtividade</strong></div>
                 <small>Planejada</small>
               </div>
               <ul>
@@ -1938,7 +1938,7 @@ boot();
   });
 
   document.querySelectorAll(".current-version-card strong").forEach(x=>{
-    if(x.textContent.includes("1.1.3"))x.textContent="Nosso Controle 1.1.6";
+    if(x.textContent.includes("1.1.3"))x.textContent="Nosso Controle 1.3";
   });
 })();
 
@@ -2167,7 +2167,7 @@ boot();
     if(el.textContent.trim()==="1.1.4")el.textContent="1.1.5";
   });
   document.querySelectorAll(".current-version-card strong").forEach(el=>{
-    if(el.textContent.includes("1.1.4"))el.textContent="Nosso Controle 1.1.6";
+    if(el.textContent.includes("1.1.4"))el.textContent="Nosso Controle 1.3";
   });
 })();
 
@@ -2328,7 +2328,7 @@ boot();
           <div class="version-orb">1.1.6</div>
           <div>
             <span>VERSÃO INSTALADA</span>
-            <strong>Nosso Controle 1.1.6</strong>
+            <strong>Nosso Controle 1.3</strong>
             <small>Calendário, logout e organização visual</small>
           </div>
           <span class="version-status">Atual</span>
@@ -2603,4 +2603,1374 @@ boot();
   window.addEventListener("pageshow",installAll);
   setTimeout(installAll,250);
   setTimeout(installAll,1000);
+})();
+
+
+/* =========================================================
+   NOSSO CONTROLE 1.2 -- PREMIUM, CONTA COMPARTILHADA E UX
+   ========================================================= */
+(function installV12Premium(){
+  const get=id=>document.getElementById(id);
+  const escapeHtml=value=>String(value??"")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+
+  function copyText(value,successMessage="Copiado"){
+    if(!value)return;
+    if(navigator.clipboard?.writeText){
+      navigator.clipboard.writeText(value)
+        .then(()=>toast(successMessage))
+        .catch(()=>fallbackCopy(value,successMessage));
+    }else fallbackCopy(value,successMessage);
+  }
+
+  function fallbackCopy(value,successMessage){
+    const area=document.createElement("textarea");
+    area.value=value;
+    area.style.position="fixed";
+    area.style.opacity="0";
+    document.body.appendChild(area);
+    area.select();
+    try{
+      document.execCommand("copy");
+      toast(successMessage);
+    }catch{
+      prompt("Copie o código:",value);
+    }
+    area.remove();
+  }
+
+  function rememberEmail(){
+    const field=get("email");
+    if(!field)return;
+    const email=field.value.trim();
+    if(email)localStorage.setItem("nosso-controle-email",email);
+  }
+
+  function restoreRememberedEmail(){
+    const field=get("email");
+    if(!field || field.value)return;
+    const saved=localStorage.getItem("nosso-controle-email");
+    if(saved)field.value=saved;
+  }
+
+  function enhanceAuth(){
+    const authPanel=document.querySelector("#authView .auth-panel");
+    if(!authPanel)return;
+
+    restoreRememberedEmail();
+
+    if(!get("authConvenience")){
+      authPanel.insertAdjacentHTML("beforeend",`
+        <section id="authConvenience" class="auth-convenience">
+          <div class="auth-session-info">
+            <span class="auth-session-icon">✓</span>
+            <div>
+              <strong>Login automático</strong>
+              <small>Depois de entrar, sua sessão ficará salva neste iPhone.</small>
+            </div>
+          </div>
+          <p>
+            Sua namorada deve tocar em <b>Criar conta</b>, usar o próprio e-mail
+            e, após entrar, escolher <b>Usar código da casa</b>.
+          </p>
+        </section>
+      `);
+    }
+
+    const login=get("loginBtn");
+    if(login && !login.dataset.v12){
+      login.dataset.v12="1";
+      login.addEventListener("click",rememberEmail,{capture:true});
+    }
+
+    const signup=get("signupBtn");
+    if(signup){
+      signup.textContent="Criar minha conta";
+      if(!signup.dataset.v12){
+        signup.dataset.v12="1";
+        signup.addEventListener("click",rememberEmail,{capture:true});
+      }
+    }
+
+    const email=get("email");
+    if(email){
+      email.addEventListener("change",rememberEmail);
+      email.setAttribute("autocapitalize","none");
+      email.setAttribute("spellcheck","false");
+    }
+  }
+
+  function enhanceHouseholdOnboarding(){
+    const view=get("householdView");
+    if(!view)return;
+
+    const panel=view.querySelector(".panel") || view.querySelector("section");
+    if(!panel)return;
+
+    const title=panel.querySelector("h1,h2");
+    if(title)title.textContent="Conectar as contas do casal";
+
+    const intro=panel.querySelector("p");
+    if(intro){
+      intro.textContent="Cada pessoa usa seu próprio login, mas os dois compartilham os mesmos ganhos, Bills, gastos e Cofre.";
+    }
+
+    const create=get("createHouseholdBtn");
+    if(create)create.textContent="Criar nossa casa";
+
+    const join=get("joinHouseholdBtn");
+    if(join)join.textContent="Usar código da casa";
+
+    const code=get("joinCode");
+    if(code){
+      code.placeholder="Digite o código do Lucas";
+      code.setAttribute("autocapitalize","characters");
+    }
+
+    if(!get("householdGuide")){
+      panel.insertAdjacentHTML("beforeend",`
+        <section id="householdGuide" class="household-guide">
+          <article>
+            <span>1</span>
+            <div><strong>Lucas cria a casa</strong><small>O aplicativo gera um código único.</small></div>
+          </article>
+          <article>
+            <span>2</span>
+            <div><strong>Sua namorada cria a conta dela</strong><small>Ela não precisa usar sua senha.</small></div>
+          </article>
+          <article>
+            <span>3</span>
+            <div><strong>Ela digita o código</strong><small>A partir daí, os dados ficam sincronizados.</small></div>
+          </article>
+        </section>
+      `);
+    }
+  }
+
+  function rebuildSettings(){
+    const sheet=get("settingsSheet");
+    if(!sheet)return;
+
+    let content=sheet.querySelector(".settings-sheet");
+    if(!content)return;
+
+    const email=user?.email || localStorage.getItem("nosso-controle-email") || "Conta conectada";
+    const code=householdCode || "--";
+
+    content.innerHTML=`
+      <div class="settings-premium-head">
+        <div>
+          <span>CONFIGURAÇÕES</span>
+          <h2>Nosso Controle</h2>
+          <p>Conta, compartilhamento e ferramentas.</p>
+        </div>
+        <button id="closeSettings" class="round-button" type="button">×</button>
+      </div>
+
+      <section class="settings-account-card">
+        <div class="settings-avatar">${escapeHtml(email.charAt(0).toUpperCase())}</div>
+        <div>
+          <span>CONTA CONECTADA</span>
+          <strong>${escapeHtml(email)}</strong>
+          <small>Sessão salva neste aparelho</small>
+        </div>
+        <span class="account-online-dot"></span>
+      </section>
+
+      <section class="settings-group">
+        <div class="settings-group-title">
+          <span>CASA COMPARTILHADA</span>
+          <small>Sincronização do casal</small>
+        </div>
+
+        <button id="copyHouseholdCode" class="settings-row code-row" type="button">
+          <span class="settings-row-icon purple">⌁</span>
+          <span class="settings-row-copy">
+            <b>Código da casa</b>
+            <small>Sua namorada usa este código após criar a conta</small>
+          </span>
+          <strong>${escapeHtml(code)}</strong>
+        </button>
+
+        <button id="shareHouseholdCode" class="settings-row" type="button">
+          <span class="settings-row-icon blue">↗</span>
+          <span class="settings-row-copy">
+            <b>Compartilhar código</b>
+            <small>Enviar pelo WhatsApp ou Mensagens</small>
+          </span>
+          <span class="settings-chevron">›</span>
+        </button>
+      </section>
+
+      <section class="settings-group">
+        <div class="settings-group-title">
+          <span>CONTROLE</span>
+          <small>Ferramentas financeiras</small>
+        </div>
+
+        <button id="openCalendar" class="settings-row" type="button">
+          <span class="settings-row-icon green">▦</span>
+          <span class="settings-row-copy"><b>Calendário financeiro</b><small>Depósitos, metas e detalhes por dia</small></span>
+          <span class="settings-chevron">›</span>
+        </button>
+
+        <button id="openCompletedBills" class="settings-row" type="button">
+          <span class="settings-row-icon amber">✓</span>
+          <span class="settings-row-copy"><b>Bills concluídas</b><small>Parcelamentos e contas finalizadas</small></span>
+          <span class="settings-chevron">›</span>
+        </button>
+
+        <button id="openAdminPanel" class="settings-row" type="button">
+          <span class="settings-row-icon purple">⚙</span>
+          <span class="settings-row-copy"><b>Gerenciar dados</b><small>Bills, lançamentos, reservas e reset</small></span>
+          <span class="settings-chevron">›</span>
+        </button>
+      </section>
+
+      <section class="settings-group">
+        <div class="settings-group-title">
+          <span>APLICATIVO</span>
+          <small>Versão e novidades</small>
+        </div>
+
+        <button id="openUpdatesPanel" class="settings-row" type="button">
+          <span class="settings-row-icon blue">↻</span>
+          <span class="settings-row-copy"><b>Atualizações</b><small>Recursos instalados e próximos passos</small></span>
+          <span class="settings-version">1.2</span>
+        </button>
+      </section>
+
+      <button id="logoutBtn" class="settings-logout" type="button">
+        <span>⇥</span>
+        Sair da conta
+      </button>
+    `;
+
+    bindSettingsEvents();
+  }
+
+  function closeSettings(){
+    get("settingsSheet")?.classList.add("hidden");
+  }
+
+  function bindSettingsEvents(){
+    const close=get("closeSettings");
+    if(close)close.onclick=closeSettings;
+
+    const copy=get("copyHouseholdCode");
+    if(copy)copy.onclick=()=>copyText(householdCode,"Código da casa copiado");
+
+    const share=get("shareHouseholdCode");
+    if(share){
+      share.onclick=async()=>{
+        const message=`Entre na nossa casa no Nosso Controle usando o código: ${householdCode}`;
+        if(navigator.share){
+          try{
+            await navigator.share({title:"Nosso Controle",text:message});
+          }catch{}
+        }else copyText(message,"Mensagem copiada");
+      };
+    }
+
+    const calendar=get("openCalendar");
+    if(calendar){
+      calendar.onclick=event=>{
+        event.preventDefault();
+        closeSettings();
+        calendarDate=new Date();
+        renderCalendar();
+        get("calendarDialog")?.showModal();
+      };
+    }
+
+    const completed=get("openCompletedBills");
+    if(completed){
+      completed.onclick=event=>{
+        event.preventDefault();
+        closeSettings();
+        renderCompletedBills();
+        get("completedBillsDialog")?.showModal();
+      };
+    }
+
+    const admin=get("openAdminPanel");
+    if(admin){
+      admin.onclick=event=>{
+        event.preventDefault();
+        closeSettings();
+        openAdminPanel();
+      };
+    }
+
+    const updates=get("openUpdatesPanel");
+    if(updates){
+      updates.onclick=event=>{
+        event.preventDefault();
+        closeSettings();
+        const dialog=get("updatesDialog");
+        if(dialog){
+          try{dialog.showModal()}catch{dialog.setAttribute("open","")}
+        }
+      };
+    }
+
+    const logout=get("logoutBtn");
+    if(logout){
+      logout.onclick=async event=>{
+        event.preventDefault();
+        if(!confirm("Deseja sair desta conta neste iPhone?"))return;
+        logout.disabled=true;
+        logout.innerHTML="<span>…</span> Saindo";
+        try{
+          if(channel){
+            try{await sb.removeChannel(channel)}catch{}
+            channel=null;
+          }
+          const {error}=await sb.auth.signOut();
+          if(error)throw error;
+          user=null;
+          householdId=null;
+          householdCode=null;
+          state=null;
+          document.querySelectorAll("dialog[open]").forEach(dialog=>{
+            try{dialog.close()}catch{dialog.removeAttribute("open")}
+          });
+          closeSettings();
+          show("authView");
+          restoreRememberedEmail();
+          const password=get("password");
+          if(password)password.value="";
+          feedback("authMsg","Você saiu da conta.");
+        }catch(error){
+          toast(error?.message||"Não foi possível sair");
+          rebuildSettings();
+        }
+      };
+    }
+  }
+
+  function installMenuRebuild(){
+    const menu=get("menuButton");
+    if(!menu)return;
+    menu.onclick=event=>{
+      event.preventDefault();
+      event.stopPropagation();
+      rebuildSettings();
+      get("settingsSheet")?.classList.remove("hidden");
+    };
+  }
+
+  function improveUpdateNotes(){
+    const dialog=get("updatesDialog");
+    if(!dialog)return;
+
+    const current=dialog.querySelector(".current-version-card");
+    if(current){
+      const orb=current.querySelector(".version-orb");
+      const strong=current.querySelector("strong");
+      const small=current.querySelector("small");
+      if(orb)orb.textContent="1.2";
+      if(strong)strong.textContent="Nosso Controle 1.3";
+      if(small)small.textContent="Experiência premium e conta compartilhada";
+    }
+
+    const panel=dialog.querySelector(".updates-panel");
+    if(panel && !panel.querySelector(".v12-release-note")){
+      const firstRelease=panel.querySelector(".release-section,.updates-timeline");
+      const note=document.createElement("section");
+      note.className="v12-release-note";
+      note.innerHTML=`
+        <span>VERSÃO 1.2 · INSTALADA</span>
+        <h3>Mais simples para usar todos os dias</h3>
+        <ul>
+          <li>Menu inferior maior e mais legível.</li>
+          <li>Visão Geral mais limpa, sem botão duplicado.</li>
+          <li>Bills compactas mostrando o valor total completo.</li>
+          <li>Configurações reorganizadas por categoria.</li>
+          <li>Sessão persistente: não exige login a cada acesso.</li>
+          <li>Fluxo claro para o casal usar logins separados e o mesmo código.</li>
+          <li>Refinamentos de espaçamento e hierarquia visual.</li>
+        </ul>
+      `;
+      if(firstRelease)panel.insertBefore(note,firstRelease);
+      else panel.appendChild(note);
+    }
+  }
+
+  function addStyles(){
+    if(get("v12PremiumStyles"))return;
+    const style=document.createElement("style");
+    style.id="v12PremiumStyles";
+    style.textContent=`
+      /* Menu inferior mais legível */
+      .bottom-nav{
+        padding:7px 8px calc(7px + env(safe-area-inset-bottom)) !important;
+        gap:4px !important;
+      }
+      .nav-item{
+        min-height:58px !important;
+        padding:8px 5px !important;
+      }
+      .nav-item span{
+        font-size:15px !important;
+        line-height:1 !important;
+      }
+      .nav-item b{
+        font-size:11px !important;
+        letter-spacing:.75px !important;
+        margin-top:5px !important;
+      }
+
+      /* Remove o botão + duplicado da Visão Geral */
+      #openIncome{
+        display:none !important;
+      }
+      .overview-header{
+        padding-right:0 !important;
+      }
+
+      /* Bills: total completo, sem reticências */
+      .bill-info{
+        min-width:0 !important;
+      }
+      .bill-due{
+        white-space:normal !important;
+        overflow:visible !important;
+        text-overflow:clip !important;
+        line-height:1.35 !important;
+        max-width:none !important;
+        padding-right:4px;
+      }
+      .bill-name{
+        max-width:none !important;
+      }
+      .bill-card{
+        overflow:visible !important;
+      }
+      .bill-main{
+        min-width:0 !important;
+      }
+
+      /* Configurações premium */
+      .settings-sheet{
+        padding:15px 14px calc(18px + env(safe-area-inset-bottom)) !important;
+        max-height:88vh !important;
+        overflow:auto !important;
+        background:
+          radial-gradient(circle at 85% 0,rgba(124,82,255,.11),transparent 32%),
+          #10121e !important;
+      }
+      .settings-premium-head{
+        display:flex;
+        justify-content:space-between;
+        align-items:flex-start;
+        gap:12px;
+        padding:3px 2px 13px;
+      }
+      .settings-premium-head>div>span{
+        color:var(--purple-2);
+        font-size:8px;
+        font-weight:900;
+        letter-spacing:1.2px;
+      }
+      .settings-premium-head h2{
+        margin:5px 0 3px;
+        font-size:22px;
+      }
+      .settings-premium-head p{
+        margin:0;
+        color:var(--muted);
+        font-size:9px;
+      }
+      .settings-account-card{
+        display:flex;
+        align-items:center;
+        gap:11px;
+        padding:12px;
+        margin-bottom:12px;
+        border-radius:17px;
+        border:1px solid rgba(255,255,255,.075);
+        background:linear-gradient(145deg,rgba(139,92,246,.1),rgba(21,23,39,.96));
+      }
+      .settings-avatar{
+        width:42px;
+        height:42px;
+        display:grid;
+        place-items:center;
+        flex:none;
+        border-radius:14px;
+        color:#fff;
+        font-size:16px;
+        font-weight:900;
+        background:linear-gradient(145deg,#8b5cf6,#4c6fff);
+      }
+      .settings-account-card>div:nth-child(2){
+        min-width:0;
+        flex:1;
+      }
+      .settings-account-card span,
+      .settings-account-card strong,
+      .settings-account-card small{
+        display:block;
+      }
+      .settings-account-card>div:nth-child(2)>span{
+        color:var(--muted);
+        font-size:7px;
+        letter-spacing:.8px;
+      }
+      .settings-account-card strong{
+        margin-top:3px;
+        font-size:11px;
+        white-space:nowrap;
+        overflow:hidden;
+        text-overflow:ellipsis;
+      }
+      .settings-account-card small{
+        margin-top:3px;
+        color:var(--muted);
+        font-size:8px;
+      }
+      .account-online-dot{
+        width:8px;
+        height:8px;
+        border-radius:50%;
+        background:var(--green);
+        box-shadow:0 0 12px rgba(63,230,162,.5);
+      }
+      .settings-group{
+        padding:7px;
+        margin-top:9px;
+        border:1px solid rgba(255,255,255,.065);
+        border-radius:17px;
+        background:rgba(22,24,40,.72);
+      }
+      .settings-group-title{
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        padding:4px 5px 7px;
+      }
+      .settings-group-title span{
+        color:var(--muted);
+        font-size:7px;
+        font-weight:900;
+        letter-spacing:1px;
+      }
+      .settings-group-title small{
+        color:#777b8e;
+        font-size:7px;
+      }
+      .settings-row{
+        width:100%;
+        border:0;
+        display:flex;
+        align-items:center;
+        gap:10px;
+        min-height:55px;
+        padding:8px;
+        text-align:left;
+        color:var(--ink);
+        background:transparent;
+        border-radius:12px;
+      }
+      .settings-row+ .settings-row{
+        border-top:1px solid rgba(255,255,255,.055);
+        border-radius:0;
+      }
+      .settings-row:active{
+        background:rgba(255,255,255,.035);
+      }
+      .settings-row-icon{
+        width:34px;
+        height:34px;
+        flex:none;
+        display:grid;
+        place-items:center;
+        border-radius:11px;
+        font-size:15px;
+        font-weight:850;
+      }
+      .settings-row-icon.purple{background:rgba(139,92,246,.13);color:#b79cff}
+      .settings-row-icon.blue{background:rgba(90,167,255,.12);color:#7abbff}
+      .settings-row-icon.green{background:rgba(63,230,162,.1);color:var(--green)}
+      .settings-row-icon.amber{background:rgba(255,189,92,.11);color:#ffc76e}
+      .settings-row-copy{
+        min-width:0;
+        flex:1;
+      }
+      .settings-row-copy b,
+      .settings-row-copy small{
+        display:block;
+      }
+      .settings-row-copy b{
+        font-size:12px;
+      }
+      .settings-row-copy small{
+        margin-top:3px;
+        color:var(--muted);
+        font-size:8px;
+        line-height:1.35;
+      }
+      .settings-chevron{
+        color:#73778b;
+        font-size:20px;
+      }
+      .code-row>strong{
+        color:var(--purple-2);
+        font-size:11px;
+        letter-spacing:.7px;
+      }
+      .settings-version{
+        padding:5px 8px;
+        border-radius:999px;
+        color:var(--blue);
+        background:rgba(90,167,255,.1);
+        font-size:9px;
+        font-weight:900;
+      }
+      .settings-logout{
+        width:100%;
+        margin-top:12px;
+        padding:12px;
+        border-radius:14px;
+        border:1px solid rgba(255,112,132,.12);
+        color:#ff899a;
+        background:rgba(255,112,132,.055);
+        font-size:11px;
+        font-weight:800;
+      }
+
+      /* Login e onboarding */
+      .auth-convenience{
+        margin-top:12px;
+        padding:11px;
+        border-radius:15px;
+        border:1px solid rgba(63,230,162,.11);
+        background:rgba(63,230,162,.045);
+      }
+      .auth-session-info{
+        display:flex;
+        gap:9px;
+        align-items:center;
+      }
+      .auth-session-icon{
+        width:29px;
+        height:29px;
+        display:grid;
+        place-items:center;
+        flex:none;
+        border-radius:10px;
+        color:var(--green);
+        background:rgba(63,230,162,.1);
+      }
+      .auth-session-info strong,
+      .auth-session-info small{
+        display:block;
+      }
+      .auth-session-info strong{
+        font-size:10px;
+      }
+      .auth-session-info small{
+        color:var(--muted);
+        font-size:8px;
+        margin-top:2px;
+      }
+      .auth-convenience p{
+        margin:9px 0 0;
+        color:var(--muted);
+        font-size:8px;
+        line-height:1.5;
+      }
+      .household-guide{
+        display:grid;
+        gap:7px;
+        margin-top:12px;
+      }
+      .household-guide article{
+        display:flex;
+        gap:9px;
+        align-items:center;
+        padding:9px;
+        border-radius:13px;
+        border:1px solid rgba(255,255,255,.06);
+        background:rgba(255,255,255,.025);
+      }
+      .household-guide article>span{
+        width:27px;
+        height:27px;
+        display:grid;
+        place-items:center;
+        flex:none;
+        border-radius:9px;
+        color:var(--purple-2);
+        background:rgba(139,92,246,.11);
+        font-size:10px;
+        font-weight:900;
+      }
+      .household-guide strong,
+      .household-guide small{
+        display:block;
+      }
+      .household-guide strong{font-size:10px}
+      .household-guide small{
+        color:var(--muted);
+        font-size:8px;
+        margin-top:2px;
+      }
+
+      /* Nota de versão */
+      .v12-release-note{
+        margin-top:12px;
+        padding:13px;
+        border-radius:17px;
+        border:1px solid rgba(63,230,162,.13);
+        background:linear-gradient(145deg,rgba(63,230,162,.06),rgba(19,22,36,.95));
+      }
+      .v12-release-note>span{
+        color:var(--green);
+        font-size:7px;
+        font-weight:900;
+        letter-spacing:1px;
+      }
+      .v12-release-note h3{
+        margin:5px 0 8px;
+        font-size:14px;
+      }
+      .v12-release-note ul{
+        margin:0;
+        padding-left:17px;
+      }
+      .v12-release-note li{
+        margin:3px 0;
+        color:#c7cad5;
+        font-size:8px;
+        line-height:1.45;
+      }
+
+      /* Refinamentos gerais premium */
+      .section-page-header{
+        margin-bottom:11px !important;
+      }
+      .daily-flow-card,
+      .net-balance-card,
+      .overview-metric,
+      .vault-location-overview{
+        box-shadow:0 14px 38px rgba(0,0,0,.17) !important;
+      }
+      button{
+        -webkit-tap-highlight-color:transparent;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  function installSessionListener(){
+    if(window.__nossoControleAuthListenerV12)return;
+    window.__nossoControleAuthListenerV12=true;
+
+    sb.auth.onAuthStateChange(async(event,session)=>{
+      if(event==="SIGNED_IN" && session?.user && !user){
+        user=session.user;
+        rememberEmail();
+        try{await loadMembership()}catch{}
+      }
+      if(event==="TOKEN_REFRESHED" && session?.user){
+        user=session.user;
+      }
+    });
+  }
+
+  function install(){
+    addStyles();
+    enhanceAuth();
+    enhanceHouseholdOnboarding();
+    installMenuRebuild();
+    improveUpdateNotes();
+    installSessionListener();
+
+    document.querySelectorAll(".updates-version-badge,.version-orb").forEach(el=>{
+      if(/^1\./.test(el.textContent.trim()))el.textContent="1.2";
+    });
+  }
+
+  install();
+  window.addEventListener("pageshow",install);
+  setTimeout(install,250);
+  setTimeout(install,1000);
+})();
+
+
+/* =========================================================
+   NOSSO CONTROLE 1.3 PREMIUM
+   Datas, pesquisa, histórico, PDF, backup, alertas e estatísticas
+   ========================================================= */
+(function installV13Premium(){
+  const get=id=>document.getElementById(id);
+  const moneySafe=value=>{
+    try{return money(Number(value||0))}
+    catch{return `£${Number(value||0).toFixed(2)}`}
+  };
+  const dateKey=value=>{
+    if(!value)return "";
+    if(/^\d{4}-\d{2}-\d{2}$/.test(value))return value;
+    const d=new Date(value);
+    return Number.isNaN(d.getTime())?"":`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+  };
+  const formatDateLong=value=>{
+    if(!value)return "Sem data";
+    return new Intl.DateTimeFormat("pt-BR",{day:"2-digit",month:"short",year:"numeric"})
+      .format(new Date(`${dateKey(value)}T12:00:00`));
+  };
+  const escapeHTML=value=>String(value??"")
+    .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;").replaceAll("'","&#039;");
+
+  const billIcon=name=>{
+    const value=String(name||"").toLowerCase();
+    if(value.includes("alug"))return "⌂";
+    if(value.includes("energia")||value.includes("edf")||value.includes("electric"))return "⚡";
+    if(value.includes("água")||value.includes("agua")||value.includes("water"))return "◉";
+    if(value.includes("council")||value.includes("consult"))return "▦";
+    if(value.includes("carro")||value.includes("seguro"))return "🚘";
+    if(value.includes("internet")||value.includes("bt"))return "⌁";
+    if(value.includes("netflix")||value.includes("tv"))return "▶";
+    if(value.includes("telefone")||value.includes("phone"))return "▯";
+    return "£";
+  };
+
+  function ensureDateFields(){
+    const configs=[
+      ["incomeDialog","incomeDate","Data da receita"],
+      ["expenseDialog","expenseDate","Data do gasto"],
+      ["vaultDialog","vaultDate","Data do depósito"],
+      ["billCreateDialog","newBillDue","Data do primeiro vencimento"]
+    ];
+
+    configs.forEach(([dialogId,inputId,labelText])=>{
+      const dialog=get(dialogId);
+      const input=get(inputId);
+      if(!dialog||!input)return;
+
+      input.type="date";
+      input.classList.add("v13-date-input");
+
+      const label=input.closest("label");
+      if(label){
+        const textNodes=[...label.childNodes].filter(n=>n.nodeType===Node.TEXT_NODE);
+        if(textNodes[0])textNodes[0].textContent=labelText;
+      }
+
+      if(!input.value)input.value=currentLocalDate();
+    });
+  }
+
+  function ensureDateDefaults(){
+    ["incomeDate","expenseDate","vaultDate","newBillDue"].forEach(id=>{
+      const input=get(id);
+      if(input&&!input.value)input.value=currentLocalDate();
+    });
+  }
+
+  function createInsightsView(){
+    if(get("insightsDialog"))return;
+
+    const dialog=document.createElement("dialog");
+    dialog.id="insightsDialog";
+    dialog.className="insights-dialog";
+    dialog.innerHTML=`
+      <section class="insights-panel">
+        <div class="insights-header">
+          <div>
+            <span class="calendar-overline">ANÁLISES</span>
+            <h2>Histórico e estatísticas</h2>
+            <p>Pesquise, filtre e entenda para onde o dinheiro foi.</p>
+          </div>
+          <button id="closeInsights" class="round-button" type="button">×</button>
+        </div>
+
+        <section class="insights-search-card">
+          <label class="global-search">
+            <span>⌕</span>
+            <input id="globalFinanceSearch" type="search" placeholder="Pesquisar receitas, gastos, Bills…">
+          </label>
+          <div class="insights-filters">
+            <select id="insightsTypeFilter">
+              <option value="all">Todos</option>
+              <option value="income">Receitas</option>
+              <option value="expense">Gastos</option>
+              <option value="vault">Cofre</option>
+              <option value="bill">Bills pagas</option>
+            </select>
+            <input id="insightsMonthFilter" type="month">
+          </div>
+        </section>
+
+        <section class="insights-kpis">
+          <article><span>Receitas</span><strong id="insightsIncome">£0,00</strong></article>
+          <article><span>Saídas</span><strong id="insightsOut">£0,00</strong></article>
+          <article><span>Saldo</span><strong id="insightsBalance">£0,00</strong></article>
+          <article><span>Lançamentos</span><strong id="insightsCount">0</strong></article>
+        </section>
+
+        <section class="category-analysis">
+          <div class="insights-section-title">
+            <div><span>CATEGORIAS</span><h3>Gastos por categoria</h3></div>
+          </div>
+          <div id="categoryBars" class="category-bars"></div>
+        </section>
+
+        <section class="history-analysis">
+          <div class="insights-section-title">
+            <div><span>HISTÓRICO</span><h3>Movimentações</h3></div>
+            <button id="exportPdfButton" class="mini-action-button" type="button">PDF</button>
+          </div>
+          <div id="globalHistoryList" class="global-history-list"></div>
+        </section>
+      </section>
+    `;
+    document.body.appendChild(dialog);
+
+    get("closeInsights").onclick=()=>dialog.close();
+    get("globalFinanceSearch").oninput=renderInsights;
+    get("insightsTypeFilter").onchange=renderInsights;
+    get("insightsMonthFilter").onchange=renderInsights;
+    get("exportPdfButton").onclick=exportFinancialPdf;
+  }
+
+  function allFinancialItems(){
+    const incomes=(state?.incomes||[]).map(x=>({
+      id:x.id,type:"income",date:dateKey(x.date),title:x.description||"Receita",
+      category:"Receita",amount:Number(x.amount||0),sign:1
+    }));
+    const expenses=(state?.expenses||[]).map(x=>({
+      id:x.id,type:"expense",date:dateKey(x.date),title:x.description||expenseNames?.[x.category]||"Gasto",
+      category:expenseNames?.[x.category]||x.category||"Outros",amount:Number(x.amount||0),sign:-1
+    }));
+    const vault=(state?.vaultEntries||[]).map(x=>({
+      id:x.id,type:"vault",date:dateKey(x.date),title:x.description||"Cofre",
+      category:(x.location||"envelope")==="card"?"Cofre · Cartão":"Cofre · Envelope",
+      amount:Number(x.amount||0),sign:-1
+    }));
+    const bills=(state?.history||[])
+      .filter(x=>x.type==="bill_payment")
+      .map(x=>({
+        id:x.id,type:"bill",date:dateKey(x.date),title:x.bill||x.text||"Bill paga",
+        category:"Bill paga",amount:Number(x.amount||0),sign:-1
+      }));
+
+    return [...incomes,...expenses,...vault,...bills]
+      .filter(x=>x.date)
+      .sort((a,b)=>b.date.localeCompare(a.date));
+  }
+
+  function renderInsights(){
+    if(!state)return;
+    createInsightsView();
+
+    const query=(get("globalFinanceSearch")?.value||"").trim().toLowerCase();
+    const type=get("insightsTypeFilter")?.value||"all";
+    const month=get("insightsMonthFilter")?.value||"";
+
+    let items=allFinancialItems().filter(item=>{
+      if(type!=="all"&&item.type!==type)return false;
+      if(month&&!item.date.startsWith(month))return false;
+      if(query&&!`${item.title} ${item.category}`.toLowerCase().includes(query))return false;
+      return true;
+    });
+
+    const income=items.filter(x=>x.sign>0).reduce((s,x)=>s+x.amount,0);
+    const out=items.filter(x=>x.sign<0).reduce((s,x)=>s+x.amount,0);
+    const balance=income-out;
+
+    get("insightsIncome").textContent=moneySafe(income);
+    get("insightsOut").textContent=moneySafe(out);
+    get("insightsBalance").textContent=moneySafe(balance);
+    get("insightsBalance").classList.toggle("negative",balance<0);
+    get("insightsCount").textContent=String(items.length);
+
+    const categories={};
+    items.filter(x=>x.type==="expense").forEach(x=>{
+      categories[x.category]=(categories[x.category]||0)+x.amount;
+    });
+    const maxCategory=Math.max(1,...Object.values(categories));
+    get("categoryBars").innerHTML=Object.entries(categories)
+      .sort((a,b)=>b[1]-a[1])
+      .map(([name,value])=>`
+        <article class="category-bar-row">
+          <div><span>${escapeHTML(name)}</span><strong>${moneySafe(value)}</strong></div>
+          <div class="category-bar-track"><i style="width:${(value/maxCategory)*100}%"></i></div>
+        </article>
+      `).join("")||'<div class="empty-state">Nenhum gasto para este filtro.</div>';
+
+    get("globalHistoryList").innerHTML=items.map(item=>`
+      <article class="global-history-item">
+        <span class="history-type-icon ${item.type}">
+          ${item.type==="income"?"＋":item.type==="expense"?"−":item.type==="vault"?"◆":"✓"}
+        </span>
+        <div>
+          <strong>${escapeHTML(item.title)}</strong>
+          <small>${escapeHTML(item.category)} · ${formatDateLong(item.date)}</small>
+        </div>
+        <b class="${item.sign>0?"positive":"negative"}">${item.sign>0?"+":"−"}${moneySafe(item.amount)}</b>
+      </article>
+    `).join("")||'<div class="empty-state">Nenhuma movimentação encontrada.</div>';
+  }
+
+  function exportFinancialPdf(){
+    const items=allFinancialItems();
+    const income=items.filter(x=>x.sign>0).reduce((s,x)=>s+x.amount,0);
+    const out=items.filter(x=>x.sign<0).reduce((s,x)=>s+x.amount,0);
+
+    const rows=items.map(item=>`
+      <tr>
+        <td>${escapeHTML(formatDateLong(item.date))}</td>
+        <td>${escapeHTML(item.title)}</td>
+        <td>${escapeHTML(item.category)}</td>
+        <td class="${item.sign>0?"positive":"negative"}">
+          ${item.sign>0?"+":"−"}${escapeHTML(moneySafe(item.amount))}
+        </td>
+      </tr>
+    `).join("");
+
+    const report=window.open("","_blank");
+    if(!report)return toast("Permita pop-ups para gerar o relatório");
+
+    report.document.write(`<!doctype html>
+      <html lang="pt-BR"><head><meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      <title>Relatório Nosso Controle</title>
+      <style>
+        body{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;padding:28px;color:#171923}
+        h1{margin:0 0 4px}.muted{color:#777}
+        .summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:22px 0}
+        .summary div{padding:14px;border:1px solid #ddd;border-radius:12px}
+        .summary span,.summary strong{display:block}.summary span{font-size:11px;color:#777}
+        .summary strong{font-size:20px;margin-top:5px}
+        table{width:100%;border-collapse:collapse}th,td{padding:10px;border-bottom:1px solid #ddd;text-align:left;font-size:12px}
+        .positive{color:#11875d}.negative{color:#c03955}
+        @media print{button{display:none}body{padding:0}}
+      </style></head><body>
+      <h1>Nosso Controle</h1>
+      <p class="muted">Relatório gerado em ${new Date().toLocaleString("pt-BR")}</p>
+      <section class="summary">
+        <div><span>Receitas</span><strong>${moneySafe(income)}</strong></div>
+        <div><span>Saídas</span><strong>${moneySafe(out)}</strong></div>
+        <div><span>Saldo</span><strong>${moneySafe(income-out)}</strong></div>
+      </section>
+      <table><thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Valor</th></tr></thead>
+      <tbody>${rows}</tbody></table>
+      <script>setTimeout(()=>window.print(),400)<\/script>
+      </body></html>`);
+    report.document.close();
+  }
+
+  function automaticLocalBackup(){
+    if(!state)return;
+    try{
+      const snapshot={
+        version:"1.3",
+        savedAt:new Date().toISOString(),
+        householdId,
+        householdCode,
+        state
+      };
+      localStorage.setItem("nosso-controle-auto-backup",JSON.stringify(snapshot));
+      localStorage.setItem("nosso-controle-auto-backup-time",snapshot.savedAt);
+    }catch{}
+  }
+
+  function exportJsonBackup(){
+    if(!state)return;
+    const data={
+      app:"Nosso Controle",
+      version:"1.3",
+      exportedAt:new Date().toISOString(),
+      householdCode,
+      state
+    };
+    const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+    const url=URL.createObjectURL(blob);
+    const link=document.createElement("a");
+    link.href=url;
+    link.download=`nosso-controle-backup-${currentLocalDate()}.json`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),1500);
+    toast("Backup exportado");
+  }
+
+  function createReminderCenter(){
+    if(get("remindersDialog"))return;
+
+    const dialog=document.createElement("dialog");
+    dialog.id="remindersDialog";
+    dialog.className="reminders-dialog";
+    dialog.innerHTML=`
+      <section class="reminders-panel">
+        <div class="insights-header">
+          <div>
+            <span class="calendar-overline">LEMBRETES</span>
+            <h2>Próximas Bills</h2>
+            <p>Alertas disponíveis enquanto o aplicativo estiver aberto.</p>
+          </div>
+          <button id="closeReminders" class="round-button" type="button">×</button>
+        </div>
+        <div id="remindersList" class="reminders-list"></div>
+        <p class="reminder-note">
+          Notificações com o aplicativo fechado exigirão Push Notifications em uma atualização futura.
+        </p>
+      </section>
+    `;
+    document.body.appendChild(dialog);
+    get("closeReminders").onclick=()=>dialog.close();
+  }
+
+  function upcomingBills(){
+    const today=new Date();today.setHours(0,0,0,0);
+    return (state?.bills||[])
+      .filter(x=>!x.completed)
+      .map(bill=>{
+        const due=new Date(`${bill.due}T12:00:00`);
+        const days=Math.ceil((due-today)/86400000);
+        return {...bill,days};
+      })
+      .sort((a,b)=>a.days-b.days);
+  }
+
+  function renderReminders(){
+    createReminderCenter();
+    const bills=upcomingBills();
+    get("remindersList").innerHTML=bills.map(bill=>`
+      <article class="reminder-item ${bill.days<0?"late":bill.days<=2?"urgent":""}">
+        <span class="reminder-bill-icon">${billIcon(bill.name)}</span>
+        <div>
+          <strong>${escapeHTML(bill.name)}</strong>
+          <small>
+            ${bill.days<0?`Vencida há ${Math.abs(bill.days)} dias`:bill.days===0?"Vence hoje":bill.days===1?"Vence amanhã":`Vence em ${bill.days} dias`}
+          </small>
+        </div>
+        <b>${moneySafe(bill.amount)}</b>
+      </article>
+    `).join("")||'<div class="empty-state">Nenhuma Bill ativa.</div>';
+  }
+
+  function showInAppReminderBadge(){
+    const menu=get("menuButton");
+    if(!menu||!state)return;
+    const urgent=upcomingBills().filter(x=>x.days<=2).length;
+    menu.classList.toggle("has-reminders",urgent>0);
+    menu.dataset.reminders=String(urgent);
+  }
+
+  function upgradeSettings(){
+    const menu=get("menuButton");
+    if(!menu||menu.dataset.v13)return;
+    menu.dataset.v13="1";
+
+    menu.addEventListener("click",()=>{
+      setTimeout(()=>{
+        const sheet=get("settingsSheet");
+        const content=sheet?.querySelector(".settings-sheet");
+        if(!content)return;
+
+        const controlGroups=[...content.querySelectorAll(".settings-group")];
+        const appGroup=controlGroups.find(group=>group.textContent.includes("APLICATIVO"));
+
+        if(appGroup&&!get("openInsights")){
+          appGroup.insertAdjacentHTML("beforebegin",`
+            <section class="settings-group">
+              <div class="settings-group-title">
+                <span>ANÁLISES</span>
+                <small>Histórico e alertas</small>
+              </div>
+              <button id="openInsights" class="settings-row" type="button">
+                <span class="settings-row-icon purple">⌕</span>
+                <span class="settings-row-copy"><b>Histórico e pesquisa</b><small>Filtros, categorias, estatísticas e PDF</small></span>
+                <span class="settings-chevron">›</span>
+              </button>
+              <button id="openReminders" class="settings-row" type="button">
+                <span class="settings-row-icon amber">◉</span>
+                <span class="settings-row-copy"><b>Lembretes de Bills</b><small>Veja contas próximas e vencidas</small></span>
+                <span class="settings-chevron">›</span>
+              </button>
+              <button id="exportJsonBackup" class="settings-row" type="button">
+                <span class="settings-row-icon blue">⇩</span>
+                <span class="settings-row-copy"><b>Exportar backup</b><small>Cópia completa em JSON</small></span>
+                <span class="settings-chevron">›</span>
+              </button>
+            </section>
+          `);
+        }
+
+        const insights=get("openInsights");
+        if(insights)insights.onclick=()=>{
+          sheet.classList.add("hidden");
+          createInsightsView();
+          const month=new Date().toISOString().slice(0,7);
+          if(get("insightsMonthFilter")&&!get("insightsMonthFilter").value)get("insightsMonthFilter").value=month;
+          renderInsights();
+          get("insightsDialog").showModal();
+        };
+
+        const reminders=get("openReminders");
+        if(reminders)reminders.onclick=()=>{
+          sheet.classList.add("hidden");
+          renderReminders();
+          get("remindersDialog").showModal();
+        };
+
+        const backup=get("exportJsonBackup");
+        if(backup)backup.onclick=exportJsonBackup;
+      },0);
+    });
+  }
+
+  function customizeBillIcons(){
+    document.querySelectorAll(".bill-card").forEach(card=>{
+      const name=card.querySelector(".bill-name")?.textContent||"";
+      const icon=card.querySelector(".bill-illustration");
+      if(icon)icon.textContent=billIcon(name);
+    });
+  }
+
+  function addVersionNotes(){
+    const dialog=get("updatesDialog");
+    if(!dialog)return;
+    const panel=dialog.querySelector(".updates-panel");
+    if(!panel||panel.querySelector(".v13-release-note"))return;
+
+    const note=document.createElement("section");
+    note.className="v12-release-note v13-release-note";
+    note.innerHTML=`
+      <span>VERSÃO 1.3 · INSTALADA</span>
+      <h3>Histórico, datas e produtividade</h3>
+      <ul>
+        <li>Escolha de data em receitas, gastos, Cofre e novas Bills.</li>
+        <li>Pesquisa global e filtros por tipo e mês.</li>
+        <li>Histórico financeiro consolidado.</li>
+        <li>Gastos por categoria com barras de comparação.</li>
+        <li>Relatório pronto para imprimir ou salvar em PDF.</li>
+        <li>Backup automático local e exportação JSON.</li>
+        <li>Central de lembretes para Bills próximas e vencidas.</li>
+        <li>Ícones automáticos para os principais tipos de Bills.</li>
+        <li>Estatísticas e saldo filtrado.</li>
+        <li>Transições e refinamentos premium.</li>
+      </ul>
+    `;
+
+    const current=panel.querySelector(".current-version-card");
+    if(current)current.insertAdjacentElement("afterend",note);
+    else panel.prepend(note);
+
+    panel.querySelectorAll(".version-orb").forEach(x=>x.textContent="1.3");
+    const strong=panel.querySelector(".current-version-card strong");
+    if(strong)strong.textContent="Nosso Controle 1.3";
+  }
+
+  function addStyles(){
+    if(get("v13PremiumStyles"))return;
+    const style=document.createElement("style");
+    style.id="v13PremiumStyles";
+    style.textContent=`
+      .v13-date-input{color-scheme:dark}
+      input[type="date"],input[type="month"]{font-variant-numeric:tabular-nums}
+
+      .insights-dialog,.reminders-dialog{width:min(95vw,720px);max-height:92vh}
+      .insights-panel,.reminders-panel{
+        max-height:90vh;overflow:auto;padding:15px;border-radius:24px;color:var(--ink);
+        background:radial-gradient(circle at 90% 0,rgba(139,92,246,.12),transparent 28%),#10121f;
+        border:1px solid var(--line)
+      }
+      .insights-header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+      .insights-header h2{font-size:22px;margin:5px 0 3px}.insights-header p{margin:0;color:var(--muted);font-size:9px}
+
+      .insights-search-card{margin-top:14px;padding:10px;border-radius:17px;background:#171927;border:1px solid var(--line)}
+      .global-search{display:flex;align-items:center;gap:8px}
+      .global-search>span{font-size:19px;color:var(--purple-2)}
+      .global-search input{border:0!important;background:transparent!important;padding:7px!important;min-height:36px!important}
+      .insights-filters{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:7px}
+
+      .insights-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:9px}
+      .insights-kpis article{padding:10px;border-radius:14px;background:#171927;border:1px solid var(--line)}
+      .insights-kpis span,.insights-kpis strong{display:block}.insights-kpis span{font-size:7px;color:var(--muted)}
+      .insights-kpis strong{font-size:14px;margin-top:4px}.insights-kpis strong.negative{color:#ff8395}
+
+      .category-analysis,.history-analysis{margin-top:10px;padding:12px;border-radius:17px;background:#171927;border:1px solid var(--line)}
+      .insights-section-title{display:flex;justify-content:space-between;align-items:center;gap:8px}
+      .insights-section-title span{font-size:7px;color:var(--purple-2);font-weight:900;letter-spacing:.8px}
+      .insights-section-title h3{font-size:14px;margin:3px 0 0}
+      .mini-action-button{padding:7px 10px;border-radius:10px;border:1px solid rgba(90,167,255,.17);background:rgba(90,167,255,.08);color:var(--blue);font-size:9px;font-weight:900}
+
+      .category-bars{display:grid;gap:9px;margin-top:11px}
+      .category-bar-row>div:first-child{display:flex;justify-content:space-between;gap:8px;font-size:9px}
+      .category-bar-row strong{font-size:9px}.category-bar-track{height:6px;margin-top:5px;border-radius:999px;background:#272a3c;overflow:hidden}
+      .category-bar-track i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#8b5cf6,#5aa7ff)}
+
+      .global-history-list{display:grid;gap:6px;margin-top:10px}
+      .global-history-item{display:flex;align-items:center;gap:9px;padding:9px;border-radius:13px;background:#121421;border:1px solid rgba(255,255,255,.05)}
+      .history-type-icon{width:31px;height:31px;display:grid;place-items:center;border-radius:10px;flex:none;font-weight:900}
+      .history-type-icon.income{color:var(--green);background:rgba(63,230,162,.1)}
+      .history-type-icon.expense{color:#ff8ebd;background:rgba(240,109,173,.1)}
+      .history-type-icon.vault{color:var(--blue);background:rgba(90,167,255,.1)}
+      .history-type-icon.bill{color:var(--purple-2);background:rgba(139,92,246,.11)}
+      .global-history-item>div{min-width:0;flex:1}.global-history-item strong,.global-history-item small{display:block}
+      .global-history-item strong{font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      .global-history-item small{font-size:7px;color:var(--muted);margin-top:3px}
+      .global-history-item>b{font-size:10px}.global-history-item>b.positive{color:var(--green)}.global-history-item>b.negative{color:#ff8ebd}
+
+      .reminders-list{display:grid;gap:7px;margin-top:14px}
+      .reminder-item{display:flex;align-items:center;gap:10px;padding:11px;border-radius:15px;background:#171927;border:1px solid var(--line)}
+      .reminder-item.urgent{border-color:rgba(255,189,92,.18);background:rgba(255,189,92,.045)}
+      .reminder-item.late{border-color:rgba(255,112,132,.2);background:rgba(255,112,132,.05)}
+      .reminder-bill-icon{width:37px;height:37px;display:grid;place-items:center;border-radius:12px;background:rgba(139,92,246,.1);color:var(--purple-2);font-size:17px}
+      .reminder-item>div{flex:1}.reminder-item strong,.reminder-item small{display:block}.reminder-item strong{font-size:11px}.reminder-item small{font-size:8px;color:var(--muted);margin-top:3px}
+      .reminder-item>b{font-size:11px}.reminder-note{font-size:8px;color:var(--muted);line-height:1.45;margin:12px 2px 0;text-align:center}
+
+      #menuButton.has-reminders{position:relative}
+      #menuButton.has-reminders::after{content:attr(data-reminders);position:absolute;top:-4px;right:-4px;min-width:16px;height:16px;padding:0 3px;display:grid;place-items:center;border-radius:999px;background:#ff6e86;color:#fff;font-size:7px;font-weight:900;border:2px solid #090a15}
+
+      .bill-illustration{transition:transform .2s ease}.bill-card:active .bill-illustration{transform:scale(.9)}
+      .settings-row,.bill-card,.overview-metric,.period-summary article{transition:transform .15s ease,border-color .15s ease}
+      .settings-row:active,.bill-card:active,.overview-metric:active,.period-summary article:active{transform:scale(.985)}
+
+      @media(max-width:520px){
+        .insights-kpis{grid-template-columns:1fr 1fr}
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  function install(){
+    addStyles();
+    ensureDateFields();
+    ensureDateDefaults();
+    createInsightsView();
+    createReminderCenter();
+    upgradeSettings();
+    customizeBillIcons();
+    addVersionNotes();
+    automaticLocalBackup();
+    showInAppReminderBadge();
+
+    document.querySelectorAll(".updates-version-badge,.settings-version,.version-orb").forEach(el=>{
+      if(/^1\./.test(el.textContent.trim()))el.textContent="1.3";
+    });
+  }
+
+  install();
+  window.addEventListener("pageshow",install);
+  setInterval(()=>{
+    if(state){
+      automaticLocalBackup();
+      showInAppReminderBadge();
+      customizeBillIcons();
+    }
+  },60000);
+  setTimeout(install,300);
+  setTimeout(install,1200);
 })();
