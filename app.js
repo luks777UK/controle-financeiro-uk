@@ -5232,7 +5232,7 @@ boot();
     const panel=$('updatesDialog')?.querySelector('.updates-panel'); if(!panel||qs('.v21-note',panel))return;
     const note=document.createElement('section');note.className='v12-release-note v21-note';note.innerHTML='<span>VERSÃO 2.1.1 · INSTALADA</span><h3>Clean System</h3><ul><li>Dashboard reconstruído e mais enxuto.</li><li>Saldo livre como informação principal.</li><li>Alerta inteligente de prioridade.</li><li>Bills totalmente redesenhadas e compactas.</li><li>Filtros rápidos para Bills.</li><li>Configurações mais limpas.</li><li>Sessão persistente no iPhone.</li><li>Service Worker atualizado para evitar cache antigo.</li></ul>';
     const current=qs('.current-version-card',panel); if(current)current.after(note);
-    qsa('.version-orb',panel).forEach(x=>x.textContent='2.1.1'); const t=qs('.current-version-card strong',panel);if(t)t.textContent='Nosso Controle 2.1.1';
+    qsa('.version-orb',panel).forEach(x=>x.textContent='2.1.1'); const t=qs('.current-version-card strong',panel);if(t)t.textContent='Nosso Controle 2.1.2';
   }
 
   const oldRender=window.render;
@@ -5313,4 +5313,63 @@ boot();
 
   restoreUsernameField();
   requestAnimationFrame(applyActiveBillFilter);
+})();
+
+
+/* =========================================================
+   NOSSO CONTROLE 2.1.2 — correção de duplicação em Bills
+   ========================================================= */
+(function installV212BillsCleanup(){
+  function removeLegacyBillsUI(){
+    [
+      "v201BillsSummary",
+      "v201BillFilters"
+    ].forEach(id=>document.getElementById(id)?.remove());
+
+    // Remove qualquer cópia anterior dos componentes novos,
+    // preservando somente a primeira instância válida.
+    ["v21BillSummary","v21BillFilters"].forEach(id=>{
+      const matches=[...document.querySelectorAll(`#${id}`)];
+      matches.slice(1).forEach(node=>node.remove());
+    });
+  }
+
+  function updateV212Notes(){
+    const panel=document.getElementById("updatesDialog")?.querySelector(".updates-panel");
+    if(!panel||panel.querySelector(".v212-note"))return;
+    const note=document.createElement("section");
+    note.className="v12-release-note v212-note";
+    note.innerHTML=`
+      <span>VERSÃO 2.1.2 · CORREÇÃO</span>
+      <h3>Bills sem componentes duplicados</h3>
+      <ul>
+        <li>Removido o resumo antigo de Bills que aparecia acima do novo.</li>
+        <li>Removidos os filtros antigos duplicados.</li>
+        <li>Mantido somente o resumo Clean System e seus filtros funcionais.</li>
+      </ul>
+    `;
+    const current=panel.querySelector(".current-version-card");
+    if(current)current.insertAdjacentElement("afterend",note);
+    panel.querySelectorAll(".version-orb").forEach(el=>el.textContent="2.1.2");
+    const title=panel.querySelector(".current-version-card strong");
+    if(title)title.textContent="Nosso Controle 2.1.2";
+  }
+
+  function install(){
+    removeLegacyBillsUI();
+    updateV212Notes();
+    document.querySelectorAll(".updates-version-badge,.settings-version,.version-orb").forEach(el=>{
+      if(/^\d/.test(el.textContent.trim()))el.textContent="2.1.2";
+    });
+  }
+
+  install();
+  window.addEventListener("pageshow",install);
+  setTimeout(install,100);
+  setTimeout(install,700);
+  setTimeout(install,1600);
+
+  // Observa recriações da lista para impedir que a interface antiga volte.
+  const observer=new MutationObserver(()=>removeLegacyBillsUI());
+  observer.observe(document.documentElement,{childList:true,subtree:true});
 })();
