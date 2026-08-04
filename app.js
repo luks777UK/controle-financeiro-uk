@@ -1,4 +1,4 @@
-/* Nosso Controle 3.0.1 — aplicação refatorada */
+/* Nosso Controle 3.0.2 — aplicação refatorada */
 const cfg={
   SUPABASE_URL:"https://lhihsssbsjfliggtlaza.supabase.co",
   SUPABASE_ANON_KEY:"sb_publishable_0bttyUW7ASI8ylAyZjLkPA_NS8eThfO",
@@ -51,8 +51,8 @@ function closeKeyboardAndResetViewport(goTop=false){
 function restoreUsernameField(){
   const field=$("email");
   if(!field)return;
-  const saved=localStorage.getItem("nosso-controle-username");
-  if(saved)field.value=saved;
+  const savedEmail=localStorage.getItem("nosso-controle-email");
+  if(savedEmail)field.value=savedEmail;
 }
 async function boot(){
   try{
@@ -139,106 +139,80 @@ function subscribe(){
 function normalizeUsername(value){
   return String(value||"").trim().toLowerCase().replace(/[^a-z0-9._-]/g,"");
 }
-function rememberIdentity(username,email){
-  const clean=normalizeUsername(username);
-  if(email)localStorage.setItem("nosso-controle-email",email);
-  if(clean){
-    localStorage.setItem("nosso-controle-username",clean);
-    if(email)localStorage.setItem(`nosso-controle-username-email:${clean}`,email);
-  }
-}
-async function ensureProfile(authUser,preferredUsername=""){
-  if(!authUser)return;
-  const username=normalizeUsername(preferredUsername||authUser.user_metadata?.username||authUser.email?.split("@")[0]);
-  if(!username)return;
-  rememberIdentity(username,authUser.email||"");
-  try{
-    await sb.from("profiles").upsert({id:authUser.id,username,email:authUser.email},{onConflict:"id"});
-  }catch(error){console.warn("Profile sync unavailable:",error?.message||error)}
-}
-async function resolveLoginEmail(identifier){
-  const value=String(identifier||"").trim().toLowerCase();
-  if(value.includes("@"))return value;
-  const username=normalizeUsername(value);
-  if(!username)return "";
-  const local=localStorage.getItem(`nosso-controle-username-email:${username}`);
-  if(local)return local;
-  try{
-    const {data,error}=await sb.from("profiles").select("email").eq("username",username).maybeSingle();
-    if(!error&&data?.email)return data.email;
-  }catch{}
-  return "";
-}
 function setAuthLoading(loading){
   const button=$("loginBtn");
+  if(!button)return;
   button.disabled=loading;
   button.textContent=loading?"Entrando…":"Entrar";
 }
-
-function pendingSignup(){
-  try{return JSON.parse(localStorage.getItem("nosso-controle-pending-signup")||"null")}catch{return null}
-}
-function savePendingSignup(username,email){
-  localStorage.setItem("nosso-controle-pending-signup",JSON.stringify({username,email,createdAt:new Date().toISOString()}));
-}
-function clearPendingSignup(){
-  localStorage.removeItem("nosso-controle-pending-signup");
-}
-function showResendConfirmation(show=true){
-  const button=$("resendConfirmationBtn");
-  if(button)button.classList.toggle("hidden",!show);
-}
-function authErrorMessage(error,email){
+function authMessage(error){
   const message=String(error?.message||"").toLowerCase();
-  const pending=pendingSignup();
   if(message.includes("email not confirmed")||message.includes("not confirmed")){
-    return "Confirme o e-mail enviado para sua caixa de entrada antes de entrar.";
+    return "Confirme o e-mail enviado pelo Supabase antes de entrar.";
   }
   if(message.includes("invalid login")||message.includes("invalid credentials")){
-    if(pending?.email===email){
-      return "Confirme o e-mail recebido. Depois, faça o primeiro acesso usando o e-mail completo.";
-    }
-    return "E-mail/Username ou senha incorretos. Se este e-mail já tinha conta, use Recuperar senha.";
+    return "E-mail ou senha incorretos.";
+  }
+  if(message.includes("rate limit")){
+    return "Muitas tentativas. Aguarde alguns minutos e tente novamente.";
   }
   return error?.message||"Não foi possível entrar.";
 }
-
 async function handleLogin(){
   feedback("authMsg","");
-  const identifier=$("email").value.trim();
+  const email=$("email").value.trim().toLowerCase();
   const password=$("password").value;
-  if(!identifier)return feedback("authMsg","Digite seu Username ou e-mail.");
-  if(!password)return feedback("authMsg","Digite sua senha.");
+
+  if(!email||!email.includes("@")){
+    feedback("authMsg","Digite o seu e-mail completo.");
+    $("email").focus();
+    return;
+  }
+  if(!password){
+    feedback("authMsg","Digite sua senha.");
+    $("password").focus();
+    return;
+  }
+
   setAuthLoading(true);
   try{
-    const email=await resolveLoginEmail(identifier);
-    if(!email){
-      feedback("authMsg","Username ainda não vinculado. Entre uma vez usando seu e-mail.");
-      return;
-    }
     const {data,error}=await sb.auth.signInWithPassword({email,password});
     if(error){
-      console.warn("Auth:",error.message);
-      feedback("authMsg",authErrorMessage(error,email));
+      console.warn("Login Supabase:",error.message);
+      feedback("authMsg",authMessage(error));
       return;
     }
-    if(!data?.session?.user)return feedback("authMsg","Não foi possível criar a sessão.");
+    if(!data?.session?.user){
+      feedback("authMsg","O Supabase não criou a sessão. Tente novamente.");
+      return;
+    }
+
+    localStorage.setItem("nosso-controle-email",email);
     user=data.session.user;
-    const username=identifier.includes("@")?normalizeUsername(user.user_metadata?.username||identifier.split("@")[0]):normalizeUsername(identifier);
-    await ensureProfile(user,username);
-    clearPendingSignup();
     closeKeyboardAndResetViewport(true);
     await loadMembership();
   }catch(error){
     console.error("Login:",error);
-    feedback("authMsg",navigator.onLine?"Não foi possível entrar agora. Tente novamente.":"Sem conexão com a internet.");
-  }finally{setAuthLoading(false)}
+    feedback("authMsg",navigator.onLine
+      ?"Não foi possível conectar ao Supabase agora. Tente novamente."
+      :"Sem conexão com a internet.");
+  }finally{
+    setAuthLoading(false);
+  }
 }
-$("loginBtn").onclick=event=>{event.preventDefault();handleLogin()};
-$("password").addEventListener("keydown",event=>{if(event.key==="Enter"){event.preventDefault();handleLogin()}});
+$("loginBtn").onclick=event=>{
+  event.preventDefault();
+  handleLogin();
+};
+$("password").addEventListener("keydown",event=>{
+  if(event.key==="Enter"){
+    event.preventDefault();
+    handleLogin();
+  }
+});
 $("signupBtn").onclick=()=>{
   feedback("signupMsg","");
-  $("signupEmail").value=$("email").value.includes("@")?$("email").value.trim():"";
+  $("signupEmail").value=$("email").value.includes("@")?$("email").value.trim().toLowerCase():"";
   const pending=pendingSignup();
   if(pending?.email){$("signupEmail").value=pending.email;$("signupUsername").value=pending.username||"";showResendConfirmation(true);}
   try{$("signupDialog").showModal()}catch{$("signupDialog").setAttribute("open","")}
@@ -1278,9 +1252,9 @@ $("saveVaultDeposit").onclick=async e=>{
 };
 
 
-const APP_VERSION="3.0.1";
+const APP_VERSION="3.0.2";
 const RELEASE_NOTES=[
-  {version:"3.0.1",date:"05/08/2026",title:"Refatoração de estabilidade",changes:[
+  {version:"3.0.2",date:"05/08/2026",title:"Refatoração de estabilidade",changes:[
     "Removidos scripts e manipuladores duplicados.",
     "Login unificado em um único fluxo.",
     "Dashboard, Bills e filtros renderizados uma única vez.",

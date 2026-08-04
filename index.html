@@ -18,11 +18,16 @@
     <h1>Nosso Controle</h1>
     <p>As contas do casal, organizadas em um só lugar.</p>
     <div class="panel auth-panel">
-      <label>Username ou e-mail<input id="email" type="text" inputmode="email" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="username ou email"></label>
+      <label>E-mail<input id="email" type="text" inputmode="email" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="username ou email"></label>
       <label>Senha<input id="password" type="password" autocomplete="current-password" placeholder="Mínimo 6 caracteres"></label>
       <button id="loginBtn" class="primary-button">Entrar</button>
       <button id="signupBtn" class="secondary-button">Criar conta</button>
       <button id="forgotPasswordBtn" class="text-button" type="button">Esqueci minha senha</button>
+      
+  <div class="email-login-note-v302">
+    Use o mesmo e-mail da conta original. O Username não é necessário para entrar.
+  </div>
+
       <div id="authMsg" class="feedback"></div>
     </div>
   </section>
@@ -795,12 +800,12 @@
   <div id="toast" class="toast"></div>
   <canvas id="confetti"></canvas>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=3.0.1"></script>
+  <script src="app.js?v=3.0.2"></script>
   <script>
     if("serviceWorker" in navigator){
       window.addEventListener("load",async()=>{
         try{
-          const reg=await navigator.serviceWorker.register("./sw.js?v=3.0.1",{updateViaCache:"none"});
+          const reg=await navigator.serviceWorker.register("./sw.js?v=3.0.2",{updateViaCache:"none"});
           reg.update();
         }catch(error){console.warn("Service Worker:",error);}
       });

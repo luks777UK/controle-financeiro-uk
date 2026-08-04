@@ -979,3 +979,21 @@ body,
 #signupMsg{
   line-height:1.4;
 }
+
+
+/* Nosso Controle 3.0.2 — login original por e-mail */
+.email-login-note-v302{
+  margin-top:10px;
+  padding:9px 11px;
+  border-radius:12px;
+  background:rgba(90,167,255,.07);
+  border:1px solid rgba(90,167,255,.11);
+  color:#9da2b6;
+  font-size:8px;
+  line-height:1.4;
+  text-align:center;
+}
+#loginBtn:disabled{
+  opacity:.72;
+  pointer-events:none;
+}
