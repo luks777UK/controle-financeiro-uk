@@ -1,6 +1,30 @@
-/* NOSSO CONTROLE — Service Worker 2.1.3 */
-const CACHE_NAME="nosso-controle-2.1.3";
-const CORE=["./","./index.html","./styles.css?v=2.1.3","./app.js?v=2.1.3"];
-self.addEventListener("install",e=>{self.skipWaiting();e.waitUntil(caches.open(CACHE_NAME).then(c=>Promise.allSettled(CORE.map(u=>c.add(new Request(u,{cache:"reload"}))))))});
-self.addEventListener("activate",e=>{e.waitUntil(Promise.all([caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE_NAME).map(k=>caches.delete(k)))),self.clients.claim()]))});
-self.addEventListener("fetch",e=>{const r=e.request;if(r.method!=="GET")return;const u=new URL(r.url);if(u.origin!==self.location.origin)return;e.respondWith(fetch(r,{cache:"no-store"}).then(res=>{if(res&&res.ok){const copy=res.clone();caches.open(CACHE_NAME).then(c=>c.put(r,copy))}return res}).catch(()=>caches.match(r,{ignoreSearch:true}).then(x=>x||caches.match("./index.html"))))});
+/* NOSSO CONTROLE — Service Worker 2.1.4 */
+const CACHE_NAME="nosso-controle-2.1.4";
+const CORE=["./","./index.html?v=2.1.4","./styles.css?v=2.1.4","./app.js?v=2.1.4"];
+self.addEventListener("install",event=>{
+  self.skipWaiting();
+  event.waitUntil(caches.open(CACHE_NAME).then(cache=>Promise.allSettled(CORE.map(url=>cache.add(new Request(url,{cache:"reload"}))))));
+});
+self.addEventListener("activate",event=>{
+  event.waitUntil(Promise.all([
+    caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE_NAME).map(key=>caches.delete(key)))),
+    self.clients.claim()
+  ]));
+});
+self.addEventListener("fetch",event=>{
+  const request=event.request;
+  if(request.method!=="GET")return;
+  const url=new URL(request.url);
+  if(url.origin!==self.location.origin)return;
+  if(request.mode==="navigate"){
+    event.respondWith(fetch(request,{cache:"no-store"}).catch(()=>caches.match("./index.html?v=2.1.4")||caches.match("./")));
+    return;
+  }
+  event.respondWith(fetch(request,{cache:"no-store"}).then(response=>{
+    if(response&&response.ok){
+      const copy=response.clone();
+      caches.open(CACHE_NAME).then(cache=>cache.put(request,copy));
+    }
+    return response;
+  }).catch(()=>caches.match(request,{ignoreSearch:true})));
+});

@@ -613,3 +613,8 @@ body.keyboard-closing{
   .auth-screen{padding-left:24px;padding-right:24px}
   .header{margin-left:-16px;margin-right:-16px}
 }
+
+/* Nosso Controle 2.1.4 */
+.username-setup-card{max-width:430px}
+.username-setup-help{display:block;margin:-4px 0 10px;color:var(--muted);font-size:11px;line-height:1.4}
+#usernameSetupDialog{width:min(92vw,460px)}

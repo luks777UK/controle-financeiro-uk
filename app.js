@@ -5378,3 +5378,133 @@ boot();
   setTimeout(install,250);
   setTimeout(cleanupBillsDuplicates,900);
 })();
+
+/* =========================================================
+   NOSSO CONTROLE 2.1.4 — username migration + update stability
+   ========================================================= */
+(function installV214AuthAndUpdateFix(){
+  const field=document.getElementById('email');
+  const password=document.getElementById('password');
+  const login=document.getElementById('loginBtn');
+  const signup=document.getElementById('signupBtn');
+  const feedbackEl=document.getElementById('authMsg');
+  if(!field||!password||!login||!signup)return;
+
+  const normalize=value=>String(value||'').trim().toLowerCase().replace(/[^a-z0-9._-]/g,'');
+  const setMessage=text=>{if(feedbackEl)feedbackEl.textContent=text||''};
+  const remember=(username,email)=>{
+    const clean=normalize(username);
+    if(!clean||!email)return;
+    localStorage.setItem('nosso-controle-username',clean);
+    localStorage.setItem('nosso-controle-email',email);
+    localStorage.setItem(`nosso-controle-username-email:${clean}`,email);
+  };
+  const mappedEmail=username=>{
+    const clean=normalize(username);
+    return localStorage.getItem(`nosso-controle-username-email:${clean}`)||'';
+  };
+
+  function ensureUsernameDialog(){
+    let dialog=document.getElementById('usernameSetupDialog');
+    if(dialog)return dialog;
+    dialog=document.createElement('dialog');
+    dialog.id='usernameSetupDialog';
+    dialog.innerHTML=`
+      <form method="dialog" class="dialog-card username-setup-card">
+        <div class="dialog-heading">
+          <div><span class="calendar-overline">CONFIGURAR ACESSO</span><h2>Crie seu Username</h2><p>Você usará este nome nos próximos acessos neste iPhone.</p></div>
+        </div>
+        <label>Username<input id="newUsernameValue" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="ex.: lucas"></label>
+        <small class="username-setup-help">Use pelo menos 3 caracteres: letras, números, ponto, hífen ou underline.</small>
+        <div id="usernameSetupMsg" class="feedback"></div>
+        <button id="saveUsernameSetup" value="cancel" class="primary-button">Salvar Username</button>
+        <button id="skipUsernameSetup" value="cancel" class="secondary-button">Agora não</button>
+      </form>`;
+    document.body.appendChild(dialog);
+    document.getElementById('skipUsernameSetup').onclick=()=>{try{dialog.close()}catch{dialog.removeAttribute('open')}};
+    document.getElementById('saveUsernameSetup').onclick=async event=>{
+      event.preventDefault();
+      const input=document.getElementById('newUsernameValue');
+      const clean=normalize(input.value);
+      const msg=document.getElementById('usernameSetupMsg');
+      if(clean.length<3){msg.textContent='Use um Username com pelo menos 3 caracteres.';return}
+      const {data:{session}}=await sb.auth.getSession();
+      const email=session?.user?.email;
+      if(!email){msg.textContent='Sua sessão expirou. Entre novamente.';return}
+      remember(clean,email);
+      await sb.auth.updateUser({data:{username:clean}}).catch(()=>{});
+      field.value=clean;
+      try{dialog.close()}catch{dialog.removeAttribute('open')}
+      toast('Username cadastrado');
+    };
+    return dialog;
+  }
+
+  async function offerUsernameForLegacyAccount(session,typedValue){
+    if(!session?.user)return;
+    const metadataUsername=normalize(session.user.user_metadata?.username);
+    if(metadataUsername){remember(metadataUsername,session.user.email);return}
+    const saved=normalize(localStorage.getItem('nosso-controle-username'));
+    if(saved){remember(saved,session.user.email);return}
+    if(!String(typedValue).includes('@'))return;
+    const dialog=ensureUsernameDialog();
+    const suggested=normalize(String(session.user.email||'').split('@')[0]);
+    document.getElementById('newUsernameValue').value=suggested;
+    try{dialog.showModal()}catch{dialog.setAttribute('open','')}
+  }
+
+  login.onclick=async()=>{
+    setMessage('');
+    const entered=String(field.value||'').trim().toLowerCase();
+    if(!entered)return setMessage('Digite seu Username ou e-mail.');
+    let email;
+    if(entered.includes('@')){
+      email=entered;
+    }else{
+      email=mappedEmail(entered);
+      if(!email){
+        return setMessage('Este Username ainda não está ligado a uma conta neste iPhone. Entre uma vez com seu e-mail para cadastrá-lo.');
+      }
+    }
+    const {data,error}=await sb.auth.signInWithPassword({email,password:password.value});
+    if(error)return setMessage('Username, e-mail ou senha incorretos.');
+    const session=data?.session;
+    if(!entered.includes('@'))remember(entered,email);
+    user=session.user;
+    closeKeyboardAndResetViewport(true);
+    await loadMembership();
+    await offerUsernameForLegacyAccount(session,entered);
+  };
+
+  signup.onclick=async()=>{
+    setMessage('');
+    const entered=String(field.value||'').trim().toLowerCase();
+    if(entered.includes('@'))return setMessage('Para criar uma conta nova, escolha um Username sem @.');
+    const username=normalize(entered);
+    if(username.length<3)return setMessage('Use um Username com pelo menos 3 caracteres.');
+    const email=`${username}@nosso-controle.app`;
+    const {error}=await sb.auth.signUp({email,password:password.value,options:{data:{username}}});
+    if(error)return setMessage(error.message);
+    remember(username,email);
+    setMessage('Conta criada. Agora toque em Entrar.');
+  };
+
+  sb.auth.getSession().then(({data})=>{
+    const session=data?.session;
+    if(!session?.user)return;
+    const username=normalize(session.user.user_metadata?.username)||normalize(localStorage.getItem('nosso-controle-username'));
+    if(username){remember(username,session.user.email);field.value=username}
+  }).catch(()=>{});
+
+  const panel=document.querySelector('#updatesDialog .updates-panel');
+  if(panel&&!panel.querySelector('.v214-note')){
+    const note=document.createElement('section');
+    note.className='v12-release-note v214-note';
+    note.innerHTML='<span>VERSÃO 2.1.4 · ACESSO E ATUALIZAÇÕES</span><h3>Username e cache corrigidos</h3><ul><li>Contas antigas podem entrar uma vez com o e-mail e cadastrar um Username.</li><li>O login aceita Username ou e-mail durante a migração.</li><li>Contas novas continuam sendo criadas diretamente com Username.</li><li>Todos os arquivos agora usam a mesma versão 2.1.4.</li><li>Service Worker atualizado sem reutilizar arquivos antigos.</li><li>O app recarrega uma única vez quando uma versão nova assumir o controle.</li></ul>';
+    const current=panel.querySelector('.current-version-card');
+    if(current)current.after(note);else panel.prepend(note);
+  }
+  document.querySelectorAll('.updates-version-badge,.settings-version,.version-orb').forEach(el=>{
+    if(/^\d/.test(el.textContent.trim()))el.textContent='2.1.4';
+  });
+})();

@@ -9,7 +9,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="styles.css?v=2.1.1">
+  <link rel="stylesheet" href="styles.css?v=2.1.4">
   <title>Nosso Controle 2.1.1</title>
 </head>
 <body>
@@ -18,7 +18,7 @@
     <h1>Nosso Controle</h1>
     <p>As contas do casal, organizadas em um só lugar.</p>
     <div class="panel auth-panel">
-      <label>Username<input id="email" type="text" inputmode="text" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="seu username"></label>
+      <label>Username ou e-mail<input id="email" type="text" inputmode="email" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="username ou email"></label>
       <label>Senha<input id="password" type="password" autocomplete="current-password" placeholder="Mínimo 6 caracteres"></label>
       <button id="loginBtn" class="primary-button">Entrar</button>
       <button id="signupBtn" class="secondary-button">Criar conta</button>
@@ -756,10 +756,21 @@
   <canvas id="confetti"></canvas>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>
-  <script src="app.js?v=2.1.1"></script>
+  <script src="app.js?v=2.1.4"></script>
 <script>
 if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js").catch(()=>{}));
+  window.addEventListener("load", async () => {
+    try {
+      const registration = await navigator.serviceWorker.register("./sw.js?v=2.1.4", { updateViaCache: "none" });
+      await registration.update();
+      let refreshing = false;
+      navigator.serviceWorker.addEventListener("controllerchange", () => {
+        if (refreshing) return;
+        refreshing = true;
+        window.location.reload();
+      });
+    } catch (_) {}
+  });
 }
 </script>
 </body>
