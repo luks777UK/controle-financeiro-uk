@@ -292,10 +292,26 @@
         <span class="deposit-plus">＋</span>
         <span><b>Novo depósito</b><small>Envelope ou cartão</small></span>
       </button>
-      <button id="copyCode" class="share-button">
-        <span class="share-icon">↗</span>
-        <span><b>Compartilhar</b><small id="groupCodeText">Código</small></span>
-      </button>
+      <article class="wallet-split-card" aria-label="Resumo do dinheiro guardado">
+        <div class="wallet-split-head">
+          <span class="wallet-split-icon">£</span>
+          <div>
+            <b>Dinheiro guardado</b>
+            <small>Total entre envelope e cartão</small>
+          </div>
+          <strong id="quickSavedTotal">£0,00</strong>
+        </div>
+        <div class="wallet-split-values">
+          <span>
+            <small>Envelope</small>
+            <b id="quickCashTotal">£0,00</b>
+          </span>
+          <span>
+            <small>Cartão</small>
+            <b id="quickCardTotal">£0,00</b>
+          </span>
+        </div>
+      </article>
     </section>
 
     <div class="section-heading">
@@ -785,7 +801,7 @@ if ("serviceWorker" in navigator) {
 /* Nosso Controle 2.1.8 — correção independente de Limpezas, Configurações e Atualizações */
 (function(){
   'use strict';
-  const VERSION='2.1.9';
+  const VERSION='2.1.10';
   const $=id=>document.getElementById(id);
   const qs=(s,r=document)=>r.querySelector(s);
   const qsa=(s,r=document)=>Array.from(r.querySelectorAll(s));
@@ -904,6 +920,7 @@ if ("serviceWorker" in navigator) {
   function escapeHtml(v){const d=document.createElement('div');d.textContent=String(v??'');return d.innerHTML;}
 
   const RELEASES=[
+    ['2.1.10','04/08/2026','Resumo do dinheiro guardado',['Removido o card Compartilhar da tela de Bills.','Envelope e Cartão agora aparecem lado a lado.','Adicionado total guardado entre os dois locais.','Compartilhamento mantido em Configurações → Casa compartilhada.']],
     ['2.1.9','04/08/2026','Central de controle completa',['Configurações reorganizadas por áreas.','Resumo mensal e atalhos financeiros.','Backup completo e restauração de dados.','Exportação de relatório em PDF.','Diagnóstico do aplicativo e da sincronização.','Atalhos para pagamentos de limpezas, Bills e Cofre.']],
     ['2.1.8','04/08/2026','Correção das limpezas e Configurações',['Controle diário de limpezas carregado de forma independente.','Totais de hoje, semana e mês.','Edição e exclusão dos pagamentos.','Configurações reorganizadas e versão corrigida.','Aba Atualizações reconstruída.']],
     ['2.1.7','04/08/2026','Controle diário de limpezas',['Registro específico para pagamentos de limpeza.','Integração com Receitas e resumos financeiros.']],
@@ -953,7 +970,7 @@ if ("serviceWorker" in navigator) {
 <script>
 /* Nosso Controle 2.1.9 — Central de controle completa */
 (function installControlCenter219(){
-  const VERSION_219 = "2.1.9";
+  const VERSION_219 = "2.1.10";
   const $ = id => document.getElementById(id);
   const qs = (s,r=document) => r.querySelector(s);
   const qsa = (s,r=document) => [...r.querySelectorAll(s)];
@@ -1375,6 +1392,38 @@ if ("serviceWorker" in navigator) {
   window.addEventListener("pageshow", () => setTimeout(install219,50));
   setTimeout(install219,300);
   setTimeout(install219,1200);
+})();
+</script>
+
+
+<script>
+/* Nosso Controle 2.1.10 — resumo Envelope/Cartão */
+(function installWalletSplit210(){
+  const $ = id => document.getElementById(id);
+
+  function updateWalletSplit210(){
+    if(typeof state === "undefined" || !state) return;
+    const cash = Number(state.cash || 0);
+    const card = Number(state.card || 0);
+    if($("quickCashTotal")) $("quickCashTotal").textContent = money(cash);
+    if($("quickCardTotal")) $("quickCardTotal").textContent = money(card);
+    if($("quickSavedTotal")) $("quickSavedTotal").textContent = money(cash + card);
+  }
+
+  const originalRender210 = typeof render === "function" ? render : null;
+  if(originalRender210 && !window.__walletSplitRender210){
+    window.__walletSplitRender210 = true;
+    render = function(){
+      const result = originalRender210.apply(this, arguments);
+      updateWalletSplit210();
+      return result;
+    };
+  }
+
+  window.addEventListener("pageshow", updateWalletSplit210);
+  document.addEventListener("DOMContentLoaded", updateWalletSplit210);
+  setTimeout(updateWalletSplit210, 300);
+  setTimeout(updateWalletSplit210, 1200);
 })();
 </script>
 
