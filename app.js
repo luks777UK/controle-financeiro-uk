@@ -121,13 +121,13 @@
           </div>
           <section class="current-version-card">
             <div class="version-orb">1.1.2</div>
-            <div><span>VERSÃO INSTALADA</span><strong>Nosso Controle 1.3.1</strong><small>Build de 03/08/2026 · correção de login</small></div>
+            <div><span>VERSÃO INSTALADA</span><strong>Nosso Controle 1.4</strong><small>Build de 03/08/2026 · correção de login</small></div>
             <span class="version-status">Atual</span>
           </section>
           <section class="updates-timeline">
             <article class="update-entry latest">
               <div class="update-marker"></div><div class="update-content">
-                <div class="update-entry-head"><div><span>Versão 1.3.1</span><strong>Central de atualizações</strong></div><small>03/08/2026</small></div>
+                <div class="update-entry-head"><div><span>Versão 1.4</span><strong>Central de atualizações</strong></div><small>03/08/2026</small></div>
                 <ul><li>Nova área <b>Atualizações</b> no menu de três pontos.</li><li>Versão instalada e histórico de mudanças.</li><li>Fluxo preparado para atualização pelo iPhone.</li></ul>
               </div>
             </article>
@@ -1278,7 +1278,7 @@ boot();
           <div class="version-orb">1.1.3</div>
           <div>
             <span>VERSÃO INSTALADA</span>
-            <strong>Nosso Controle 1.3.1</strong>
+            <strong>Nosso Controle 1.4</strong>
             <small>Correção do menu e gerenciamento de dados</small>
           </div>
           <span class="version-status">Atual</span>
@@ -1289,7 +1289,7 @@ boot();
             <div class="update-marker"></div>
             <div class="update-content">
               <div class="update-entry-head">
-                <div><span>Versão 1.3.1</span><strong>Menu e manutenção</strong></div>
+                <div><span>Versão 1.4</span><strong>Menu e manutenção</strong></div>
                 <small>03/08/2026</small>
               </div>
               <ul>
@@ -1325,7 +1325,7 @@ boot();
             <div class="update-marker"></div>
             <div class="update-content">
               <div class="update-entry-head">
-                <div><span>Versão 1.3.1</span><strong>Histórico e produtividade</strong></div>
+                <div><span>Versão 1.4</span><strong>Histórico e produtividade</strong></div>
                 <small>Planejada</small>
               </div>
               <ul>
@@ -1342,7 +1342,7 @@ boot();
             <div class="update-marker"></div>
             <div class="update-content">
               <div class="update-entry-head">
-                <div><span>Versão 1.3.1</span><strong>Nuvem e aplicativo</strong></div>
+                <div><span>Versão 1.4</span><strong>Nuvem e aplicativo</strong></div>
                 <small>Planejada</small>
               </div>
               <ul>
@@ -1938,7 +1938,7 @@ boot();
   });
 
   document.querySelectorAll(".current-version-card strong").forEach(x=>{
-    if(x.textContent.includes("1.1.3"))x.textContent="Nosso Controle 1.3.1";
+    if(x.textContent.includes("1.1.3"))x.textContent="Nosso Controle 1.4";
   });
 })();
 
@@ -2167,7 +2167,7 @@ boot();
     if(el.textContent.trim()==="1.1.4")el.textContent="1.1.5";
   });
   document.querySelectorAll(".current-version-card strong").forEach(el=>{
-    if(el.textContent.includes("1.1.4"))el.textContent="Nosso Controle 1.3.1";
+    if(el.textContent.includes("1.1.4"))el.textContent="Nosso Controle 1.4";
   });
 })();
 
@@ -2328,7 +2328,7 @@ boot();
           <div class="version-orb">1.1.6</div>
           <div>
             <span>VERSÃO INSTALADA</span>
-            <strong>Nosso Controle 1.3.1</strong>
+            <strong>Nosso Controle 1.4</strong>
             <small>Calendário, logout e organização visual</small>
           </div>
           <span class="version-status">Atual</span>
@@ -2974,7 +2974,7 @@ boot();
       const strong=current.querySelector("strong");
       const small=current.querySelector("small");
       if(orb)orb.textContent="1.2";
-      if(strong)strong.textContent="Nosso Controle 1.3.1";
+      if(strong)strong.textContent="Nosso Controle 1.4";
       if(small)small.textContent="Experiência premium e conta compartilhada";
     }
 
@@ -3869,7 +3869,7 @@ boot();
 
     panel.querySelectorAll(".version-orb").forEach(x=>x.textContent="1.3");
     const strong=panel.querySelector(".current-version-card strong");
-    if(strong)strong.textContent="Nosso Controle 1.3.1";
+    if(strong)strong.textContent="Nosso Controle 1.4";
   }
 
   function addStyles(){
@@ -4115,7 +4115,7 @@ boot();
 
     panel.querySelectorAll(".version-orb").forEach(el=>el.textContent="1.3.1");
     const versionName=panel.querySelector(".current-version-card strong");
-    if(versionName)versionName.textContent="Nosso Controle 1.3.1";
+    if(versionName)versionName.textContent="Nosso Controle 1.4";
   }
 
   function addStyles(){
@@ -4160,4 +4160,505 @@ boot();
   window.addEventListener("pageshow",install);
   setTimeout(install,300);
   setTimeout(install,1000);
+})();
+
+
+/* =========================================================
+   NOSSO CONTROLE 1.4
+   Datas nas Bills • resets seletivos • resumos mensais
+   ========================================================= */
+(function installV14(){
+  const get=id=>document.getElementById(id);
+  const today=()=>currentLocalDate();
+  const monthKey=value=>{
+    const key=typeof value==="string"&&value.length>=7?value.slice(0,7):today().slice(0,7);
+    return key;
+  };
+  const monthLabel=key=>{
+    const [y,m]=key.split("-").map(Number);
+    return new Intl.DateTimeFormat("pt-BR",{month:"long",year:"numeric"})
+      .format(new Date(y,m-1,1,12));
+  };
+  const sum=list=>(list||[]).reduce((total,item)=>total+Number(item.amount||0),0);
+  const safeClose=dialog=>{if(!dialog)return;try{dialog.close()}catch{dialog.removeAttribute("open")}};
+  const safeOpen=dialog=>{if(!dialog)return;try{dialog.showModal()}catch{dialog.setAttribute("open","")}};
+
+  function isoAtNoon(dateValue){
+    const value=dateValue||today();
+    return new Date(`${value}T12:00:00`).toISOString();
+  }
+
+  /* ---------- Data do depósito para Bills ---------- */
+  function addDepositDate(){
+    const dialog=get("depositDialog");
+    const form=dialog?.querySelector("form");
+    if(!form||get("billDepositDate"))return;
+
+    const save=get("saveDeposit");
+    const wrapper=document.createElement("label");
+    wrapper.className="v14-date-label";
+    wrapper.innerHTML=`
+      Data do depósito <span>(opcional)</span>
+      <input id="billDepositDate" type="date">
+      <small>Se deixar vazio, será usada a data de hoje.</small>
+    `;
+    form.insertBefore(wrapper,save);
+
+    const open=get("openDeposit");
+    if(open&&!open.dataset.v14date){
+      open.dataset.v14date="1";
+      open.addEventListener("click",()=>{
+        setTimeout(()=>{if(get("billDepositDate"))get("billDepositDate").value=""},0);
+      });
+    }
+
+    if(save&&!save.dataset.v14date){
+      save.dataset.v14date="1";
+      save.addEventListener("click",()=>{
+        const chosen=get("billDepositDate")?.value||today();
+        window.__billDepositChosenDate=chosen;
+      },{capture:true});
+    }
+  }
+
+  /* Patch do histórico do depósito: troca a data recém-criada após salvar. */
+  function normalizeLatestDepositDate(){
+    const chosen=window.__billDepositChosenDate;
+    if(!chosen||!state?.history?.length)return;
+    const latest=[...state.history].reverse().find(item=>item.text==="Depósito adicionado");
+    if(latest&&latest.__v14dated!==chosen){
+      latest.date=isoAtNoon(chosen);
+      latest.__v14dated=chosen;
+    }
+    window.__billDepositChosenDate=null;
+  }
+
+  /* ---------- Data ao pagar Bill ---------- */
+  function ensureBillPaymentDialog(){
+    if(get("billPaymentDateDialog"))return;
+
+    const dialog=document.createElement("dialog");
+    dialog.id="billPaymentDateDialog";
+    dialog.innerHTML=`
+      <form method="dialog" class="dialog-card compact-payment-dialog">
+        <input id="billPaymentId" type="hidden">
+        <div class="dialog-heading">
+          <div>
+            <span class="calendar-overline">PAGAR BILL</span>
+            <h2 id="billPaymentTitle">Confirmar pagamento</h2>
+            <p id="billPaymentSubtitle">Escolha a data ou deixe vazio para hoje.</p>
+          </div>
+          <button id="closeBillPaymentDialog" value="cancel" class="round-button">×</button>
+        </div>
+        <section class="payment-bill-summary">
+          <span id="billPaymentIcon">£</span>
+          <div><strong id="billPaymentName">Bill</strong><small id="billPaymentAmount">£0,00</small></div>
+        </section>
+        <label class="v14-date-label">
+          Data do pagamento <span>(opcional)</span>
+          <input id="billPaymentDate" type="date">
+          <small>Vazio significa hoje.</small>
+        </label>
+        <button id="confirmBillPayment" value="cancel" class="primary-button">Confirmar pagamento</button>
+      </form>
+    `;
+    document.body.appendChild(dialog);
+
+    get("closeBillPaymentDialog").onclick=()=>safeClose(dialog);
+    get("confirmBillPayment").onclick=async event=>{
+      event.preventDefault();
+      const id=get("billPaymentId").value;
+      const paymentDate=get("billPaymentDate").value||today();
+      safeClose(dialog);
+      await executeBillPayment(id,paymentDate);
+    };
+  }
+
+  const originalTogglePaid=typeof togglePaid==="function"?togglePaid:null;
+
+  async function executeBillPayment(id,paymentDate){
+    const bill=state.bills.find(x=>x.id===id);
+    if(!bill)return;
+
+    const oldReserved=Number(bill.reserved||0);
+    const record=paymentRecordForBill(bill);
+    record.date=isoAtNoon(paymentDate);
+    record.paymentDate=paymentDate;
+    state.history=state.history||[];
+    state.history.push(record);
+
+    let amountToRemove=oldReserved;
+    const fromCash=Math.min(Number(state.cash||0),amountToRemove);
+    state.cash=Math.max(0,Number(state.cash||0)-fromCash);
+    amountToRemove-=fromCash;
+    if(amountToRemove>0)state.card=Math.max(0,Number(state.card||0)-amountToRemove);
+
+    if(bill.type==="installment"){
+      if(Number(bill.currentInstallment)>=Number(bill.totalInstallments)){
+        bill.completed=true;
+        state.completedBills=state.completedBills||[];
+        state.completedBills.push({
+          ...structuredClone(bill),
+          completedAt:isoAtNoon(paymentDate)
+        });
+        state.bills=state.bills.filter(x=>x.id!==bill.id);
+        await persist(`${bill.name} concluída (${bill.totalInstallments}/${bill.totalInstallments})`);
+        confetti();
+        return;
+      }
+      bill.currentInstallment=Number(bill.currentInstallment)+1;
+    }
+
+    if(bill.frequency==="once"){
+      bill.completed=true;
+      state.completedBills=state.completedBills||[];
+      state.completedBills.push({...structuredClone(bill),completedAt:isoAtNoon(paymentDate)});
+      state.bills=state.bills.filter(x=>x.id!==bill.id);
+      await persist(`${bill.name} concluída`);
+      confetti();
+      return;
+    }
+
+    bill.due=advanceDueDate(bill.due,bill.frequency);
+    bill.reserved=0;
+    bill.paid=false;
+    await persist(`${bill.name} paga · próximo vencimento ${formatDate(bill.due)}`);
+    confetti();
+  }
+
+  window.togglePaid=function(id){
+    ensureBillPaymentDialog();
+    const bill=state?.bills?.find(x=>x.id===id);
+    if(!bill)return;
+    get("billPaymentId").value=id;
+    get("billPaymentDate").value="";
+    get("billPaymentName").textContent=bill.name;
+    get("billPaymentAmount").textContent=money(Number(bill.amount||0));
+    get("billPaymentIcon").textContent=typeof billIcon==="function"?billIcon(bill.name):"£";
+    safeOpen(get("billPaymentDateDialog"));
+  };
+
+  /* ---------- Data explícita na criação/edição da Bill ---------- */
+  function improveBillDate(){
+    const input=get("newBillDue");
+    if(!input)return;
+    input.type="date";
+    input.removeAttribute("required");
+    const label=input.closest("label");
+    if(label){
+      const node=[...label.childNodes].find(n=>n.nodeType===Node.TEXT_NODE);
+      if(node)node.textContent="Primeiro vencimento (opcional)";
+      if(!label.querySelector(".v14-bill-date-hint")){
+        label.insertAdjacentHTML("beforeend",'<small class="v14-bill-date-hint">Vazio significa hoje. Depois, a frequência avança esta data automaticamente.</small>');
+      }
+    }
+
+    const save=get("saveNewBill");
+    if(save&&!save.dataset.v14due){
+      save.dataset.v14due="1";
+      save.addEventListener("click",()=>{
+        if(!input.value)input.value=today();
+      },{capture:true});
+    }
+  }
+
+  /* ---------- Resumos mensais ---------- */
+  function availableMonths(){
+    const keys=new Set([today().slice(0,7)]);
+    (state?.incomes||[]).forEach(x=>x.date&&keys.add(monthKey(x.date)));
+    (state?.expenses||[]).forEach(x=>x.date&&keys.add(monthKey(x.date)));
+    (state?.vaultEntries||[]).forEach(x=>x.date&&keys.add(monthKey(x.date)));
+    (state?.history||[]).forEach(x=>x.date&&keys.add(monthKey(dateKeyFromHistory(x.date))));
+    return [...keys].sort().reverse();
+  }
+
+  function dateKeyFromHistory(value){
+    const d=new Date(value);
+    if(Number.isNaN(d.getTime()))return today();
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+  }
+
+  function monthlySummary(key){
+    const incomes=(state?.incomes||[]).filter(x=>monthKey(x.date)===key);
+    const expenses=(state?.expenses||[]).filter(x=>monthKey(x.date)===key);
+    const vault=(state?.vaultEntries||[]).filter(x=>monthKey(x.date)===key);
+    const billPayments=(state?.history||[]).filter(x=>x.type==="bill_payment"&&monthKey(dateKeyFromHistory(x.date))===key);
+    const billDeposits=(state?.history||[]).filter(x=>x.type!=="bill_payment"&&x.date&&monthKey(dateKeyFromHistory(x.date))===key)
+      .reduce((total,x)=>total+Number(x.cash||0)+Number(x.card||0),0);
+
+    const income=sum(incomes);
+    const expense=sum(expenses);
+    const vaultTotal=sum(vault);
+    const bills=billPayments.reduce((total,x)=>total+Number(x.amount||0),0);
+    return {
+      key,income,expense,vault:vaultTotal,bills,billDeposits,
+      balance:income-expense-bills-vaultTotal,
+      count:incomes.length+expenses.length+vault.length+billPayments.length
+    };
+  }
+
+  function ensureMonthlyDialog(){
+    if(get("monthlySummariesDialog"))return;
+    const dialog=document.createElement("dialog");
+    dialog.id="monthlySummariesDialog";
+    dialog.innerHTML=`
+      <section class="monthly-panel">
+        <div class="insights-header">
+          <div>
+            <span class="calendar-overline">FECHAMENTO MENSAL</span>
+            <h2>Resumo por mês</h2>
+            <p>Cada mês começa com seus próprios totais, sem apagar o histórico anterior.</p>
+          </div>
+          <button id="closeMonthlySummaries" class="round-button" type="button">×</button>
+        </div>
+        <div id="monthlySummaryList" class="monthly-summary-list"></div>
+      </section>
+    `;
+    document.body.appendChild(dialog);
+    get("closeMonthlySummaries").onclick=()=>safeClose(dialog);
+  }
+
+  function renderMonthlySummaries(){
+    ensureMonthlyDialog();
+    get("monthlySummaryList").innerHTML=availableMonths().map(key=>{
+      const x=monthlySummary(key);
+      const current=key===today().slice(0,7);
+      return `
+        <details class="monthly-summary-card" ${current?"open":""}>
+          <summary>
+            <div>
+              <span>${current?"MÊS ATUAL":"MÊS ENCERRADO"}</span>
+              <strong>${monthLabel(key)}</strong>
+              <small>${x.count} movimentações</small>
+            </div>
+            <b class="${x.balance<0?"negative":"positive"}">${money(x.balance)}</b>
+          </summary>
+          <section class="monthly-summary-grid">
+            <article><span>Receitas</span><strong>${money(x.income)}</strong></article>
+            <article><span>Gastos</span><strong>${money(x.expense)}</strong></article>
+            <article><span>Bills pagas</span><strong>${money(x.bills)}</strong></article>
+            <article><span>Cofre</span><strong>${money(x.vault)}</strong></article>
+            <article><span>Reservado nas Bills</span><strong>${money(x.billDeposits)}</strong></article>
+            <article class="monthly-balance"><span>Saldo do mês</span><strong>${money(x.balance)}</strong></article>
+          </section>
+        </details>
+      `;
+    }).join("");
+  }
+
+  /* ---------- Reset seletivo ---------- */
+  function resetCenterHTML(){
+    return `
+      <section class="selective-reset-card">
+        <span class="calendar-overline">RESET SELETIVO</span>
+        <h3>Escolha exatamente o que apagar</h3>
+        <p>Nenhuma opção abaixo apaga todas as outras áreas automaticamente.</p>
+        <div class="reset-option-list">
+          <button data-reset-scope="reservations"><b>Reservas das Bills</b><small>Zera envelope, cartão e valores reservados.</small></button>
+          <button data-reset-scope="income-month"><b>Receitas deste mês</b><small>Mantém receitas dos meses anteriores.</small></button>
+          <button data-reset-scope="expenses-month"><b>Gastos deste mês</b><small>Mantém gastos dos meses anteriores.</small></button>
+          <button data-reset-scope="vault-month"><b>Cofre deste mês</b><small>Mantém o histórico dos outros meses.</small></button>
+          <button data-reset-scope="history-month"><b>Histórico de Bills deste mês</b><small>Remove depósitos e pagamentos do mês atual.</small></button>
+          <button data-reset-scope="current-month"><b>Todo o mês atual</b><small>Receitas, gastos, Cofre e histórico apenas deste mês.</small></button>
+          <button data-reset-scope="all-finance" class="danger"><b>Todos os dados financeiros</b><small>Mantém somente as Bills cadastradas.</small></button>
+        </div>
+      </section>
+    `;
+  }
+
+  async function runSelectiveReset(scope){
+    const current=today().slice(0,7);
+    const descriptions={
+      reservations:"reservas das Bills",
+      "income-month":"receitas deste mês",
+      "expenses-month":"gastos deste mês",
+      "vault-month":"Cofre deste mês",
+      "history-month":"histórico de Bills deste mês",
+      "current-month":"todos os dados do mês atual",
+      "all-finance":"todos os dados financeiros"
+    };
+    const phrase=scope==="all-finance"?"APAGAR":"RESETAR";
+    const entered=prompt(`Para apagar ${descriptions[scope]}, digite ${phrase}`);
+    if(entered!==phrase)return toast("Operação cancelada");
+
+    if(scope==="reservations"){
+      state.cash=0;state.card=0;
+      (state.bills||[]).forEach(b=>b.reserved=0);
+      state.history=(state.history||[]).filter(x=>x.type==="bill_payment");
+    }
+    if(scope==="income-month")state.incomes=(state.incomes||[]).filter(x=>monthKey(x.date)!==current);
+    if(scope==="expenses-month")state.expenses=(state.expenses||[]).filter(x=>monthKey(x.date)!==current);
+    if(scope==="vault-month")state.vaultEntries=(state.vaultEntries||[]).filter(x=>monthKey(x.date)!==current);
+    if(scope==="history-month")state.history=(state.history||[]).filter(x=>monthKey(dateKeyFromHistory(x.date))!==current);
+    if(scope==="current-month"){
+      state.incomes=(state.incomes||[]).filter(x=>monthKey(x.date)!==current);
+      state.expenses=(state.expenses||[]).filter(x=>monthKey(x.date)!==current);
+      state.vaultEntries=(state.vaultEntries||[]).filter(x=>monthKey(x.date)!==current);
+      state.history=(state.history||[]).filter(x=>monthKey(dateKeyFromHistory(x.date))!==current);
+      state.cash=0;state.card=0;
+      (state.bills||[]).forEach(b=>b.reserved=0);
+    }
+    if(scope==="all-finance"){
+      state.incomes=[];state.expenses=[];state.vaultEntries=[];state.history=[];
+      state.cash=0;state.card=0;
+      (state.bills||[]).forEach(b=>b.reserved=0);
+    }
+
+    await persist(`${descriptions[scope]} apagados`);
+  }
+
+  function injectSettingsEntries(){
+    const menu=get("menuButton");
+    if(!menu||menu.dataset.v14settings)return;
+    menu.dataset.v14settings="1";
+    menu.addEventListener("click",()=>{
+      setTimeout(()=>{
+        const sheet=get("settingsSheet");
+        const appGroup=[...sheet?.querySelectorAll(".settings-group")||[]]
+          .find(x=>x.textContent.includes("APLICATIVO"));
+        if(!appGroup)return;
+
+        if(!get("openMonthlySummaries")){
+          appGroup.insertAdjacentHTML("beforebegin",`
+            <section class="settings-group">
+              <div class="settings-group-title"><span>MESES</span><small>Histórico preservado</small></div>
+              <button id="openMonthlySummaries" class="settings-row" type="button">
+                <span class="settings-row-icon green">▦</span>
+                <span class="settings-row-copy"><b>Resumos mensais</b><small>Veja cada mês encerrado e o mês atual</small></span>
+                <span class="settings-chevron">›</span>
+              </button>
+              <button id="openSelectiveReset" class="settings-row" type="button">
+                <span class="settings-row-icon amber">↺</span>
+                <span class="settings-row-copy"><b>Reset seletivo</b><small>Apague apenas a área que escolher</small></span>
+                <span class="settings-chevron">›</span>
+              </button>
+            </section>
+          `);
+        }
+
+        get("openMonthlySummaries").onclick=()=>{
+          sheet.classList.add("hidden");
+          renderMonthlySummaries();
+          safeOpen(get("monthlySummariesDialog"));
+        };
+
+        get("openSelectiveReset").onclick=()=>{
+          sheet.classList.add("hidden");
+          const dialog=get("updatesDialog");
+          if(!dialog)return;
+          const panel=dialog.querySelector(".updates-panel");
+          let reset=panel.querySelector(".selective-reset-card");
+          if(!reset){
+            panel.insertAdjacentHTML("beforeend",resetCenterHTML());
+            reset=panel.querySelector(".selective-reset-card");
+            reset.querySelectorAll("[data-reset-scope]").forEach(button=>{
+              button.onclick=()=>runSelectiveReset(button.dataset.resetScope);
+            });
+          }
+          safeOpen(dialog);
+          setTimeout(()=>reset.scrollIntoView({behavior:"smooth",block:"start"}),100);
+        };
+      },0);
+    });
+  }
+
+  function monthRollover(){
+    if(!state)return;
+    const current=today().slice(0,7);
+    if(state.lastActiveMonth&&state.lastActiveMonth!==current){
+      toast(`Novo mês iniciado: ${monthLabel(current)}`);
+    }
+    state.lastActiveMonth=current;
+  }
+
+  function updateNotes(){
+    const panel=get("updatesDialog")?.querySelector(".updates-panel");
+    if(!panel||panel.querySelector(".v14-release-note"))return;
+    const note=document.createElement("section");
+    note.className="v12-release-note v14-release-note";
+    note.innerHTML=`
+      <span>VERSÃO 1.4 · INSTALADA</span>
+      <h3>Bills com datas e fechamento mensal</h3>
+      <ul>
+        <li>Data opcional ao reservar dinheiro para Bills.</li>
+        <li>Data opcional ao marcar uma Bill como paga.</li>
+        <li>Primeiro vencimento selecionável em novas Bills.</li>
+        <li>Reset separado por área, sem perder todo o processo.</li>
+        <li>Resumo individual de cada mês anterior.</li>
+        <li>Novo mês começa com totais mensais zerados, preservando o histórico.</li>
+      </ul>
+    `;
+    const current=panel.querySelector(".current-version-card");
+    if(current)current.insertAdjacentElement("afterend",note);
+    panel.querySelectorAll(".version-orb").forEach(x=>x.textContent="1.4");
+    const title=panel.querySelector(".current-version-card strong");
+    if(title)title.textContent="Nosso Controle 1.4";
+  }
+
+  function addStyles(){
+    if(get("v14Styles"))return;
+    const style=document.createElement("style");
+    style.id="v14Styles";
+    style.textContent=`
+      .v14-date-label span{color:var(--muted);font-size:8px}
+      .v14-date-label small,.v14-bill-date-hint{display:block;color:var(--muted);font-size:8px;margin-top:5px;line-height:1.35}
+      .compact-payment-dialog{max-width:420px}
+      .payment-bill-summary{display:flex;align-items:center;gap:11px;padding:12px;margin:11px 0;border-radius:16px;background:#171927;border:1px solid var(--line)}
+      .payment-bill-summary>span{width:40px;height:40px;display:grid;place-items:center;border-radius:13px;background:rgba(139,92,246,.12);color:var(--purple-2);font-size:19px}
+      .payment-bill-summary strong,.payment-bill-summary small{display:block}.payment-bill-summary strong{font-size:13px}.payment-bill-summary small{font-size:10px;color:var(--muted);margin-top:3px}
+      .monthly-panel{max-height:90vh;overflow:auto;padding:15px;border-radius:24px;background:#10121f;border:1px solid var(--line);color:var(--ink)}
+      #monthlySummariesDialog{width:min(95vw,720px)}
+      .monthly-summary-list{display:grid;gap:8px;margin-top:14px}
+      .monthly-summary-card{border-radius:17px;background:#171927;border:1px solid var(--line);overflow:hidden}
+      .monthly-summary-card summary{list-style:none;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:13px;cursor:pointer}
+      .monthly-summary-card summary::-webkit-details-marker{display:none}
+      .monthly-summary-card summary span,.monthly-summary-card summary strong,.monthly-summary-card summary small{display:block}
+      .monthly-summary-card summary span{color:var(--purple-2);font-size:7px;font-weight:900;letter-spacing:.8px}
+      .monthly-summary-card summary strong{font-size:14px;text-transform:capitalize;margin-top:3px}
+      .monthly-summary-card summary small{color:var(--muted);font-size:8px;margin-top:3px}
+      .monthly-summary-card summary>b{font-size:14px}.monthly-summary-card summary>b.positive{color:var(--green)}.monthly-summary-card summary>b.negative{color:#ff8395}
+      .monthly-summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;padding:0 12px 12px}
+      .monthly-summary-grid article{padding:10px;border-radius:13px;background:#11131f;border:1px solid rgba(255,255,255,.05)}
+      .monthly-summary-grid span,.monthly-summary-grid strong{display:block}.monthly-summary-grid span{font-size:7px;color:var(--muted)}.monthly-summary-grid strong{font-size:13px;margin-top:4px}
+      .monthly-summary-grid .monthly-balance{grid-column:1/-1;background:rgba(63,230,162,.05);border-color:rgba(63,230,162,.12)}
+      .selective-reset-card{margin-top:13px;padding:13px;border-radius:17px;background:#171927;border:1px solid rgba(255,112,132,.12)}
+      .selective-reset-card h3{font-size:14px;margin:5px 0 3px}.selective-reset-card>p{font-size:8px;color:var(--muted);margin:0 0 10px}
+      .reset-option-list{display:grid;gap:6px}.reset-option-list button{text-align:left;padding:10px;border-radius:13px;border:1px solid var(--line);background:#11131f;color:var(--ink)}
+      .reset-option-list b,.reset-option-list small{display:block}.reset-option-list b{font-size:10px}.reset-option-list small{font-size:8px;color:var(--muted);margin-top:3px}
+      .reset-option-list button.danger{border-color:rgba(255,112,132,.18);background:rgba(255,112,132,.05);color:#ff899a}
+    `;
+    document.head.appendChild(style);
+  }
+
+  function install(){
+    addStyles();
+    addDepositDate();
+    improveBillDate();
+    ensureBillPaymentDialog();
+    ensureMonthlyDialog();
+    injectSettingsEntries();
+    monthRollover();
+    updateNotes();
+    normalizeLatestDepositDate();
+
+    document.querySelectorAll(".updates-version-badge,.settings-version,.version-orb").forEach(el=>{
+      if(/^1\./.test(el.textContent.trim()))el.textContent="1.4";
+    });
+  }
+
+  /* Depois de persistir um depósito, corrige sua data escolhida e sincroniza. */
+  const originalPersistV14=typeof persist==="function"?persist:null;
+  if(originalPersistV14&&!window.__persistWrappedV14){
+    window.__persistWrappedV14=true;
+    persist=async function(message){
+      normalizeLatestDepositDate();
+      monthRollover();
+      return originalPersistV14(message);
+    };
+  }
+
+  install();
+  window.addEventListener("pageshow",install);
+  setTimeout(install,300);
+  setTimeout(install,1200);
 })();
