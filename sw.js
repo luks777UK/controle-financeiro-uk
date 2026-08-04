@@ -1,13 +1,11 @@
 /*
-  NOSSO CONTROLE -- Service Worker 2.1.0
+  NOSSO CONTROLE -- Service Worker 2.1.1
 
-  Estratégia:
-  - HTML, app.js, CSS e sw.js: rede primeiro.
-  - Cache somente como alternativa offline.
-  - Ativação imediata de novas versões.
+  Rede primeiro para todos os arquivos principais.
+  Cache somente quando a internet estiver indisponível.
 */
 
-const CACHE_NAME = "nosso-controle-shell-2.1.0";
+const CACHE_NAME = "nosso-controle-offline-2.1.1";
 
 const OFFLINE_FILES = [
   "./",
@@ -23,7 +21,9 @@ self.addEventListener("install", event => {
     caches.open(CACHE_NAME).then(async cache => {
       await Promise.allSettled(
         OFFLINE_FILES.map(path =>
-          cache.add(new Request(path, { cache: "reload" }))
+          cache.add(
+            new Request(path, { cache: "reload" })
+          )
         )
       );
     })
@@ -58,69 +58,40 @@ self.addEventListener("fetch", event => {
 
   const url = new URL(request.url);
 
-  /*
-    Não interfere no Supabase, APIs, autenticação
-    ou recursos de outros domínios.
-  */
   if(url.origin !== self.location.origin) return;
 
-  const isNavigation = request.mode === "navigate";
-  const isCoreFile =
-    url.pathname.endsWith("/") ||
-    url.pathname.endsWith("/index.html") ||
-    url.pathname.endsWith("/app.js") ||
-    url.pathname.endsWith("/styles.css") ||
-    url.pathname.endsWith("/sw.js");
+  const isNavigation =
+    request.mode === "navigate";
 
-  if(isNavigation || isCoreFile){
-    event.respondWith(
-      fetch(request, {
-        cache: "no-store",
-        headers: {
-          "Cache-Control": "no-cache"
-        }
-      })
-        .then(response => {
-          if(response && response.ok){
-            const copy = response.clone();
-            caches.open(CACHE_NAME).then(cache => {
-              const key = isNavigation ? "./index.html" : request;
-              cache.put(key, copy);
-            });
-          }
-          return response;
-        })
-        .catch(async () => {
-          if(isNavigation){
-            return (
-              await caches.match("./index.html") ||
-              await caches.match("./")
-            );
-          }
-
-          return caches.match(request, { ignoreSearch: true });
-        })
-    );
-    return;
-  }
-
-  /*
-    Outros arquivos locais: rede primeiro,
-    cache apenas quando estiver offline.
-  */
   event.respondWith(
-    fetch(request)
+    fetch(request, { cache: "no-store" })
       .then(response => {
         if(response && response.ok){
           const copy = response.clone();
+
           caches.open(CACHE_NAME).then(cache => {
-            cache.put(request, copy);
+            const key = isNavigation
+              ? "./index.html"
+              : request;
+
+            cache.put(key, copy);
           });
         }
+
         return response;
       })
-      .catch(() =>
-        caches.match(request, { ignoreSearch: true })
-      )
+      .catch(async () => {
+        if(isNavigation){
+          return (
+            await caches.match("./index.html") ||
+            await caches.match("./")
+          );
+        }
+
+        return caches.match(
+          request,
+          { ignoreSearch: true }
+        );
+      })
   );
 });
