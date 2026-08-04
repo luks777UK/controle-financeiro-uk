@@ -785,7 +785,7 @@ if ("serviceWorker" in navigator) {
 /* Nosso Controle 2.1.8 — correção independente de Limpezas, Configurações e Atualizações */
 (function(){
   'use strict';
-  const VERSION='2.1.8';
+  const VERSION='2.1.9';
   const $=id=>document.getElementById(id);
   const qs=(s,r=document)=>r.querySelector(s);
   const qsa=(s,r=document)=>Array.from(r.querySelectorAll(s));
@@ -904,6 +904,7 @@ if ("serviceWorker" in navigator) {
   function escapeHtml(v){const d=document.createElement('div');d.textContent=String(v??'');return d.innerHTML;}
 
   const RELEASES=[
+    ['2.1.9','04/08/2026','Central de controle completa',['Configurações reorganizadas por áreas.','Resumo mensal e atalhos financeiros.','Backup completo e restauração de dados.','Exportação de relatório em PDF.','Diagnóstico do aplicativo e da sincronização.','Atalhos para pagamentos de limpezas, Bills e Cofre.']],
     ['2.1.8','04/08/2026','Correção das limpezas e Configurações',['Controle diário de limpezas carregado de forma independente.','Totais de hoje, semana e mês.','Edição e exclusão dos pagamentos.','Configurações reorganizadas e versão corrigida.','Aba Atualizações reconstruída.']],
     ['2.1.7','04/08/2026','Controle diário de limpezas',['Registro específico para pagamentos de limpeza.','Integração com Receitas e resumos financeiros.']],
     ['2.1.6','04/08/2026','Estabilidade da interface',['Dashboard duplicado removido.','Scroll estabilizado no Safari.','Atualização direta pela rede.']],
@@ -945,6 +946,435 @@ if ("serviceWorker" in navigator) {
   const target=$('appView')||document.body;
   let timer=0;
   new MutationObserver(()=>{clearTimeout(timer);timer=setTimeout(repair,80)}).observe(target,{childList:true,subtree:true});
+})();
+</script>
+
+
+<script>
+/* Nosso Controle 2.1.9 — Central de controle completa */
+(function installControlCenter219(){
+  const VERSION_219 = "2.1.9";
+  const $ = id => document.getElementById(id);
+  const qs = (s,r=document) => r.querySelector(s);
+  const qsa = (s,r=document) => [...r.querySelectorAll(s)];
+  const safeOpen = dialog => {
+    if(!dialog) return;
+    try { dialog.showModal(); } catch { dialog.setAttribute("open",""); }
+  };
+  const safeClose = dialog => {
+    if(!dialog) return;
+    try { dialog.close(); } catch { dialog.removeAttribute("open"); }
+  };
+  const escapeHtml219 = value => String(value ?? "")
+    .replaceAll("&","&amp;").replaceAll("<","&lt;")
+    .replaceAll(">","&gt;").replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+
+  function currentMonthTotals219(){
+    const month = (typeof currentLocalDate === "function"
+      ? currentLocalDate()
+      : new Date().toISOString().slice(0,10)).slice(0,7);
+
+    const total = list => (list || [])
+      .filter(item => String(item.date || "").slice(0,7) === month)
+      .reduce((sum,item) => sum + Number(item.amount || 0), 0);
+
+    const income = total(state?.incomes);
+    const expenses = total(state?.expenses);
+    const vault = total(state?.vaultEntries);
+    const reserved = (state?.bills || []).reduce((sum,bill) => sum + Number(bill.reserved || 0),0);
+
+    return { income, expenses, vault, reserved, free: income-expenses-vault-reserved };
+  }
+
+  function ensureControlDialog219(){
+    if($("controlCenterDialog219")) return;
+
+    const dialog = document.createElement("dialog");
+    dialog.id = "controlCenterDialog219";
+    dialog.className = "control-center-dialog-219";
+    dialog.innerHTML = `
+      <section class="control-center-panel-219">
+        <div class="control-center-head-219">
+          <div>
+            <span>CENTRAL DE CONTROLE</span>
+            <h2 id="controlCenterTitle219">Resumo mensal</h2>
+            <p id="controlCenterSubtitle219">Informações e ferramentas do Nosso Controle.</p>
+          </div>
+          <button id="closeControlCenter219" class="round-button" type="button">×</button>
+        </div>
+        <div id="controlCenterContent219"></div>
+      </section>
+    `;
+    document.body.appendChild(dialog);
+    $("closeControlCenter219").onclick = () => safeClose(dialog);
+  }
+
+  function showControlView219(title, subtitle, html){
+    ensureControlDialog219();
+    $("controlCenterTitle219").textContent = title;
+    $("controlCenterSubtitle219").textContent = subtitle;
+    $("controlCenterContent219").innerHTML = html;
+    safeOpen($("controlCenterDialog219"));
+  }
+
+  function showMonthlySummary219(){
+    if(typeof renderMonthlySummaries === "function" && $("monthlySummariesDialog")){
+      $("settingsSheet")?.classList.add("hidden");
+      renderMonthlySummaries();
+      safeOpen($("monthlySummariesDialog"));
+      return;
+    }
+
+    const x = currentMonthTotals219();
+    showControlView219(
+      "Resumo deste mês",
+      "Receitas, compromissos e saldo do período atual.",
+      `<section class="summary-grid-219">
+        <article class="green"><span>Receitas</span><strong>${money(x.income)}</strong></article>
+        <article class="purple"><span>Bills reservadas</span><strong>${money(x.reserved)}</strong></article>
+        <article class="pink"><span>Gastos</span><strong>${money(x.expenses)}</strong></article>
+        <article class="blue"><span>Cofre</span><strong>${money(x.vault)}</strong></article>
+        <article class="wide ${x.free < 0 ? "negative" : "positive"}"><span>Saldo livre</span><strong>${money(x.free)}</strong></article>
+      </section>`
+    );
+  }
+
+  function createBackupObject219(){
+    return {
+      app: "Nosso Controle",
+      version: VERSION_219,
+      exportedAt: new Date().toISOString(),
+      householdId: typeof householdId !== "undefined" ? householdId : null,
+      householdCode: typeof householdCode !== "undefined" ? householdCode : null,
+      state: structuredClone(state || {})
+    };
+  }
+
+  function exportBackup219(){
+    try{
+      const blob = new Blob(
+        [JSON.stringify(createBackupObject219(), null, 2)],
+        {type:"application/json"}
+      );
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `nosso-controle-backup-${new Date().toISOString().slice(0,10)}.json`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1200);
+      if(typeof toast === "function") toast("Backup exportado");
+    }catch(error){
+      alert("Não foi possível gerar o backup.");
+    }
+  }
+
+  function chooseBackup219(){
+    let input = $("restoreBackupInput219");
+    if(!input){
+      input = document.createElement("input");
+      input.id = "restoreBackupInput219";
+      input.type = "file";
+      input.accept = "application/json,.json";
+      input.hidden = true;
+      document.body.appendChild(input);
+      input.onchange = async () => {
+        const file = input.files?.[0];
+        if(!file) return;
+
+        try{
+          const parsed = JSON.parse(await file.text());
+          if(!parsed?.state || typeof parsed.state !== "object"){
+            throw new Error("Formato inválido");
+          }
+
+          const confirmation = prompt('Para restaurar este backup, digite RESTAURAR');
+          if(confirmation !== "RESTAURAR"){
+            if(typeof toast === "function") toast("Restauração cancelada");
+            input.value = "";
+            return;
+          }
+
+          state = parsed.state;
+          if(typeof persist === "function"){
+            await persist("Backup restaurado");
+          }else if(typeof render === "function"){
+            render();
+          }
+          safeClose($("controlCenterDialog219"));
+          if(typeof toast === "function") toast("Backup restaurado");
+        }catch(error){
+          alert("Este arquivo não é um backup válido do Nosso Controle.");
+        }finally{
+          input.value = "";
+        }
+      };
+    }
+    input.click();
+  }
+
+  function exportReport219(){
+    if(typeof exportFinancialPdf === "function"){
+      exportFinancialPdf();
+      return;
+    }
+    window.print();
+  }
+
+  function showHouse219(){
+    const code = typeof householdCode !== "undefined" && householdCode
+      ? householdCode
+      : "Não disponível";
+    const id = typeof householdId !== "undefined" && householdId
+      ? householdId
+      : "Não sincronizada";
+
+    showControlView219(
+      "Casa compartilhada",
+      "Gerencie o acesso conjunto aos mesmos dados financeiros.",
+      `<section class="house-card-219">
+        <span>CÓDIGO DA CASA</span>
+        <strong>${escapeHtml219(code)}</strong>
+        <p>Sua parceira pode criar a própria conta e inserir este código.</p>
+        <button id="copyHouseCode219" class="primary-button" type="button">Copiar código</button>
+        <small>ID de sincronização: ${escapeHtml219(id)}</small>
+      </section>`
+    );
+
+    $("copyHouseCode219").onclick = async () => {
+      try{
+        await navigator.clipboard.writeText(code);
+        if(typeof toast === "function") toast("Código copiado");
+      }catch{
+        prompt("Copie o código:", code);
+      }
+    };
+  }
+
+  async function getStorageSize219(){
+    try{
+      if(navigator.storage?.estimate){
+        const estimate = await navigator.storage.estimate();
+        return {
+          usage: estimate.usage || 0,
+          quota: estimate.quota || 0
+        };
+      }
+    }catch{}
+    return {usage:0,quota:0};
+  }
+
+  function formatBytes219(bytes){
+    if(!bytes) return "0 KB";
+    const units = ["B","KB","MB","GB"];
+    const index = Math.min(Math.floor(Math.log(bytes)/Math.log(1024)), units.length-1);
+    return `${(bytes/Math.pow(1024,index)).toFixed(index ? 1 : 0)} ${units[index]}`;
+  }
+
+  async function showDiagnostics219(){
+    const storage = await getStorageSize219();
+    let sessionText = "Não verificada";
+    try{
+      const result = await sb.auth.getSession();
+      sessionText = result?.data?.session ? "Conectada" : "Desconectada";
+    }catch{}
+
+    const bills = (state?.bills || []).length;
+    const incomes = (state?.incomes || []).length;
+    const expenses = (state?.expenses || []).length;
+    const cleanings = (state?.incomes || []).filter(x => x.cleaningPayment || x.category === "cleaning").length;
+
+    showControlView219(
+      "Diagnóstico do aplicativo",
+      "Verifique versão, sessão, conexão e integridade dos dados.",
+      `<section class="diagnostics-list-219">
+        <article><span>Versão instalada</span><strong>${VERSION_219}</strong></article>
+        <article><span>Conexão</span><strong>${navigator.onLine ? "Online" : "Offline"}</strong></article>
+        <article><span>Sessão</span><strong>${sessionText}</strong></article>
+        <article><span>Bills cadastradas</span><strong>${bills}</strong></article>
+        <article><span>Receitas</span><strong>${incomes}</strong></article>
+        <article><span>Gastos</span><strong>${expenses}</strong></article>
+        <article><span>Limpezas registradas</span><strong>${cleanings}</strong></article>
+        <article><span>Armazenamento usado</span><strong>${formatBytes219(storage.usage)}</strong></article>
+      </section>
+      <button id="forceRefresh219" class="secondary-button control-wide-button-219" type="button">
+        Verificar atualização agora
+      </button>`
+    );
+
+    $("forceRefresh219").onclick = async () => {
+      try{
+        const registrations = await navigator.serviceWorker?.getRegistrations?.() || [];
+        await Promise.all(registrations.map(reg => reg.update()));
+      }catch{}
+      location.reload();
+    };
+  }
+
+  function openExisting219(id){
+    $("settingsSheet")?.classList.add("hidden");
+    const element = $(id);
+    if(!element) return;
+
+    if(element.tagName === "DIALOG"){
+      safeOpen(element);
+    }else{
+      element.click();
+    }
+  }
+
+  function showDataTools219(){
+    showControlView219(
+      "Dados e segurança",
+      "Faça backup, restaure informações ou escolha o que deseja apagar.",
+      `<section class="data-tools-219">
+        <button id="backupData219">
+          <span class="tool-icon-219 blue">⇩</span>
+          <div><b>Exportar backup completo</b><small>Salva Bills, receitas, gastos, Cofre e limpezas.</small></div>
+          <i>›</i>
+        </button>
+        <button id="restoreData219">
+          <span class="tool-icon-219 green">⇧</span>
+          <div><b>Restaurar backup</b><small>Substitui os dados atuais por um arquivo salvo.</small></div>
+          <i>›</i>
+        </button>
+        <button id="reportData219">
+          <span class="tool-icon-219 purple">▤</span>
+          <div><b>Exportar relatório em PDF</b><small>Histórico financeiro pronto para arquivar.</small></div>
+          <i>›</i>
+        </button>
+        <button id="selectiveReset219">
+          <span class="tool-icon-219 amber">↺</span>
+          <div><b>Reset seletivo</b><small>Apague somente uma área ou apenas o mês atual.</small></div>
+          <i>›</i>
+        </button>
+      </section>`
+    );
+
+    $("backupData219").onclick = exportBackup219;
+    $("restoreData219").onclick = chooseBackup219;
+    $("reportData219").onclick = exportReport219;
+    $("selectiveReset219").onclick = () => {
+      safeClose($("controlCenterDialog219"));
+      const existing = $("openSelectiveReset");
+      if(existing) existing.click();
+      else $("resetFinance")?.click();
+    };
+  }
+
+  function buildSettings219(){
+    const sheet = $("settingsSheet");
+    const panel = qs(".settings-sheet",sheet);
+    const title = qs(".sheet-title",panel);
+    if(!sheet || !panel || !title) return;
+
+    let center = $("settingsCenter219");
+    if(!center){
+      center = document.createElement("div");
+      center.id = "settingsCenter219";
+      center.className = "settings-center-219";
+      title.insertAdjacentElement("afterend",center);
+    }
+
+    qsa(":scope > .sheet-action",panel).forEach(button => button.classList.add("legacy-settings-hidden-219"));
+
+    const userEmail = typeof user !== "undefined" && user?.email
+      ? user.email
+      : "Conta conectada";
+    const code = typeof householdCode !== "undefined" && householdCode
+      ? householdCode
+      : "—";
+
+    center.innerHTML = `
+      <section class="settings-profile-219">
+        <span>${escapeHtml219((userEmail[0] || "U").toUpperCase())}</span>
+        <div><small>CONTA ATUAL</small><strong>${escapeHtml219(userEmail)}</strong><p>Casa ${escapeHtml219(code)}</p></div>
+      </section>
+
+      <section class="settings-group-219">
+        <header><span>CONTA E CASA</span><small>Perfil e sincronização</small></header>
+        <button data-action219="house"><i class="purple">⌂</i><div><b>Casa compartilhada</b><small>Código e acesso do casal</small></div><em>›</em></button>
+        <button data-action219="admin"><i class="blue">⚙</i><div><b>Painel administrativo</b><small>Bills, metas e manutenção</small></div><em>›</em></button>
+      </section>
+
+      <section class="settings-group-219">
+        <header><span>FINANCEIRO</span><small>Resumo e históricos</small></header>
+        <button data-action219="monthly"><i class="green">▦</i><div><b>Resumo mensal</b><small>Veja cada mês e o saldo final</small></div><em>›</em></button>
+        <button data-action219="cleanings"><i class="green">↗</i><div><b>Pagamentos das limpezas</b><small>Registrar e consultar pagamentos diários</small></div><em>›</em></button>
+        <button data-action219="calendar"><i class="purple">□</i><div><b>Calendário financeiro</b><small>Receitas, depósitos e metas por dia</small></div><em>›</em></button>
+        <button data-action219="completed"><i class="green">✓</i><div><b>Bills concluídas</b><small>Contas e parcelamentos finalizados</small></div><em>›</em></button>
+      </section>
+
+      <section class="settings-group-219">
+        <header><span>DADOS</span><small>Backup, relatório e segurança</small></header>
+        <button data-action219="data"><i class="blue">⇩</i><div><b>Dados e segurança</b><small>Backup, restauração, PDF e resets</small></div><em>›</em></button>
+      </section>
+
+      <section class="settings-group-219">
+        <header><span>APLICATIVO</span><small>Versão e funcionamento</small></header>
+        <button data-action219="updates"><i class="purple">↻</i><div><b>Atualizações</b><small>Versão instalada e histórico</small></div><span class="version-pill-219">${VERSION_219}</span></button>
+        <button data-action219="diagnostics"><i class="amber">◇</i><div><b>Diagnóstico</b><small>Conexão, sessão e integridade</small></div><em>›</em></button>
+      </section>
+
+      <button data-action219="logout" class="logout-button-219">Sair da conta</button>
+    `;
+
+    center.onclick = event => {
+      const button = event.target.closest("[data-action219]");
+      if(!button) return;
+      const action = button.dataset.action219;
+
+      if(action === "house") showHouse219();
+      if(action === "admin") openExisting219("openAdminPanel");
+      if(action === "monthly") showMonthlySummary219();
+      if(action === "cleanings"){
+        sheet.classList.add("hidden");
+        $("cleaningsSection218")?.scrollIntoView({behavior:"smooth",block:"start"});
+      }
+      if(action === "calendar") openExisting219("openCalendar");
+      if(action === "completed") openExisting219("openCompletedBills");
+      if(action === "data") showDataTools219();
+      if(action === "updates") openExisting219("openUpdatesPanel");
+      if(action === "diagnostics") showDiagnostics219();
+      if(action === "logout") $("logoutBtn")?.click();
+    };
+
+    qsa(".updates-version-badge,.settings-version").forEach(el => el.textContent = VERSION_219);
+  }
+
+  function addRelease219(){
+    if(typeof RELEASES !== "undefined" && Array.isArray(RELEASES)){
+      if(!RELEASES.some(item => item[0] === VERSION_219)){
+        RELEASES.unshift([
+          VERSION_219,
+          "04/08/2026",
+          "Central de controle completa",
+          [
+            "Configurações reorganizadas por áreas.",
+            "Resumo mensal e atalhos financeiros.",
+            "Backup completo e restauração de dados.",
+            "Exportação de relatório em PDF.",
+            "Diagnóstico do aplicativo e da sincronização.",
+            "Atalhos para limpezas, Bills e Cofre."
+          ]
+        ]);
+      }
+    }
+    if(typeof renderUpdates === "function") renderUpdates();
+  }
+
+  function install219(){
+    ensureControlDialog219();
+    buildSettings219();
+    addRelease219();
+  }
+
+  document.addEventListener("DOMContentLoaded", install219);
+  window.addEventListener("pageshow", () => setTimeout(install219,50));
+  setTimeout(install219,300);
+  setTimeout(install219,1200);
 })();
 </script>
 
