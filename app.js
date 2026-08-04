@@ -182,7 +182,9 @@ if(!cfg.SUPABASE_URL||!cfg.SUPABASE_ANON_KEY){
   alert("Configuração do Supabase ausente. Atualize o app.js.");
   throw new Error("Supabase configuration missing");
 }
-const sb=supabase.createClient(cfg.SUPABASE_URL,cfg.SUPABASE_ANON_KEY);
+const sb=supabase.createClient(cfg.SUPABASE_URL,cfg.SUPABASE_ANON_KEY,{
+  auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}
+});
 const $=id=>document.getElementById(id);
 let user=null,householdId=null,householdCode=null,state=null,channel=null;
 let calendarDate=new Date();
@@ -5047,4 +5049,148 @@ boot();
   window.addEventListener("pageshow",install);
   setTimeout(install,400);
   setTimeout(install,1300);
+})();
+
+
+/* =========================================================
+   NOSSO CONTROLE 2.1 — CLEAN SYSTEM
+   Camada final integrada à base estável 2.0.1
+   ========================================================= */
+(function installV21(){
+  const $=id=>document.getElementById(id);
+  const qs=(s,r=document)=>r.querySelector(s);
+  const qsa=(s,r=document)=>[...r.querySelectorAll(s)];
+  const currentMonth=()=>currentLocalDate().slice(0,7);
+  const sum=list=>(list||[]).reduce((t,x)=>t+Number(x.amount||0),0);
+  const openDialog=d=>{if(!d)return;try{d.showModal()}catch{d.setAttribute('open','')}};
+
+  function monthState(){
+    const key=currentMonth();
+    const incomes=(state?.incomes||[]).filter(x=>String(x.date||'').slice(0,7)===key);
+    const expenses=(state?.expenses||[]).filter(x=>String(x.date||'').slice(0,7)===key);
+    const vault=(state?.vaultEntries||[]).filter(x=>String(x.date||'').slice(0,7)===key);
+    const bills=(state?.bills||[]).filter(x=>!x.completed);
+    const income=sum(incomes), expense=sum(expenses), saved=sum(vault);
+    const reserved=bills.reduce((t,b)=>t+Number(b.reserved||0),0);
+    const target=bills.reduce((t,b)=>t+Number(b.amount||0),0);
+    return {incomes,expenses,vault,bills,income,expense,saved,reserved,target,free:income-expense-saved-reserved};
+  }
+
+  function daysUntilSafe(date){
+    const a=new Date(`${currentLocalDate()}T12:00:00`);
+    const b=new Date(`${date}T12:00:00`);
+    return Math.ceil((b-a)/86400000);
+  }
+
+  function insight(data){
+    const sorted=data.bills.slice().sort((a,b)=>new Date(a.due)-new Date(b.due));
+    const overdue=sorted.find(b=>daysUntilSafe(b.due)<0);
+    if(overdue){
+      return {tone:'danger',label:'AÇÃO NECESSÁRIA',title:`${overdue.name} está vencida`,text:`Faltam ${money(Math.max(0,overdue.amount-overdue.reserved))} para completar.`};
+    }
+    const next=sorted[0];
+    if(next&&daysUntilSafe(next.due)<=5){
+      const d=daysUntilSafe(next.due);
+      return {tone:'warning',label:'PRÓXIMA CONTA',title:d===0?`${next.name} vence hoje`:`${next.name} vence em ${d} dia${d===1?'':'s'}`,text:`${money(next.reserved)} reservados de ${money(next.amount)}.`};
+    }
+    if(data.income===0)return {tone:'neutral',label:'COMECE O MÊS',title:'Registre sua primeira receita',text:'O saldo livre será calculado automaticamente.'};
+    return {tone:data.free>=0?'success':'danger',label:'MÊS ATUAL',title:`${money(Math.max(0,data.free))} livres`,text:'Depois de Bills, gastos e Cofre.'};
+  }
+
+  function renderDashboardV21(){
+    if(!state)return;
+    const view=$('overviewView'); if(!view)return;
+    let root=$('v21Dashboard');
+    if(!root){root=document.createElement('div');root.id='v21Dashboard';root.className='v21-dashboard';view.prepend(root)}
+    const d=monthState(), tip=insight(d);
+    const freePct=d.income?Math.max(0,Math.min(100,d.free/d.income*100)):0;
+    const recent=d.incomes.slice().sort((a,b)=>String(b.date).localeCompare(String(a.date))).slice(0,5);
+    root.innerHTML=`
+      <section class="v21-insight ${tip.tone}"><i></i><div><small>${tip.label}</small><strong>${tip.title}</strong><p>${tip.text}</p></div></section>
+      <section class="v21-hero">
+        <div><span>SALDO LIVRE DO MÊS</span><strong>${money(d.free)}</strong><p>Já descontando tudo que foi separado.</p></div>
+        <div class="v21-score" style="--score:${freePct}"><b>${freePct.toFixed(0)}%</b><small>livre</small></div>
+        <div class="v21-hero-row"><span>Recebido <b>${money(d.income)}</b></span><span>Comprometido <b>${money(d.reserved+d.expense)}</b></span><span>Protegido <b>${money(d.saved)}</b></span></div>
+      </section>
+      <section class="v21-grid">
+        <article class="income"><span>Receitas</span><strong>${money(d.income)}</strong></article>
+        <article class="bills"><span>Bills</span><strong>${money(d.reserved)}</strong></article>
+        <article class="expense"><span>Gastos</span><strong>${money(d.expense)}</strong></article>
+        <article class="vault"><span>Cofre</span><strong>${money(d.saved)}</strong></article>
+      </section>
+      <section class="v21-actions">
+        <button id="v21Income"><span>＋</span><div><b>Adicionar receita</b><small>Nova entrada</small></div></button>
+        <button id="v21Stats"><span>⌁</span><div><b>Estatísticas</b><small>Histórico e PDF</small></div></button>
+      </section>
+      <section class="v21-recent">
+        <header><div><small>ATIVIDADE</small><h3>Receitas recentes</h3></div><button id="v21AllIncome">Ver todas</button></header>
+        <div>${recent.length?recent.map(x=>`<article><i>↗</i><div><b>${x.description||'Receita'}</b><small>${new Date(`${x.date}T12:00:00`).toLocaleDateString('pt-BR')}</small></div><strong>+${money(Number(x.amount||0))}</strong></article>`).join(''):'<p class="v21-empty">Nenhuma receita neste mês.</p>'}</div>
+      </section>`;
+    $('v21Income').onclick=()=>$('openIncome')?.click();
+    $('v21Stats').onclick=()=>{if(typeof renderInsights==='function')renderInsights();openDialog($('insightsDialog'))};
+    $('v21AllIncome').onclick=()=>{qs('#incomeList')?.scrollIntoView({behavior:'smooth'})};
+  }
+
+  function billIcon(name){
+    const n=String(name||'').toLowerCase();
+    if(n.includes('energia')||n.includes('edf'))return '⚡';
+    if(n.includes('alug'))return '⌂';
+    if(n.includes('água')||n.includes('agua'))return '◉';
+    if(n.includes('carro')||n.includes('seguro'))return '🚘';
+    if(n.includes('council'))return '▦';
+    if(n.includes('internet')||n.includes('bt'))return '⌁';
+    return '£';
+  }
+
+  function renderBillsV21(){
+    if(!state)return;
+    const list=$('billList'); if(!list)return;
+    const bills=state.bills.filter(b=>!b.completed).slice().sort((a,b)=>new Date(a.due)-new Date(b.due));
+    list.innerHTML='';
+    bills.forEach(b=>{
+      const remain=Math.max(0,b.amount-b.reserved), pct=b.amount?Math.min(100,b.reserved/b.amount*100):100, days=daysUntilSafe(b.due);
+      const card=document.createElement('article'); card.className='v21-bill-card'; card.dataset.billId=b.id; card.dataset.days=days; card.dataset.ready=String(remain===0);
+      card.innerHTML=`
+        <div class="v21-bill-top"><span class="v21-bill-icon">${billIcon(b.name)}</span><div><strong>${b.name}</strong><small>${formatDate(b.due)} · ${frequencyLabel(b.frequency)}</small></div><em class="${days<0?'danger':days<=7?'warning':''}">${days<0?`${Math.abs(days)}d atrasada`:days===0?'Hoje':`${days}d`}</em></div>
+        <div class="v21-bill-progress"><i style="width:${pct}%"></i></div>
+        <div class="v21-bill-bottom"><div><strong>${money(b.reserved)} <span>/ ${money(b.amount)}</span></strong><small>${remain?`${money(remain)} restantes`:'Totalmente reservada'}</small></div><div class="v21-bill-actions"><button data-action="edit">✎</button><button data-action="pay">✓</button></div></div>
+        ${b.type==='installment'?`<div class="v21-installment"><span>Parcela ${b.currentInstallment}/${b.totalInstallments}</span><i><b style="width:${Math.min(100,b.currentInstallment/b.totalInstallments*100)}%"></b></i></div>`:''}`;
+      card.onclick=e=>{const btn=e.target.closest('button');if(!btn)return;btn.dataset.action==='edit'?openBillCreateDialog(b.id):togglePaid(b.id)};
+      list.appendChild(card);
+    });
+    renderBillSummaryV21(bills);
+  }
+
+  function renderBillSummaryV21(bills){
+    const view=$('billsView'), list=$('billList'); if(!view||!list)return;
+    let summary=$('v21BillSummary'); if(!summary){summary=document.createElement('section');summary.id='v21BillSummary';summary.className='v21-bill-summary';list.before(summary)}
+    const total=bills.reduce((t,b)=>t+b.amount,0), reserved=bills.reduce((t,b)=>t+b.reserved,0), pct=total?Math.min(100,reserved/total*100):0;
+    summary.innerHTML=`<div><small>BILLS ATIVAS</small><strong>${bills.length} contas</strong><span>${money(total)} no total</span></div><div class="v21-summary-track"><i style="width:${pct}%"></i></div><b>${pct.toFixed(0)}% reservado</b>`;
+    let filters=$('v21BillFilters'); if(!filters){filters=document.createElement('div');filters.id='v21BillFilters';filters.className='v21-filters';filters.innerHTML='<button class="active" data-f="all">Todas</button><button data-f="late">Atrasadas</button><button data-f="week">7 dias</button><button data-f="ready">Reservadas</button>';summary.after(filters);filters.onclick=e=>{const b=e.target.closest('button');if(!b)return;qsa('button',filters).forEach(x=>x.classList.toggle('active',x===b));qsa('.v21-bill-card').forEach(c=>{const d=Number(c.dataset.days),ready=c.dataset.ready==='true';let show=true;if(b.dataset.f==='late')show=d<0;if(b.dataset.f==='week')show=d>=0&&d<=7;if(b.dataset.f==='ready')show=ready;c.hidden=!show})}};
+  }
+
+  function cleanSettings(){
+    const sheet=$('settingsSheet'); if(!sheet)return;
+    sheet.classList.add('v21-settings');
+    const title=qs('.sheet-title h2',sheet); if(title)title.textContent='Configurações';
+    qsa('.sheet-action',sheet).forEach(btn=>btn.classList.add('v21-setting-row'));
+    const version=qs('.updates-version-badge',sheet); if(version)version.textContent='2.1';
+  }
+
+  function updateNotes(){
+    const panel=$('updatesDialog')?.querySelector('.updates-panel'); if(!panel||qs('.v21-note',panel))return;
+    const note=document.createElement('section');note.className='v12-release-note v21-note';note.innerHTML='<span>VERSÃO 2.1 · INSTALADA</span><h3>Clean System</h3><ul><li>Dashboard reconstruído e mais enxuto.</li><li>Saldo livre como informação principal.</li><li>Alerta inteligente de prioridade.</li><li>Bills totalmente redesenhadas e compactas.</li><li>Filtros rápidos para Bills.</li><li>Configurações mais limpas.</li><li>Sessão persistente no iPhone.</li><li>Service Worker atualizado para evitar cache antigo.</li></ul>';
+    const current=qs('.current-version-card',panel); if(current)current.after(note);
+    qsa('.version-orb',panel).forEach(x=>x.textContent='2.1'); const t=qs('.current-version-card strong',panel);if(t)t.textContent='Nosso Controle 2.1';
+  }
+
+  const oldRender=window.render;
+  if(typeof oldRender==='function'&&!window.__v21Wrapped){window.__v21Wrapped=true;window.render=function(){oldRender();renderDashboardV21();renderBillsV21();cleanSettings();updateNotes()}}
+
+  function install(){
+    if(state){renderDashboardV21();renderBillsV21()}
+    cleanSettings();updateNotes();
+    qsa('.updates-version-badge,.settings-version,.version-orb').forEach(x=>{if(/^\d/.test(x.textContent.trim()))x.textContent='2.1'});
+  }
+  install();window.addEventListener('pageshow',install);setTimeout(install,400);setTimeout(install,1200);
 })();
