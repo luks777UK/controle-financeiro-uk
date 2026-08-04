@@ -121,13 +121,13 @@
           </div>
           <section class="current-version-card">
             <div class="version-orb">1.1.2</div>
-            <div><span>VERSÃO INSTALADA</span><strong>Nosso Controle 1.3</strong><small>Build de 03/08/2026 · correção de login</small></div>
+            <div><span>VERSÃO INSTALADA</span><strong>Nosso Controle 1.3.1</strong><small>Build de 03/08/2026 · correção de login</small></div>
             <span class="version-status">Atual</span>
           </section>
           <section class="updates-timeline">
             <article class="update-entry latest">
               <div class="update-marker"></div><div class="update-content">
-                <div class="update-entry-head"><div><span>Versão 1.3</span><strong>Central de atualizações</strong></div><small>03/08/2026</small></div>
+                <div class="update-entry-head"><div><span>Versão 1.3.1</span><strong>Central de atualizações</strong></div><small>03/08/2026</small></div>
                 <ul><li>Nova área <b>Atualizações</b> no menu de três pontos.</li><li>Versão instalada e histórico de mudanças.</li><li>Fluxo preparado para atualização pelo iPhone.</li></ul>
               </div>
             </article>
@@ -1278,7 +1278,7 @@ boot();
           <div class="version-orb">1.1.3</div>
           <div>
             <span>VERSÃO INSTALADA</span>
-            <strong>Nosso Controle 1.3</strong>
+            <strong>Nosso Controle 1.3.1</strong>
             <small>Correção do menu e gerenciamento de dados</small>
           </div>
           <span class="version-status">Atual</span>
@@ -1289,7 +1289,7 @@ boot();
             <div class="update-marker"></div>
             <div class="update-content">
               <div class="update-entry-head">
-                <div><span>Versão 1.3</span><strong>Menu e manutenção</strong></div>
+                <div><span>Versão 1.3.1</span><strong>Menu e manutenção</strong></div>
                 <small>03/08/2026</small>
               </div>
               <ul>
@@ -1325,7 +1325,7 @@ boot();
             <div class="update-marker"></div>
             <div class="update-content">
               <div class="update-entry-head">
-                <div><span>Versão 1.3</span><strong>Histórico e produtividade</strong></div>
+                <div><span>Versão 1.3.1</span><strong>Histórico e produtividade</strong></div>
                 <small>Planejada</small>
               </div>
               <ul>
@@ -1342,7 +1342,7 @@ boot();
             <div class="update-marker"></div>
             <div class="update-content">
               <div class="update-entry-head">
-                <div><span>Versão 1.3</span><strong>Nuvem e aplicativo</strong></div>
+                <div><span>Versão 1.3.1</span><strong>Nuvem e aplicativo</strong></div>
                 <small>Planejada</small>
               </div>
               <ul>
@@ -1938,7 +1938,7 @@ boot();
   });
 
   document.querySelectorAll(".current-version-card strong").forEach(x=>{
-    if(x.textContent.includes("1.1.3"))x.textContent="Nosso Controle 1.3";
+    if(x.textContent.includes("1.1.3"))x.textContent="Nosso Controle 1.3.1";
   });
 })();
 
@@ -2167,7 +2167,7 @@ boot();
     if(el.textContent.trim()==="1.1.4")el.textContent="1.1.5";
   });
   document.querySelectorAll(".current-version-card strong").forEach(el=>{
-    if(el.textContent.includes("1.1.4"))el.textContent="Nosso Controle 1.3";
+    if(el.textContent.includes("1.1.4"))el.textContent="Nosso Controle 1.3.1";
   });
 })();
 
@@ -2328,7 +2328,7 @@ boot();
           <div class="version-orb">1.1.6</div>
           <div>
             <span>VERSÃO INSTALADA</span>
-            <strong>Nosso Controle 1.3</strong>
+            <strong>Nosso Controle 1.3.1</strong>
             <small>Calendário, logout e organização visual</small>
           </div>
           <span class="version-status">Atual</span>
@@ -2974,7 +2974,7 @@ boot();
       const strong=current.querySelector("strong");
       const small=current.querySelector("small");
       if(orb)orb.textContent="1.2";
-      if(strong)strong.textContent="Nosso Controle 1.3";
+      if(strong)strong.textContent="Nosso Controle 1.3.1";
       if(small)small.textContent="Experiência premium e conta compartilhada";
     }
 
@@ -3869,7 +3869,7 @@ boot();
 
     panel.querySelectorAll(".version-orb").forEach(x=>x.textContent="1.3");
     const strong=panel.querySelector(".current-version-card strong");
-    if(strong)strong.textContent="Nosso Controle 1.3";
+    if(strong)strong.textContent="Nosso Controle 1.3.1";
   }
 
   function addStyles(){
@@ -3973,4 +3973,191 @@ boot();
   },60000);
   setTimeout(install,300);
   setTimeout(install,1200);
+})();
+
+
+/* =========================================================
+   NOSSO CONTROLE 1.3.1
+   Data opcional: vazio = hoje
+   ========================================================= */
+(function installOptionalDateFix(){
+  const get=id=>document.getElementById(id);
+
+  function today(){
+    return currentLocalDate();
+  }
+
+  function prepareOptionalDateInput(id,labelText){
+    const input=get(id);
+    if(!input)return;
+
+    input.type="date";
+    input.removeAttribute("required");
+    input.dataset.optionalDate="1";
+
+    const label=input.closest("label");
+    if(label){
+      const textNode=[...label.childNodes].find(node=>node.nodeType===Node.TEXT_NODE);
+      if(textNode)textNode.textContent=`${labelText} (opcional)`;
+    }
+
+    // Não preenche automaticamente: visualmente fica opcional.
+    // Na hora de salvar, vazio será convertido para hoje.
+    if(input.dataset.userSelected!=="1"){
+      input.value="";
+    }
+
+    input.onchange=()=>{
+      input.dataset.userSelected=input.value?"1":"0";
+    };
+  }
+
+  function normalizeOptionalDatesBeforeSave(){
+    const map=[
+      ["incomeDate",today()],
+      ["expenseDate",today()],
+      ["vaultDate",today()],
+      ["newBillDue",today()]
+    ];
+
+    map.forEach(([id,fallback])=>{
+      const input=get(id);
+      if(input&&!input.value)input.value=fallback;
+    });
+  }
+
+  function clearOptionalDatesAfterDialogOpen(){
+    const buttons=[
+      ["openIncome","incomeDate"],
+      ["openIncomeToday","incomeDate"],
+      ["openExpense","expenseDate"],
+      ["openVaultDeposit","vaultDate"],
+      ["openNewBill","newBillDue"]
+    ];
+
+    buttons.forEach(([buttonId,inputId])=>{
+      const button=get(buttonId);
+      if(!button||button.dataset.optionalDateBound==="1")return;
+      button.dataset.optionalDateBound="1";
+
+      button.addEventListener("click",()=>{
+        setTimeout(()=>{
+          const input=get(inputId);
+          if(!input)return;
+          input.value="";
+          input.dataset.userSelected="0";
+        },0);
+      });
+    });
+  }
+
+  function bindSaveFallbacks(){
+    const saveButtons=[
+      "saveIncome",
+      "saveExpense",
+      "saveVaultDeposit",
+      "saveNewBill"
+    ];
+
+    saveButtons.forEach(id=>{
+      const button=get(id);
+      if(!button||button.dataset.optionalDateSave==="1")return;
+      button.dataset.optionalDateSave="1";
+
+      // Capture roda antes dos handlers já existentes.
+      button.addEventListener("click",normalizeOptionalDatesBeforeSave,{capture:true});
+    });
+  }
+
+  function addDateHint(){
+    const dialogs=[
+      ["incomeDialog","incomeDate"],
+      ["expenseDialog","expenseDate"],
+      ["vaultDialog","vaultDate"],
+      ["billCreateDialog","newBillDue"]
+    ];
+
+    dialogs.forEach(([dialogId,inputId])=>{
+      const dialog=get(dialogId);
+      const input=get(inputId);
+      if(!dialog||!input)return;
+
+      const label=input.closest("label");
+      if(!label||label.querySelector(".optional-date-hint"))return;
+
+      label.insertAdjacentHTML(
+        "beforeend",
+        '<small class="optional-date-hint">Se deixar vazio, será usada a data de hoje.</small>'
+      );
+    });
+  }
+
+  function updateReleaseNotes(){
+    const dialog=get("updatesDialog");
+    const panel=dialog?.querySelector(".updates-panel");
+    if(!panel||panel.querySelector(".v131-release-note"))return;
+
+    const note=document.createElement("section");
+    note.className="v12-release-note v131-release-note";
+    note.innerHTML=`
+      <span>VERSÃO 1.3.1 · CORREÇÃO</span>
+      <h3>Data opcional nos lançamentos</h3>
+      <ul>
+        <li>A data pode ficar vazia ao adicionar Receita, Gasto, Cofre ou Bill.</li>
+        <li>Se nenhuma data for escolhida, o lançamento usa automaticamente a data de hoje.</li>
+        <li>Se uma data for escolhida, o histórico e os gráficos respeitam essa data.</li>
+      </ul>
+    `;
+
+    const current=panel.querySelector(".current-version-card");
+    if(current)current.insertAdjacentElement("afterend",note);
+    else panel.prepend(note);
+
+    panel.querySelectorAll(".version-orb").forEach(el=>el.textContent="1.3.1");
+    const versionName=panel.querySelector(".current-version-card strong");
+    if(versionName)versionName.textContent="Nosso Controle 1.3.1";
+  }
+
+  function addStyles(){
+    if(get("optionalDateStyles"))return;
+    const style=document.createElement("style");
+    style.id="optionalDateStyles";
+    style.textContent=`
+      .optional-date-hint{
+        display:block;
+        margin-top:5px;
+        color:var(--muted);
+        font-size:8px;
+        line-height:1.35;
+      }
+
+      input[data-optional-date="1"]:not(:valid){
+        color:var(--muted);
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  function install(){
+    addStyles();
+
+    prepareOptionalDateInput("incomeDate","Data da receita");
+    prepareOptionalDateInput("expenseDate","Data do gasto");
+    prepareOptionalDateInput("vaultDate","Data do depósito");
+    prepareOptionalDateInput("newBillDue","Primeiro vencimento");
+
+    clearOptionalDatesAfterDialogOpen();
+    bindSaveFallbacks();
+    addDateHint();
+    updateReleaseNotes();
+
+    document.querySelectorAll(".updates-version-badge,.settings-version,.version-orb").forEach(el=>{
+      if(/^1\./.test(el.textContent.trim()))el.textContent="1.3.1";
+    });
+  }
+
+  install();
+  window.addEventListener("pageshow",install);
+  setTimeout(install,300);
+  setTimeout(install,1000);
 })();
