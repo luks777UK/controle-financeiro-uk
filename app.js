@@ -121,13 +121,13 @@
           </div>
           <section class="current-version-card">
             <div class="version-orb">1.1.2</div>
-            <div><span>VERSÃO INSTALADA</span><strong>Nosso Controle 2.0.1</strong><small>Build de 03/08/2026 · correção de login</small></div>
+            <div><span>VERSÃO INSTALADA</span><strong>Nosso Controle 2.0.2</strong><small>Build de 03/08/2026 · correção de login</small></div>
             <span class="version-status">Atual</span>
           </section>
           <section class="updates-timeline">
             <article class="update-entry latest">
               <div class="update-marker"></div><div class="update-content">
-                <div class="update-entry-head"><div><span>Versão 2.0.1</span><strong>Central de atualizações</strong></div><small>03/08/2026</small></div>
+                <div class="update-entry-head"><div><span>Versão 2.0.2</span><strong>Central de atualizações</strong></div><small>03/08/2026</small></div>
                 <ul><li>Nova área <b>Atualizações</b> no menu de três pontos.</li><li>Versão instalada e histórico de mudanças.</li><li>Fluxo preparado para atualização pelo iPhone.</li></ul>
               </div>
             </article>
@@ -1278,7 +1278,7 @@ boot();
           <div class="version-orb">1.1.3</div>
           <div>
             <span>VERSÃO INSTALADA</span>
-            <strong>Nosso Controle 2.0.1</strong>
+            <strong>Nosso Controle 2.0.2</strong>
             <small>Correção do menu e gerenciamento de dados</small>
           </div>
           <span class="version-status">Atual</span>
@@ -1289,7 +1289,7 @@ boot();
             <div class="update-marker"></div>
             <div class="update-content">
               <div class="update-entry-head">
-                <div><span>Versão 2.0.1</span><strong>Menu e manutenção</strong></div>
+                <div><span>Versão 2.0.2</span><strong>Menu e manutenção</strong></div>
                 <small>03/08/2026</small>
               </div>
               <ul>
@@ -1325,7 +1325,7 @@ boot();
             <div class="update-marker"></div>
             <div class="update-content">
               <div class="update-entry-head">
-                <div><span>Versão 2.0.1</span><strong>Histórico e produtividade</strong></div>
+                <div><span>Versão 2.0.2</span><strong>Histórico e produtividade</strong></div>
                 <small>Planejada</small>
               </div>
               <ul>
@@ -1342,7 +1342,7 @@ boot();
             <div class="update-marker"></div>
             <div class="update-content">
               <div class="update-entry-head">
-                <div><span>Versão 2.0.1</span><strong>Nuvem e aplicativo</strong></div>
+                <div><span>Versão 2.0.2</span><strong>Nuvem e aplicativo</strong></div>
                 <small>Planejada</small>
               </div>
               <ul>
@@ -1938,7 +1938,7 @@ boot();
   });
 
   document.querySelectorAll(".current-version-card strong").forEach(x=>{
-    if(x.textContent.includes("1.1.3"))x.textContent="Nosso Controle 2.0.1";
+    if(x.textContent.includes("1.1.3"))x.textContent="Nosso Controle 2.0.2";
   });
 })();
 
@@ -2167,7 +2167,7 @@ boot();
     if(el.textContent.trim()==="1.1.4")el.textContent="1.1.5";
   });
   document.querySelectorAll(".current-version-card strong").forEach(el=>{
-    if(el.textContent.includes("1.1.4"))el.textContent="Nosso Controle 2.0.1";
+    if(el.textContent.includes("1.1.4"))el.textContent="Nosso Controle 2.0.2";
   });
 })();
 
@@ -2328,7 +2328,7 @@ boot();
           <div class="version-orb">1.1.6</div>
           <div>
             <span>VERSÃO INSTALADA</span>
-            <strong>Nosso Controle 2.0.1</strong>
+            <strong>Nosso Controle 2.0.2</strong>
             <small>Calendário, logout e organização visual</small>
           </div>
           <span class="version-status">Atual</span>
@@ -2974,7 +2974,7 @@ boot();
       const strong=current.querySelector("strong");
       const small=current.querySelector("small");
       if(orb)orb.textContent="1.2";
-      if(strong)strong.textContent="Nosso Controle 2.0.1";
+      if(strong)strong.textContent="Nosso Controle 2.0.2";
       if(small)small.textContent="Experiência premium e conta compartilhada";
     }
 
@@ -3869,7 +3869,7 @@ boot();
 
     panel.querySelectorAll(".version-orb").forEach(x=>x.textContent="1.3");
     const strong=panel.querySelector(".current-version-card strong");
-    if(strong)strong.textContent="Nosso Controle 2.0.1";
+    if(strong)strong.textContent="Nosso Controle 2.0.2";
   }
 
   function addStyles(){
@@ -4115,7 +4115,7 @@ boot();
 
     panel.querySelectorAll(".version-orb").forEach(el=>el.textContent="1.3.1");
     const versionName=panel.querySelector(".current-version-card strong");
-    if(versionName)versionName.textContent="Nosso Controle 2.0.1";
+    if(versionName)versionName.textContent="Nosso Controle 2.0.2";
   }
 
   function addStyles(){
@@ -4592,7 +4592,7 @@ boot();
     if(current)current.insertAdjacentElement("afterend",note);
     panel.querySelectorAll(".version-orb").forEach(x=>x.textContent="1.4");
     const title=panel.querySelector(".current-version-card strong");
-    if(title)title.textContent="Nosso Controle 2.0.1";
+    if(title)title.textContent="Nosso Controle 2.0.2";
   }
 
   function addStyles(){
@@ -4938,7 +4938,7 @@ boot();
     if(current)current.insertAdjacentElement("afterend",note);
     panel.querySelectorAll(".version-orb").forEach(x=>x.textContent="2.0.1");
     const title=panel.querySelector(".current-version-card strong");
-    if(title)title.textContent="Nosso Controle 2.0.1";
+    if(title)title.textContent="Nosso Controle 2.0.2";
   }
 
   function addStyles(){
@@ -5047,4 +5047,313 @@ boot();
   window.addEventListener("pageshow",install);
   setTimeout(install,400);
   setTimeout(install,1300);
+})();
+
+
+/* =========================================================
+   NOSSO CONTROLE 2.0.2 -- HOTFIX
+   Bills por ID • botões únicos • menu sem sobreposição
+   ========================================================= */
+(function installV202Hotfix(){
+  const $=id=>document.getElementById(id);
+  const qs=(selector,root=document)=>root.querySelector(selector);
+  const qsa=(selector,root=document)=>[...root.querySelectorAll(selector)];
+
+  function billByCard(card){
+    const id=qs(".edit[data-id],.pay[data-id]",card)?.dataset.id;
+    return (state?.bills||[]).find(bill=>bill.id===id)||null;
+  }
+
+  function repairBillCards(){
+    qsa("#billList .bill-card").forEach(card=>{
+      const bill=billByCard(card);
+      if(!bill)return;
+
+      card.classList.add("v202-bill-fixed");
+
+      const reserved=Number(bill.reserved||0);
+      const total=Number(bill.amount||0);
+      const remaining=Math.max(0,total-reserved);
+      const percentage=total?Math.min(100,reserved/total*100):100;
+
+      const values=qs(".bill-values",card);
+      if(values){
+        values.innerHTML=`
+          <div class="v202-bill-amount">
+            <strong>${money(reserved)} <span>de ${money(total)}</span></strong>
+            <small>${remaining>0?`${money(remaining)} restantes`:"Totalmente reservada"}</small>
+          </div>
+        `;
+      }
+
+      const progress=qs(".bill-progress i",card);
+      if(progress)progress.style.width=`${percentage}%`;
+
+      const actions=qs(".bill-actions",card);
+      if(actions){
+        /* Garante apenas os dois botões originais. */
+        const edit=qs(".edit",actions);
+        const pay=qs(".pay",actions);
+        qsa("button",actions).forEach(button=>{
+          if(button!==edit&&button!==pay)button.remove();
+        });
+
+        if(edit){
+          edit.textContent="";
+          edit.setAttribute("aria-label","Editar Bill");
+          edit.title="Editar Bill";
+        }
+        if(pay){
+          pay.textContent="";
+          pay.setAttribute("aria-label","Marcar Bill como paga");
+          pay.title="Marcar como paga";
+        }
+      }
+    });
+  }
+
+  function repairSettingsMenu(){
+    const sheet=$("settingsSheet");
+    if(!sheet)return;
+
+    qsa(".sheet-action",sheet).forEach(button=>{
+      const copy=qsa(":scope > span",button).find(span=>span.querySelector("b,small"));
+      if(copy)copy.classList.add("v202-sheet-copy");
+    });
+
+    const badge=qs(".updates-version-badge",sheet);
+    if(badge)badge.textContent="2.0.2";
+  }
+
+  function updateNotes(){
+    const panel=$("updatesDialog")?.querySelector(".updates-panel");
+    if(!panel||panel.querySelector(".v202-note"))return;
+
+    const note=document.createElement("section");
+    note.className="v12-release-note v202-note";
+    note.innerHTML=`
+      <span>VERSÃO 2.0.2 · CORREÇÃO</span>
+      <h3>Bills e Configurações corrigidas</h3>
+      <ul>
+        <li>Cada card de Bill agora usa o ID real da conta.</li>
+        <li>Valores de aluguel, energia, água e parcelas não são mais misturados.</li>
+        <li>Removida a duplicação visual dos botões Editar e Pagar.</li>
+        <li>Títulos e descrições das Configurações ficam em linhas separadas.</li>
+        <li>O número da versão não fica mais sobre o texto.</li>
+      </ul>
+    `;
+
+    const current=panel.querySelector(".current-version-card");
+    if(current)current.insertAdjacentElement("afterend",note);
+
+    panel.querySelectorAll(".version-orb").forEach(el=>el.textContent="2.0.2");
+    const title=panel.querySelector(".current-version-card strong");
+    if(title)title.textContent="Nosso Controle 2.0.2";
+  }
+
+  function addStyles(){
+    if($("v202HotfixStyles"))return;
+
+    const style=document.createElement("style");
+    style.id="v202HotfixStyles";
+    style.textContent=`
+      /* Bills: uma estrutura única e sem ícones duplicados */
+      .bill-card.v202-bill-fixed .bill-actions{
+        position:absolute!important;
+        right:14px!important;
+        bottom:13px!important;
+        top:auto!important;
+        display:flex!important;
+        flex-direction:row!important;
+        gap:6px!important;
+        padding:0!important;
+        margin:0!important;
+        z-index:2!important;
+      }
+
+      .bill-card.v202-bill-fixed .bill-actions button{
+        width:39px!important;
+        height:39px!important;
+        min-width:39px!important;
+        padding:0!important;
+        display:grid!important;
+        place-items:center!important;
+        border-radius:12px!important;
+        font-size:0!important;
+        line-height:1!important;
+        overflow:hidden!important;
+      }
+
+      .bill-card.v202-bill-fixed .small-button.edit::before{
+        content:"✎"!important;
+        display:block!important;
+        font-size:15px!important;
+        line-height:1!important;
+      }
+
+      .bill-card.v202-bill-fixed .small-button.pay::before{
+        content:"✓"!important;
+        display:block!important;
+        font-size:17px!important;
+        line-height:1!important;
+      }
+
+      .bill-card.v202-bill-fixed .small-button.edit::after,
+      .bill-card.v202-bill-fixed .small-button.pay::after{
+        content:none!important;
+        display:none!important;
+      }
+
+      .bill-card.v202-bill-fixed .bill-values{
+        display:block!important;
+        margin:9px 96px 0 64px!important;
+        padding:0!important;
+      }
+
+      .v202-bill-amount{
+        display:flex;
+        justify-content:space-between;
+        align-items:baseline;
+        gap:8px;
+        min-width:0;
+      }
+
+      .v202-bill-amount strong{
+        font-size:11px!important;
+        color:var(--ink)!important;
+        white-space:nowrap;
+      }
+
+      .v202-bill-amount strong span{
+        color:var(--muted)!important;
+        font-weight:500!important;
+        font-size:9px!important;
+      }
+
+      .v202-bill-amount small{
+        color:var(--muted)!important;
+        font-size:8px!important;
+        white-space:nowrap;
+      }
+
+      .bill-card.v202-bill-fixed .bill-progress{
+        margin:8px 96px 0 64px!important;
+      }
+
+      /* Configurações: título e descrição nunca ficam lado a lado */
+      #settingsSheet .sheet-action{
+        display:flex!important;
+        align-items:center!important;
+        gap:11px!important;
+        min-height:70px!important;
+        padding:12px!important;
+        text-align:left!important;
+      }
+
+      #settingsSheet .sheet-action-icon{
+        width:43px!important;
+        height:43px!important;
+        min-width:43px!important;
+        display:grid!important;
+        place-items:center!important;
+      }
+
+      #settingsSheet .sheet-action .v202-sheet-copy,
+      #settingsSheet .sheet-action > span:nth-child(2){
+        min-width:0!important;
+        flex:1 1 auto!important;
+        display:flex!important;
+        flex-direction:column!important;
+        align-items:flex-start!important;
+        justify-content:center!important;
+        gap:4px!important;
+        line-height:1.2!important;
+      }
+
+      #settingsSheet .sheet-action b{
+        display:block!important;
+        width:100%!important;
+        margin:0!important;
+        font-size:13px!important;
+        line-height:1.2!important;
+        white-space:normal!important;
+      }
+
+      #settingsSheet .sheet-action small{
+        display:block!important;
+        width:100%!important;
+        margin:0!important;
+        color:var(--muted)!important;
+        font-size:9px!important;
+        line-height:1.35!important;
+        white-space:normal!important;
+      }
+
+      #settingsSheet .updates-version-badge{
+        flex:none!important;
+        margin-left:8px!important;
+        align-self:center!important;
+        white-space:nowrap!important;
+      }
+
+      @media(max-width:390px){
+        .bill-card.v202-bill-fixed .bill-values,
+        .bill-card.v202-bill-fixed .bill-progress{
+          margin-left:56px!important;
+          margin-right:91px!important;
+        }
+
+        .v202-bill-amount{
+          display:block;
+        }
+
+        .v202-bill-amount small{
+          display:block;
+          margin-top:3px;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  function install(){
+    addStyles();
+    if(state)repairBillCards();
+    repairSettingsMenu();
+    updateNotes();
+
+    qsa(".updates-version-badge,.settings-version,.version-orb").forEach(el=>{
+      if(/^\d/.test(el.textContent.trim()))el.textContent="2.0.2";
+    });
+  }
+
+  /*
+   O render anterior recria as Bills. Este observador reaplica a correção
+   somente quando o conteúdo realmente muda.
+  */
+  const billList=$("billList");
+  if(billList&&!window.__v202BillObserver){
+    window.__v202BillObserver=true;
+    let scheduled=false;
+    new MutationObserver(()=>{
+      if(scheduled)return;
+      scheduled=true;
+      requestAnimationFrame(()=>{
+        scheduled=false;
+        if(state)repairBillCards();
+      });
+    }).observe(billList,{childList:true,subtree:true});
+  }
+
+  const settingsSheet=$("settingsSheet");
+  if(settingsSheet&&!window.__v202SettingsObserver){
+    window.__v202SettingsObserver=true;
+    new MutationObserver(()=>repairSettingsMenu())
+      .observe(settingsSheet,{childList:true,subtree:true});
+  }
+
+  install();
+  window.addEventListener("pageshow",install);
+  setTimeout(install,300);
+  setTimeout(install,1200);
 })();
