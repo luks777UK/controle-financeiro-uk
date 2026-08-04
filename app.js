@@ -26,7 +26,7 @@
         <div class="premium-hero-bottom">
           <div><span>Recebido</span><b id="premiumIncome">£0,00</b></div>
           <div><span>Comprometido</span><b id="premiumCommitted">£0,00</b></div>
-          <div><span>Protegido</span><b id="premiumProtected">£0,00</b></div>
+          <div><span>Guardado</span><b id="premiumProtected">£0,00</b></div>
         </div>
       </section>
       <section class="period-summary">
