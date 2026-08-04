@@ -1,6 +1,6 @@
 
 /*
-  NOSSO CONTROLE 1.1.1 — ATUALIZAÇÃO EM UM ÚNICO ARQUIVO
+  NOSSO CONTROLE 1.1.1 -- ATUALIZAÇÃO EM UM ÚNICO ARQUIVO
   Este bloco injeta automaticamente o novo layout e estilos.
   Depois dele começa a lógica normal do aplicativo.
 */
@@ -43,7 +43,7 @@
         <section class="finance-chart-card">
           <div class="chart-card-heading">
             <div><span>EVOLUÇÃO</span><h3>Patrimônio nos últimos 6 meses</h3></div>
-            <strong id="trendBadge">—</strong>
+            <strong id="trendBadge">--</strong>
           </div>
           <div id="wealthChart" class="svg-chart"></div>
           <div id="wealthChartLabels" class="chart-labels"></div>
@@ -121,13 +121,13 @@
           </div>
           <section class="current-version-card">
             <div class="version-orb">1.1.2</div>
-            <div><span>VERSÃO INSTALADA</span><strong>Nosso Controle 2.1.1</strong><small>Build de 03/08/2026 · correção de login</small></div>
+            <div><span>VERSÃO INSTALADA</span><strong>Nosso Controle 2.0.1</strong><small>Build de 03/08/2026 · correção de login</small></div>
             <span class="version-status">Atual</span>
           </section>
           <section class="updates-timeline">
             <article class="update-entry latest">
               <div class="update-marker"></div><div class="update-content">
-                <div class="update-entry-head"><div><span>Versão 2.1.1</span><strong>Central de atualizações</strong></div><small>03/08/2026</small></div>
+                <div class="update-entry-head"><div><span>Versão 2.0.1</span><strong>Central de atualizações</strong></div><small>03/08/2026</small></div>
                 <ul><li>Nova área <b>Atualizações</b> no menu de três pontos.</li><li>Versão instalada e histórico de mudanças.</li><li>Fluxo preparado para atualização pelo iPhone.</li></ul>
               </div>
             </article>
@@ -559,7 +559,7 @@ function renderWeeklyIncomeChart(){
   const max=Math.max(1,...values.map(x=>x.value));
   $("weeklyIncomeChart").innerHTML=values.map(x=>`
     <div class="week-bar-column ${x.key===today?"today":""}">
-      <b>${x.value?money(x.value):"—"}</b>
+      <b>${x.value?money(x.value):"--"}</b>
       <div class="week-bar-track"><i class="week-bar-fill" data-height="${Math.max(x.value?8:0,(x.value/max)*100)}"></i></div>
       <span>${x.label}</span>
     </div>`).join("");
@@ -964,7 +964,7 @@ function renderCalendar(){
     cell.className=`calendar-day${amount>0?(met?" goal":" partial"):""}${key===todayKey?" today":""}`;
     cell.innerHTML=`<span class="calendar-day-number">${day}</span>
       ${met?'<span class="calendar-goal-check">✓</span>':""}
-      <span class="calendar-day-amount">${amount>0?money(amount):"—"}</span>`;
+      <span class="calendar-day-amount">${amount>0?money(amount):"--"}</span>`;
     cell.title=amount>0?`${money(amount)} depositados`:"Nenhum depósito";
     cell.onclick=()=>showDayDetails(key);
     grid.appendChild(cell);
@@ -1278,7 +1278,7 @@ boot();
           <div class="version-orb">1.1.3</div>
           <div>
             <span>VERSÃO INSTALADA</span>
-            <strong>Nosso Controle 2.1.1</strong>
+            <strong>Nosso Controle 2.0.1</strong>
             <small>Correção do menu e gerenciamento de dados</small>
           </div>
           <span class="version-status">Atual</span>
@@ -1289,7 +1289,7 @@ boot();
             <div class="update-marker"></div>
             <div class="update-content">
               <div class="update-entry-head">
-                <div><span>Versão 2.1.1</span><strong>Menu e manutenção</strong></div>
+                <div><span>Versão 2.0.1</span><strong>Menu e manutenção</strong></div>
                 <small>03/08/2026</small>
               </div>
               <ul>
@@ -1325,7 +1325,7 @@ boot();
             <div class="update-marker"></div>
             <div class="update-content">
               <div class="update-entry-head">
-                <div><span>Versão 2.1.1</span><strong>Histórico e produtividade</strong></div>
+                <div><span>Versão 2.0.1</span><strong>Histórico e produtividade</strong></div>
                 <small>Planejada</small>
               </div>
               <ul>
@@ -1342,7 +1342,7 @@ boot();
             <div class="update-marker"></div>
             <div class="update-content">
               <div class="update-entry-head">
-                <div><span>Versão 2.1.1</span><strong>Nuvem e aplicativo</strong></div>
+                <div><span>Versão 2.0.1</span><strong>Nuvem e aplicativo</strong></div>
                 <small>Planejada</small>
               </div>
               <ul>
@@ -1545,7 +1545,7 @@ boot();
 
 
 /* =========================================================
-   NOSSO CONTROLE 1.1.4 — LAYOUT COMPACTO
+   NOSSO CONTROLE 1.1.4 -- LAYOUT COMPACTO
    ========================================================= */
 (function installCompactLayout(){
   const style=document.createElement("style");
@@ -1938,13 +1938,13 @@ boot();
   });
 
   document.querySelectorAll(".current-version-card strong").forEach(x=>{
-    if(x.textContent.includes("1.1.3"))x.textContent="Nosso Controle 2.1.1";
+    if(x.textContent.includes("1.1.3"))x.textContent="Nosso Controle 2.0.1";
   });
 })();
 
 
 /* =========================================================
-   NOSSO CONTROLE 1.1.5 — BILLS HORIZONTAIS E COMPACTAS
+   NOSSO CONTROLE 1.1.5 -- BILLS HORIZONTAIS E COMPACTAS
    ========================================================= */
 (function installCompactBills(){
   const style=document.createElement("style");
@@ -2167,7 +2167,7 @@ boot();
     if(el.textContent.trim()==="1.1.4")el.textContent="1.1.5";
   });
   document.querySelectorAll(".current-version-card strong").forEach(el=>{
-    if(el.textContent.includes("1.1.4"))el.textContent="Nosso Controle 2.1.1";
+    if(el.textContent.includes("1.1.4"))el.textContent="Nosso Controle 2.0.1";
   });
 })();
 
@@ -2328,7 +2328,7 @@ boot();
           <div class="version-orb">1.1.6</div>
           <div>
             <span>VERSÃO INSTALADA</span>
-            <strong>Nosso Controle 2.1.1</strong>
+            <strong>Nosso Controle 2.0.1</strong>
             <small>Calendário, logout e organização visual</small>
           </div>
           <span class="version-status">Atual</span>
@@ -2607,7 +2607,7 @@ boot();
 
 
 /* =========================================================
-   NOSSO CONTROLE 1.2 — PREMIUM, CONTA COMPARTILHADA E UX
+   NOSSO CONTROLE 1.2 -- PREMIUM, CONTA COMPARTILHADA E UX
    ========================================================= */
 (function installV12Premium(){
   const get=id=>document.getElementById(id);
@@ -2759,7 +2759,7 @@ boot();
     if(!content)return;
 
     const email=user?.email || localStorage.getItem("nosso-controle-email") || "Conta conectada";
-    const code=householdCode || "—";
+    const code=householdCode || "--";
 
     content.innerHTML=`
       <div class="settings-premium-head">
@@ -2974,7 +2974,7 @@ boot();
       const strong=current.querySelector("strong");
       const small=current.querySelector("small");
       if(orb)orb.textContent="1.2";
-      if(strong)strong.textContent="Nosso Controle 2.1.1";
+      if(strong)strong.textContent="Nosso Controle 2.0.1";
       if(small)small.textContent="Experiência premium e conta compartilhada";
     }
 
@@ -3869,7 +3869,7 @@ boot();
 
     panel.querySelectorAll(".version-orb").forEach(x=>x.textContent="1.3");
     const strong=panel.querySelector(".current-version-card strong");
-    if(strong)strong.textContent="Nosso Controle 2.1.1";
+    if(strong)strong.textContent="Nosso Controle 2.0.1";
   }
 
   function addStyles(){
@@ -4115,7 +4115,7 @@ boot();
 
     panel.querySelectorAll(".version-orb").forEach(el=>el.textContent="1.3.1");
     const versionName=panel.querySelector(".current-version-card strong");
-    if(versionName)versionName.textContent="Nosso Controle 2.1.1";
+    if(versionName)versionName.textContent="Nosso Controle 2.0.1";
   }
 
   function addStyles(){
@@ -4592,7 +4592,7 @@ boot();
     if(current)current.insertAdjacentElement("afterend",note);
     panel.querySelectorAll(".version-orb").forEach(x=>x.textContent="1.4");
     const title=panel.querySelector(".current-version-card strong");
-    if(title)title.textContent="Nosso Controle 2.1.1";
+    if(title)title.textContent="Nosso Controle 2.0.1";
   }
 
   function addStyles(){
@@ -4665,7 +4665,7 @@ boot();
 
 
 /* =========================================================
-   NOSSO CONTROLE 2.0.1 — REBUILD CLEAN
+   NOSSO CONTROLE 2.0.1 -- REBUILD CLEAN
    Estrutura nova, Bills corrigidas e dashboard simplificado
    ========================================================= */
 (function installV201Rebuild(){
@@ -4938,7 +4938,7 @@ boot();
     if(current)current.insertAdjacentElement("afterend",note);
     panel.querySelectorAll(".version-orb").forEach(x=>x.textContent="2.0.1");
     const title=panel.querySelector(".current-version-card strong");
-    if(title)title.textContent="Nosso Controle 2.1.1";
+    if(title)title.textContent="Nosso Controle 2.0.1";
   }
 
   function addStyles(){
@@ -5047,889 +5047,4 @@ boot();
   window.addEventListener("pageshow",install);
   setTimeout(install,400);
   setTimeout(install,1300);
-})();
-
-
-/* =========================================================
-   NOSSO CONTROLE 2.0.2 — HOTFIX
-   Bills por ID • botões únicos • menu sem sobreposição
-   ========================================================= */
-(function installV202Hotfix(){
-  const $=id=>document.getElementById(id);
-  const qs=(selector,root=document)=>root.querySelector(selector);
-  const qsa=(selector,root=document)=>[...root.querySelectorAll(selector)];
-
-  function billByCard(card){
-    const id=qs(".edit[data-id],.pay[data-id]",card)?.dataset.id;
-    return (state?.bills||[]).find(bill=>bill.id===id)||null;
-  }
-
-  function repairBillCards(){
-    qsa("#billList .bill-card").forEach(card=>{
-      const bill=billByCard(card);
-      if(!bill)return;
-
-      card.classList.add("v202-bill-fixed");
-
-      const reserved=Number(bill.reserved||0);
-      const total=Number(bill.amount||0);
-      const remaining=Math.max(0,total-reserved);
-      const percentage=total?Math.min(100,reserved/total*100):100;
-
-      const values=qs(".bill-values",card);
-      if(values){
-        values.innerHTML=`
-          <div class="v202-bill-amount">
-            <strong>${money(reserved)} <span>de ${money(total)}</span></strong>
-            <small>${remaining>0?`${money(remaining)} restantes`:"Totalmente reservada"}</small>
-          </div>
-        `;
-      }
-
-      const progress=qs(".bill-progress i",card);
-      if(progress)progress.style.width=`${percentage}%`;
-
-      const actions=qs(".bill-actions",card);
-      if(actions){
-        /* Garante apenas os dois botões originais. */
-        const edit=qs(".edit",actions);
-        const pay=qs(".pay",actions);
-        qsa("button",actions).forEach(button=>{
-          if(button!==edit&&button!==pay)button.remove();
-        });
-
-        if(edit){
-          edit.textContent="";
-          edit.setAttribute("aria-label","Editar Bill");
-          edit.title="Editar Bill";
-        }
-        if(pay){
-          pay.textContent="";
-          pay.setAttribute("aria-label","Marcar Bill como paga");
-          pay.title="Marcar como paga";
-        }
-      }
-    });
-  }
-
-  function repairSettingsMenu(){
-    const sheet=$("settingsSheet");
-    if(!sheet)return;
-
-    qsa(".sheet-action",sheet).forEach(button=>{
-      const copy=qsa(":scope > span",button).find(span=>span.querySelector("b,small"));
-      if(copy)copy.classList.add("v202-sheet-copy");
-    });
-
-    const badge=qs(".updates-version-badge",sheet);
-    if(badge)badge.textContent="2.0.2";
-  }
-
-  function updateNotes(){
-    const panel=$("updatesDialog")?.querySelector(".updates-panel");
-    if(!panel||panel.querySelector(".v202-note"))return;
-
-    const note=document.createElement("section");
-    note.className="v12-release-note v202-note";
-    note.innerHTML=`
-      <span>VERSÃO 2.0.2 · CORREÇÃO</span>
-      <h3>Bills e Configurações corrigidas</h3>
-      <ul>
-        <li>Cada card de Bill agora usa o ID real da conta.</li>
-        <li>Valores de aluguel, energia, água e parcelas não são mais misturados.</li>
-        <li>Removida a duplicação visual dos botões Editar e Pagar.</li>
-        <li>Títulos e descrições das Configurações ficam em linhas separadas.</li>
-        <li>O número da versão não fica mais sobre o texto.</li>
-      </ul>
-    `;
-
-    const current=panel.querySelector(".current-version-card");
-    if(current)current.insertAdjacentElement("afterend",note);
-
-    panel.querySelectorAll(".version-orb").forEach(el=>el.textContent="2.0.2");
-    const title=panel.querySelector(".current-version-card strong");
-    if(title)title.textContent="Nosso Controle 2.1.1";
-  }
-
-  function addStyles(){
-    if($("v202HotfixStyles"))return;
-
-    const style=document.createElement("style");
-    style.id="v202HotfixStyles";
-    style.textContent=`
-      /* Bills: uma estrutura única e sem ícones duplicados */
-      .bill-card.v202-bill-fixed .bill-actions{
-        position:absolute!important;
-        right:14px!important;
-        bottom:13px!important;
-        top:auto!important;
-        display:flex!important;
-        flex-direction:row!important;
-        gap:6px!important;
-        padding:0!important;
-        margin:0!important;
-        z-index:2!important;
-      }
-
-      .bill-card.v202-bill-fixed .bill-actions button{
-        width:39px!important;
-        height:39px!important;
-        min-width:39px!important;
-        padding:0!important;
-        display:grid!important;
-        place-items:center!important;
-        border-radius:12px!important;
-        font-size:0!important;
-        line-height:1!important;
-        overflow:hidden!important;
-      }
-
-      .bill-card.v202-bill-fixed .small-button.edit::before{
-        content:"✎"!important;
-        display:block!important;
-        font-size:15px!important;
-        line-height:1!important;
-      }
-
-      .bill-card.v202-bill-fixed .small-button.pay::before{
-        content:"✓"!important;
-        display:block!important;
-        font-size:17px!important;
-        line-height:1!important;
-      }
-
-      .bill-card.v202-bill-fixed .small-button.edit::after,
-      .bill-card.v202-bill-fixed .small-button.pay::after{
-        content:none!important;
-        display:none!important;
-      }
-
-      .bill-card.v202-bill-fixed .bill-values{
-        display:block!important;
-        margin:9px 96px 0 64px!important;
-        padding:0!important;
-      }
-
-      .v202-bill-amount{
-        display:flex;
-        justify-content:space-between;
-        align-items:baseline;
-        gap:8px;
-        min-width:0;
-      }
-
-      .v202-bill-amount strong{
-        font-size:11px!important;
-        color:var(--ink)!important;
-        white-space:nowrap;
-      }
-
-      .v202-bill-amount strong span{
-        color:var(--muted)!important;
-        font-weight:500!important;
-        font-size:9px!important;
-      }
-
-      .v202-bill-amount small{
-        color:var(--muted)!important;
-        font-size:8px!important;
-        white-space:nowrap;
-      }
-
-      .bill-card.v202-bill-fixed .bill-progress{
-        margin:8px 96px 0 64px!important;
-      }
-
-      /* Configurações: título e descrição nunca ficam lado a lado */
-      #settingsSheet .sheet-action{
-        display:flex!important;
-        align-items:center!important;
-        gap:11px!important;
-        min-height:70px!important;
-        padding:12px!important;
-        text-align:left!important;
-      }
-
-      #settingsSheet .sheet-action-icon{
-        width:43px!important;
-        height:43px!important;
-        min-width:43px!important;
-        display:grid!important;
-        place-items:center!important;
-      }
-
-      #settingsSheet .sheet-action .v202-sheet-copy,
-      #settingsSheet .sheet-action > span:nth-child(2){
-        min-width:0!important;
-        flex:1 1 auto!important;
-        display:flex!important;
-        flex-direction:column!important;
-        align-items:flex-start!important;
-        justify-content:center!important;
-        gap:4px!important;
-        line-height:1.2!important;
-      }
-
-      #settingsSheet .sheet-action b{
-        display:block!important;
-        width:100%!important;
-        margin:0!important;
-        font-size:13px!important;
-        line-height:1.2!important;
-        white-space:normal!important;
-      }
-
-      #settingsSheet .sheet-action small{
-        display:block!important;
-        width:100%!important;
-        margin:0!important;
-        color:var(--muted)!important;
-        font-size:9px!important;
-        line-height:1.35!important;
-        white-space:normal!important;
-      }
-
-      #settingsSheet .updates-version-badge{
-        flex:none!important;
-        margin-left:8px!important;
-        align-self:center!important;
-        white-space:nowrap!important;
-      }
-
-      @media(max-width:390px){
-        .bill-card.v202-bill-fixed .bill-values,
-        .bill-card.v202-bill-fixed .bill-progress{
-          margin-left:56px!important;
-          margin-right:91px!important;
-        }
-
-        .v202-bill-amount{
-          display:block;
-        }
-
-        .v202-bill-amount small{
-          display:block;
-          margin-top:3px;
-        }
-      }
-    `;
-    document.head.appendChild(style);
-  }
-
-  function install(){
-    addStyles();
-    if(state)repairBillCards();
-    repairSettingsMenu();
-    updateNotes();
-
-    qsa(".updates-version-badge,.settings-version,.version-orb").forEach(el=>{
-      if(/^\d/.test(el.textContent.trim()))el.textContent="2.0.2";
-    });
-  }
-
-  /*
-   O render anterior recria as Bills. Este observador reaplica a correção
-   somente quando o conteúdo realmente muda.
-  */
-  const billList=$("billList");
-  if(billList&&!window.__v202BillObserver){
-    window.__v202BillObserver=true;
-    let scheduled=false;
-    new MutationObserver(()=>{
-      if(scheduled)return;
-      scheduled=true;
-      requestAnimationFrame(()=>{
-        scheduled=false;
-        if(state)repairBillCards();
-      });
-    }).observe(billList,{childList:true,subtree:true});
-  }
-
-  const settingsSheet=$("settingsSheet");
-  if(settingsSheet&&!window.__v202SettingsObserver){
-    window.__v202SettingsObserver=true;
-    new MutationObserver(()=>repairSettingsMenu())
-      .observe(settingsSheet,{childList:true,subtree:true});
-  }
-
-  install();
-  window.addEventListener("pageshow",install);
-  setTimeout(install,300);
-  setTimeout(install,1200);
-})();
-
-
-/* =========================================================
-   NOSSO CONTROLE 2.1.1 — HOTFIX LOGIN + ATUALIZAÇÃO SEGURA
-   ========================================================= */
-(function installV211SafeUpdater(){
-  "use strict";
-
-  const CURRENT_VERSION = "2.1.1";
-  window.NOSSO_CONTROLE_VERSION = CURRENT_VERSION;
-
-  const $ = id => document.getElementById(id);
-  const qsa = (selector, root = document) =>
-    Array.from(root.querySelectorAll(selector));
-
-  const USER_ALIASES = {
-    lucas: "lucaspaulo19991@gmail.com"
-  };
-
-  function fixLoginInputs(){
-    const auth = $("authView");
-    const panel = auth?.querySelector(".auth-panel");
-    const userField = $("email");
-    const passwordField = $("password");
-    const loginButton = $("loginBtn");
-    const signupButton = $("signupBtn");
-
-    if(!auth || !panel || !userField || !passwordField || !loginButton){
-      return;
-    }
-
-    auth.classList.add("login-hotfix-211");
-    panel.classList.add("login-panel-hotfix-211");
-
-    /*
-      Remove somente possíveis camadas decorativas.
-      Não altera botões, inputs, diálogos ou conteúdo do formulário.
-    */
-    Array.from(auth.children).forEach(child => {
-      if(child !== panel && !child.contains(panel)){
-        child.style.pointerEvents = "none";
-      }
-    });
-
-    [userField, passwordField].forEach(input => {
-      input.disabled = false;
-      input.readOnly = false;
-      input.style.pointerEvents = "auto";
-      input.style.touchAction = "manipulation";
-      input.style.userSelect = "text";
-      input.style.webkitUserSelect = "text";
-      input.tabIndex = 0;
-    });
-
-    userField.type = "text";
-    userField.autocomplete = "username";
-    userField.setAttribute("autocapitalize", "none");
-    userField.setAttribute("spellcheck", "false");
-    userField.placeholder = "lucas ou seu e-mail";
-
-    passwordField.type = "password";
-    passwordField.autocomplete = "current-password";
-
-    const label = userField.closest("label");
-    if(label){
-      const textNode = Array.from(label.childNodes)
-        .find(node => node.nodeType === Node.TEXT_NODE);
-      if(textNode) textNode.textContent = "Usuário ou e-mail";
-    }
-
-    const savedAlias =
-      localStorage.getItem("nosso-controle-login-alias");
-
-    if(!userField.value && savedAlias){
-      userField.value = savedAlias;
-    }
-
-    if(!loginButton.dataset.safeAlias211){
-      loginButton.dataset.safeAlias211 = "1";
-
-      /*
-        Executa antes do onclick antigo.
-        O código antigo continua cuidando da autenticação no Supabase.
-      */
-      loginButton.addEventListener("click", event => {
-        const typed = userField.value.trim();
-        if(!typed) return;
-
-        const normalized = typed.toLowerCase();
-        const resolvedEmail =
-          normalized.includes("@")
-            ? normalized
-            : USER_ALIASES[normalized];
-
-        if(!resolvedEmail){
-          event.preventDefault();
-          const message = $("authMsg");
-          if(message){
-            message.textContent =
-              "Usuário não encontrado. Use lucas ou seu e-mail completo.";
-          }
-          userField.focus();
-          return;
-        }
-
-        if(!normalized.includes("@")){
-          localStorage.setItem(
-            "nosso-controle-login-alias",
-            normalized
-          );
-        }
-
-        userField.dataset.aliasBeforeLogin = typed;
-        userField.value = resolvedEmail;
-
-        /*
-          Se o login falhar e a tela continuar aberta,
-          restaura visualmente o usuário curto.
-        */
-        window.setTimeout(() => {
-          if(
-            !auth.classList.contains("hidden") &&
-            userField.dataset.aliasBeforeLogin
-          ){
-            userField.value =
-              userField.dataset.aliasBeforeLogin;
-          }
-        }, 1400);
-      }, true);
-    }
-
-    if(signupButton && !signupButton.dataset.safeSignup211){
-      signupButton.dataset.safeSignup211 = "1";
-
-      signupButton.addEventListener("click", event => {
-        const value = userField.value.trim();
-
-        if(value && !value.includes("@")){
-          event.preventDefault();
-          userField.value = "";
-          userField.placeholder = "seuemail@exemplo.com";
-
-          const message = $("authMsg");
-          if(message){
-            message.textContent =
-              "Para criar uma conta, informe um e-mail completo.";
-          }
-
-          userField.focus();
-        }
-      }, true);
-    }
-
-    /*
-      Um toque em qualquer parte do input sempre foca o campo.
-      Isso contorna comportamentos estranhos do Safari/PWA.
-    */
-    [userField, passwordField].forEach(input => {
-      if(input.dataset.focusFix211) return;
-      input.dataset.focusFix211 = "1";
-
-      input.addEventListener("touchend", () => {
-        window.setTimeout(() => input.focus(), 0);
-      }, { passive: true });
-    });
-  }
-
-  function parseVersion(source){
-    const matches = Array.from(
-      String(source).matchAll(
-        /window\.NOSSO_CONTROLE_VERSION\s*=\s*["']([^"']+)["']/g
-      )
-    );
-
-    return matches.length
-      ? matches[matches.length - 1][1]
-      : null;
-  }
-
-  function compareVersions(remote, current){
-    const remoteParts = String(remote)
-      .split(".")
-      .map(value => Number(value) || 0);
-
-    const currentParts = String(current)
-      .split(".")
-      .map(value => Number(value) || 0);
-
-    const count = Math.max(
-      remoteParts.length,
-      currentParts.length
-    );
-
-    for(let index = 0; index < count; index += 1){
-      const a = remoteParts[index] || 0;
-      const b = currentParts[index] || 0;
-
-      if(a > b) return 1;
-      if(a < b) return -1;
-    }
-
-    return 0;
-  }
-
-  function ensureUpdateBanner(){
-    let banner = $("safeUpdateBanner211");
-    if(banner) return banner;
-
-    banner = document.createElement("aside");
-    banner.id = "safeUpdateBanner211";
-    banner.hidden = true;
-    banner.innerHTML = `
-      <span class="safe-update-icon">↻</span>
-      <div>
-        <strong>Atualização disponível</strong>
-        <small id="safeUpdateMessage211">
-          Uma nova versão está pronta.
-        </small>
-      </div>
-      <button id="safeUpdateButton211" type="button">
-        Atualizar
-      </button>
-    `;
-
-    document.body.appendChild(banner);
-    return banner;
-  }
-
-  async function removeAppCaches(){
-    if(!("caches" in window)) return;
-
-    try{
-      const names = await caches.keys();
-      await Promise.all(
-        names.map(name => caches.delete(name))
-      );
-    }catch(error){
-      console.debug("Não foi possível limpar cache:", error);
-    }
-  }
-
-  async function applyUpdate(remoteVersion){
-    const button = $("safeUpdateButton211");
-    const message = $("safeUpdateMessage211");
-
-    if(button){
-      button.disabled = true;
-      button.textContent = "Atualizando…";
-    }
-
-    if(message){
-      message.textContent =
-        `Instalando a versão ${remoteVersion}.`;
-    }
-
-    try{
-      await removeAppCaches();
-
-      if("serviceWorker" in navigator){
-        const registration =
-          await navigator.serviceWorker.getRegistration();
-
-        if(registration){
-          await registration.update();
-
-          if(registration.waiting){
-            registration.waiting.postMessage({
-              type: "SKIP_WAITING"
-            });
-          }
-        }
-      }
-
-      /*
-        reload() normal. O novo Service Worker usa rede primeiro,
-        portanto não precisa de ?v=.
-      */
-      window.location.reload();
-    }catch(error){
-      console.error("Falha na atualização:", error);
-
-      if(button){
-        button.disabled = false;
-        button.textContent = "Tentar novamente";
-      }
-
-      if(message){
-        message.textContent =
-          "Não foi possível atualizar agora.";
-      }
-    }
-  }
-
-  let updateCheckRunning = false;
-  let lastUpdateCheck = 0;
-
-  async function checkForUpdate(){
-    const now = Date.now();
-
-    if(
-      updateCheckRunning ||
-      now - lastUpdateCheck < 30000 ||
-      !navigator.onLine
-    ){
-      return;
-    }
-
-    updateCheckRunning = true;
-    lastUpdateCheck = now;
-
-    try{
-      const response = await fetch(
-        `./app.js?check=${now}`,
-        { cache: "no-store" }
-      );
-
-      if(!response.ok) return;
-
-      const source = await response.text();
-      const remoteVersion = parseVersion(source);
-
-      if(
-        remoteVersion &&
-        compareVersions(remoteVersion, CURRENT_VERSION) > 0
-      ){
-        const banner = ensureUpdateBanner();
-        const message = $("safeUpdateMessage211");
-        const button = $("safeUpdateButton211");
-
-        if(message){
-          message.textContent =
-            `Versão ${remoteVersion} pronta para instalar.`;
-        }
-
-        if(button){
-          button.disabled = false;
-          button.textContent = "Atualizar";
-          button.onclick =
-            () => applyUpdate(remoteVersion);
-        }
-
-        banner.hidden = false;
-      }
-    }catch(error){
-      console.debug(
-        "Verificação de versão indisponível:",
-        error
-      );
-    }finally{
-      updateCheckRunning = false;
-    }
-  }
-
-  async function registerServiceWorkerSafely(){
-    if(!("serviceWorker" in navigator)) return;
-
-    try{
-      const registration =
-        await navigator.serviceWorker.register(
-          "./sw.js",
-          { updateViaCache: "none" }
-        );
-
-      await registration.update();
-
-      if(registration.waiting){
-        registration.waiting.postMessage({
-          type: "SKIP_WAITING"
-        });
-      }
-    }catch(error){
-      console.error("Falha no Service Worker:", error);
-    }
-  }
-
-  function addReleaseNotes(){
-    const panel =
-      document.querySelector(
-        "#updatesDialog .updates-panel"
-      );
-
-    if(
-      !panel ||
-      panel.querySelector(".release-note-211")
-    ){
-      return;
-    }
-
-    const note = document.createElement("section");
-    note.className =
-      "v12-release-note release-note-211";
-
-    note.innerHTML = `
-      <span>VERSÃO 2.1.1 · CORREÇÃO CRÍTICA</span>
-      <h3>Login e atualizações estabilizados</h3>
-      <ul>
-        <li>Campos de usuário e senha voltaram a responder ao toque.</li>
-        <li>Login curto com o usuário <b>lucas</b>.</li>
-        <li>Removido o recarregamento automático em loop.</li>
-        <li>Novas versões aparecem em um aviso com o botão Atualizar.</li>
-        <li>O endereço normal funciona sem parâmetros <b>?v=</b>.</li>
-        <li>Cache utilizado apenas como alternativa quando estiver offline.</li>
-      </ul>
-    `;
-
-    const current =
-      panel.querySelector(".current-version-card");
-
-    if(current){
-      current.insertAdjacentElement("afterend", note);
-    }else{
-      panel.prepend(note);
-    }
-
-    panel.querySelectorAll(".version-orb")
-      .forEach(element => {
-        element.textContent = CURRENT_VERSION;
-      });
-
-    const title =
-      panel.querySelector(
-        ".current-version-card strong"
-      );
-
-    if(title){
-      title.textContent =
-        `Nosso Controle ${CURRENT_VERSION}`;
-    }
-  }
-
-  function addStyles(){
-    if($("safeStyles211")) return;
-
-    const style = document.createElement("style");
-    style.id = "safeStyles211";
-
-    style.textContent = `
-      #authView.login-hotfix-211,
-      #authView .login-panel-hotfix-211{
-        position:relative!important;
-        z-index:100!important;
-        pointer-events:auto!important;
-      }
-
-      #authView.login-hotfix-211::before,
-      #authView.login-hotfix-211::after{
-        pointer-events:none!important;
-      }
-
-      #authView .login-panel-hotfix-211 label,
-      #authView .login-panel-hotfix-211 input,
-      #authView .login-panel-hotfix-211 button{
-        position:relative!important;
-        z-index:110!important;
-        pointer-events:auto!important;
-        touch-action:manipulation!important;
-      }
-
-      #authView #email,
-      #authView #password{
-        opacity:1!important;
-        visibility:visible!important;
-        user-select:text!important;
-        -webkit-user-select:text!important;
-        cursor:text!important;
-      }
-
-      #safeUpdateBanner211{
-        position:fixed;
-        left:14px;
-        right:14px;
-        top:calc(12px + env(safe-area-inset-top));
-        z-index:999999;
-        display:flex;
-        align-items:center;
-        gap:10px;
-        padding:11px;
-        border-radius:16px;
-        border:1px solid rgba(139,92,246,.26);
-        background:rgba(17,19,31,.98);
-        color:#fff;
-        box-shadow:0 18px 50px rgba(0,0,0,.38);
-        backdrop-filter:blur(18px);
-        -webkit-backdrop-filter:blur(18px);
-      }
-
-      #safeUpdateBanner211[hidden]{
-        display:none!important;
-      }
-
-      .safe-update-icon{
-        width:34px;
-        height:34px;
-        min-width:34px;
-        display:grid;
-        place-items:center;
-        border-radius:11px;
-        color:#b79cff;
-        background:rgba(139,92,246,.14);
-        font-size:18px;
-        font-weight:900;
-      }
-
-      #safeUpdateBanner211>div{
-        min-width:0;
-        flex:1;
-      }
-
-      #safeUpdateBanner211 strong,
-      #safeUpdateBanner211 small{
-        display:block;
-      }
-
-      #safeUpdateBanner211 strong{
-        font-size:11px;
-      }
-
-      #safeUpdateBanner211 small{
-        margin-top:3px;
-        color:#9da1b5;
-        font-size:8px;
-        line-height:1.35;
-      }
-
-      #safeUpdateBanner211 button{
-        border:0;
-        padding:8px 10px;
-        border-radius:10px;
-        background:#8b5cf6;
-        color:#fff;
-        font-size:9px;
-        font-weight:900;
-      }
-
-      #safeUpdateBanner211 button:disabled{
-        opacity:.65;
-      }
-    `;
-
-    document.head.appendChild(style);
-  }
-
-  async function initialize(){
-    addStyles();
-    ensureUpdateBanner();
-    fixLoginInputs();
-    addReleaseNotes();
-
-    await registerServiceWorkerSafely();
-
-    window.setTimeout(checkForUpdate, 1500);
-  }
-
-  window.addEventListener("pageshow", () => {
-    fixLoginInputs();
-    checkForUpdate();
-  });
-
-  window.addEventListener("focus", checkForUpdate);
-  window.addEventListener("online", checkForUpdate);
-
-  document.addEventListener(
-    "visibilitychange",
-    () => {
-      if(document.visibilityState === "visible"){
-        fixLoginInputs();
-        checkForUpdate();
-      }
-    }
-  );
-
-  initialize();
-  window.setTimeout(fixLoginInputs, 400);
-  window.setTimeout(fixLoginInputs, 1200);
-  window.setTimeout(addReleaseNotes, 1000);
 })();
