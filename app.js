@@ -121,13 +121,13 @@
           </div>
           <section class="current-version-card">
             <div class="version-orb">1.1.2</div>
-            <div><span>VERSÃO INSTALADA</span><strong>Nosso Controle 2.1.0</strong><small>Build de 03/08/2026 · correção de login</small></div>
+            <div><span>VERSÃO INSTALADA</span><strong>Nosso Controle 2.1.1</strong><small>Build de 03/08/2026 · correção de login</small></div>
             <span class="version-status">Atual</span>
           </section>
           <section class="updates-timeline">
             <article class="update-entry latest">
               <div class="update-marker"></div><div class="update-content">
-                <div class="update-entry-head"><div><span>Versão 2.1.0</span><strong>Central de atualizações</strong></div><small>03/08/2026</small></div>
+                <div class="update-entry-head"><div><span>Versão 2.1.1</span><strong>Central de atualizações</strong></div><small>03/08/2026</small></div>
                 <ul><li>Nova área <b>Atualizações</b> no menu de três pontos.</li><li>Versão instalada e histórico de mudanças.</li><li>Fluxo preparado para atualização pelo iPhone.</li></ul>
               </div>
             </article>
@@ -1278,7 +1278,7 @@ boot();
           <div class="version-orb">1.1.3</div>
           <div>
             <span>VERSÃO INSTALADA</span>
-            <strong>Nosso Controle 2.1.0</strong>
+            <strong>Nosso Controle 2.1.1</strong>
             <small>Correção do menu e gerenciamento de dados</small>
           </div>
           <span class="version-status">Atual</span>
@@ -1289,7 +1289,7 @@ boot();
             <div class="update-marker"></div>
             <div class="update-content">
               <div class="update-entry-head">
-                <div><span>Versão 2.1.0</span><strong>Menu e manutenção</strong></div>
+                <div><span>Versão 2.1.1</span><strong>Menu e manutenção</strong></div>
                 <small>03/08/2026</small>
               </div>
               <ul>
@@ -1325,7 +1325,7 @@ boot();
             <div class="update-marker"></div>
             <div class="update-content">
               <div class="update-entry-head">
-                <div><span>Versão 2.1.0</span><strong>Histórico e produtividade</strong></div>
+                <div><span>Versão 2.1.1</span><strong>Histórico e produtividade</strong></div>
                 <small>Planejada</small>
               </div>
               <ul>
@@ -1342,7 +1342,7 @@ boot();
             <div class="update-marker"></div>
             <div class="update-content">
               <div class="update-entry-head">
-                <div><span>Versão 2.1.0</span><strong>Nuvem e aplicativo</strong></div>
+                <div><span>Versão 2.1.1</span><strong>Nuvem e aplicativo</strong></div>
                 <small>Planejada</small>
               </div>
               <ul>
@@ -1938,7 +1938,7 @@ boot();
   });
 
   document.querySelectorAll(".current-version-card strong").forEach(x=>{
-    if(x.textContent.includes("1.1.3"))x.textContent="Nosso Controle 2.1.0";
+    if(x.textContent.includes("1.1.3"))x.textContent="Nosso Controle 2.1.1";
   });
 })();
 
@@ -2167,7 +2167,7 @@ boot();
     if(el.textContent.trim()==="1.1.4")el.textContent="1.1.5";
   });
   document.querySelectorAll(".current-version-card strong").forEach(el=>{
-    if(el.textContent.includes("1.1.4"))el.textContent="Nosso Controle 2.1.0";
+    if(el.textContent.includes("1.1.4"))el.textContent="Nosso Controle 2.1.1";
   });
 })();
 
@@ -2328,7 +2328,7 @@ boot();
           <div class="version-orb">1.1.6</div>
           <div>
             <span>VERSÃO INSTALADA</span>
-            <strong>Nosso Controle 2.1.0</strong>
+            <strong>Nosso Controle 2.1.1</strong>
             <small>Calendário, logout e organização visual</small>
           </div>
           <span class="version-status">Atual</span>
@@ -2974,7 +2974,7 @@ boot();
       const strong=current.querySelector("strong");
       const small=current.querySelector("small");
       if(orb)orb.textContent="1.2";
-      if(strong)strong.textContent="Nosso Controle 2.1.0";
+      if(strong)strong.textContent="Nosso Controle 2.1.1";
       if(small)small.textContent="Experiência premium e conta compartilhada";
     }
 
@@ -3869,7 +3869,7 @@ boot();
 
     panel.querySelectorAll(".version-orb").forEach(x=>x.textContent="1.3");
     const strong=panel.querySelector(".current-version-card strong");
-    if(strong)strong.textContent="Nosso Controle 2.1.0";
+    if(strong)strong.textContent="Nosso Controle 2.1.1";
   }
 
   function addStyles(){
@@ -4115,7 +4115,7 @@ boot();
 
     panel.querySelectorAll(".version-orb").forEach(el=>el.textContent="1.3.1");
     const versionName=panel.querySelector(".current-version-card strong");
-    if(versionName)versionName.textContent="Nosso Controle 2.1.0";
+    if(versionName)versionName.textContent="Nosso Controle 2.1.1";
   }
 
   function addStyles(){
@@ -4592,7 +4592,7 @@ boot();
     if(current)current.insertAdjacentElement("afterend",note);
     panel.querySelectorAll(".version-orb").forEach(x=>x.textContent="1.4");
     const title=panel.querySelector(".current-version-card strong");
-    if(title)title.textContent="Nosso Controle 2.1.0";
+    if(title)title.textContent="Nosso Controle 2.1.1";
   }
 
   function addStyles(){
@@ -4938,7 +4938,7 @@ boot();
     if(current)current.insertAdjacentElement("afterend",note);
     panel.querySelectorAll(".version-orb").forEach(x=>x.textContent="2.0.1");
     const title=panel.querySelector(".current-version-card strong");
-    if(title)title.textContent="Nosso Controle 2.1.0";
+    if(title)title.textContent="Nosso Controle 2.1.1";
   }
 
   function addStyles(){
@@ -5148,7 +5148,7 @@ boot();
 
     panel.querySelectorAll(".version-orb").forEach(el=>el.textContent="2.0.2");
     const title=panel.querySelector(".current-version-card strong");
-    if(title)title.textContent="Nosso Controle 2.1.0";
+    if(title)title.textContent="Nosso Controle 2.1.1";
   }
 
   function addStyles(){
@@ -5360,411 +5360,260 @@ boot();
 
 
 /* =========================================================
-   NOSSO CONTROLE 2.0.3 -- LOGIN E ATUALIZAÇÃO
-   Usuário curto • formulário corrigido • cache autoatualizável
+   NOSSO CONTROLE 2.1.1 -- HOTFIX LOGIN + ATUALIZAÇÃO SEGURA
    ========================================================= */
-(function installV203LoginAndUpdate(){
-  const $=id=>document.getElementById(id);
-  const qs=(selector,root=document)=>root.querySelector(selector);
-  const qsa=(selector,root=document)=>[...root.querySelectorAll(selector)];
+(function installV211SafeUpdater(){
+  "use strict";
 
-  const APP_VERSION="2.0.3";
-  const DEFAULT_USERNAME_MAP={lucas:"lucaspaulo19991@gmail.com"};
+  const CURRENT_VERSION = "2.1.1";
+  window.NOSSO_CONTROLE_VERSION = CURRENT_VERSION;
 
-  function usernameMap(){
-    try{
-      return {...DEFAULT_USERNAME_MAP,...JSON.parse(localStorage.getItem("nosso-controle-usernames")||"{}")};
-    }catch{
-      return {...DEFAULT_USERNAME_MAP};
-    }
-  }
+  const $ = id => document.getElementById(id);
+  const qsa = (selector, root = document) =>
+    Array.from(root.querySelectorAll(selector));
 
-  function saveUsername(username,email){
-    const normalized=String(username||"").trim().toLowerCase();
-    if(!normalized||normalized.includes("@")||!email)return;
-    const map=usernameMap();
-    map[normalized]=String(email).trim().toLowerCase();
-    localStorage.setItem("nosso-controle-usernames",JSON.stringify(map));
-    localStorage.setItem("nosso-controle-last-user",normalized);
-  }
+  const USER_ALIASES = {
+    lucas: "lucaspaulo19991@gmail.com"
+  };
 
-  function resolveLogin(value){
-    const normalized=String(value||"").trim().toLowerCase();
-    if(normalized.includes("@"))return normalized;
-    return usernameMap()[normalized]||normalized;
-  }
+  function fixLoginInputs(){
+    const auth = $("authView");
+    const panel = auth?.querySelector(".auth-panel");
+    const userField = $("email");
+    const passwordField = $("password");
+    const loginButton = $("loginBtn");
+    const signupButton = $("signupBtn");
 
-  function repairLoginForm(){
-    const auth=$("authView");
-    const panel=auth?.querySelector(".auth-panel");
-    const loginField=$("email");
-    const password=$("password");
-    const loginButton=$("loginBtn");
-    const signupButton=$("signupBtn");
-    if(!auth||!panel||!loginField||!password||!loginButton)return;
-
-    auth.classList.add("v203-auth-fixed");
-    panel.classList.add("v203-auth-panel");
-
-    loginField.disabled=false;
-    loginField.readOnly=false;
-    loginField.type="text";
-    loginField.name="username";
-    loginField.autocomplete="username";
-    loginField.placeholder="lucas";
-    loginField.setAttribute("autocapitalize","none");
-    loginField.setAttribute("spellcheck","false");
-    loginField.style.pointerEvents="auto";
-
-    password.disabled=false;
-    password.readOnly=false;
-    password.name="password";
-    password.autocomplete="current-password";
-    password.style.pointerEvents="auto";
-
-    const loginLabel=loginField.closest("label");
-    if(loginLabel){
-      const text=[...loginLabel.childNodes].find(node=>node.nodeType===Node.TEXT_NODE);
-      if(text)text.textContent="Usuário ou e-mail";
+    if(!auth || !panel || !userField || !passwordField || !loginButton){
+      return;
     }
 
-    const savedUser=localStorage.getItem("nosso-controle-last-user");
-    if(savedUser&&!loginField.value.includes("@"))loginField.value=savedUser;
-    if(!loginField.value)loginField.value="lucas";
+    auth.classList.add("login-hotfix-211");
+    panel.classList.add("login-panel-hotfix-211");
 
-    let helper=$("v203LoginHelper");
-    if(!helper){
-      helper=document.createElement("section");
-      helper.id="v203LoginHelper";
-      helper.className="v203-login-helper";
-      helper.innerHTML=`
-        <span>✓</span>
-        <div>
-          <strong>Login simplificado</strong>
-          <small>Use <b>lucas</b> e sua senha. Para criar conta, use um e-mail real.</small>
-        </div>
-      `;
-      loginButton.insertAdjacentElement("beforebegin",helper);
+    /*
+      Remove somente possíveis camadas decorativas.
+      Não altera botões, inputs, diálogos ou conteúdo do formulário.
+    */
+    Array.from(auth.children).forEach(child => {
+      if(child !== panel && !child.contains(panel)){
+        child.style.pointerEvents = "none";
+      }
+    });
+
+    [userField, passwordField].forEach(input => {
+      input.disabled = false;
+      input.readOnly = false;
+      input.style.pointerEvents = "auto";
+      input.style.touchAction = "manipulation";
+      input.style.userSelect = "text";
+      input.style.webkitUserSelect = "text";
+      input.tabIndex = 0;
+    });
+
+    userField.type = "text";
+    userField.autocomplete = "username";
+    userField.setAttribute("autocapitalize", "none");
+    userField.setAttribute("spellcheck", "false");
+    userField.placeholder = "lucas ou seu e-mail";
+
+    passwordField.type = "password";
+    passwordField.autocomplete = "current-password";
+
+    const label = userField.closest("label");
+    if(label){
+      const textNode = Array.from(label.childNodes)
+        .find(node => node.nodeType === Node.TEXT_NODE);
+      if(textNode) textNode.textContent = "Usuário ou e-mail";
     }
 
-    if(!loginButton.dataset.v203){
-      loginButton.dataset.v203="1";
-      loginButton.addEventListener("click",(event)=>{
-        const typed=loginField.value.trim();
-        const resolved=resolveLogin(typed);
+    const savedAlias =
+      localStorage.getItem("nosso-controle-login-alias");
 
-        if(!resolved.includes("@")){
+    if(!userField.value && savedAlias){
+      userField.value = savedAlias;
+    }
+
+    if(!loginButton.dataset.safeAlias211){
+      loginButton.dataset.safeAlias211 = "1";
+
+      /*
+        Executa antes do onclick antigo.
+        O código antigo continua cuidando da autenticação no Supabase.
+      */
+      loginButton.addEventListener("click", event => {
+        const typed = userField.value.trim();
+        if(!typed) return;
+
+        const normalized = typed.toLowerCase();
+        const resolvedEmail =
+          normalized.includes("@")
+            ? normalized
+            : USER_ALIASES[normalized];
+
+        if(!resolvedEmail){
           event.preventDefault();
-          feedback?.("authMsg","Usuário não encontrado. Entre uma vez com seu e-mail completo.");
-          loginField.focus();
+          const message = $("authMsg");
+          if(message){
+            message.textContent =
+              "Usuário não encontrado. Use lucas ou seu e-mail completo.";
+          }
+          userField.focus();
           return;
         }
 
-        if(!typed.includes("@"))localStorage.setItem("nosso-controle-last-user",typed.toLowerCase());
-        loginField.dataset.displayUser=typed;
-        loginField.value=resolved;
-
-        setTimeout(()=>{
-          if(loginField.dataset.displayUser&&!auth.classList.contains("hidden")){
-            loginField.value=loginField.dataset.displayUser;
-          }
-        },1200);
-      },{capture:true});
-    }
-
-    if(signupButton&&!signupButton.dataset.v203){
-      signupButton.dataset.v203="1";
-      signupButton.addEventListener("click",(event)=>{
-        const value=loginField.value.trim();
-        if(!value.includes("@")){
-          event.preventDefault();
-          loginField.value="";
-          loginField.placeholder="seuemail@exemplo.com";
-          feedback?.("authMsg","Para criar uma conta, informe seu e-mail completo.");
-          loginField.focus();
+        if(!normalized.includes("@")){
+          localStorage.setItem(
+            "nosso-controle-login-alias",
+            normalized
+          );
         }
-      },{capture:true});
+
+        userField.dataset.aliasBeforeLogin = typed;
+        userField.value = resolvedEmail;
+
+        /*
+          Se o login falhar e a tela continuar aberta,
+          restaura visualmente o usuário curto.
+        */
+        window.setTimeout(() => {
+          if(
+            !auth.classList.contains("hidden") &&
+            userField.dataset.aliasBeforeLogin
+          ){
+            userField.value =
+              userField.dataset.aliasBeforeLogin;
+          }
+        }, 1400);
+      }, true);
     }
-  }
 
-  function rememberSuccessfulLogin(){
-    if(window.__v203AuthListener)return;
-    window.__v203AuthListener=true;
-    sb.auth.onAuthStateChange((event,session)=>{
-      if(event==="SIGNED_IN"&&session?.user?.email){
-        const field=$("email");
-        const typed=field?.dataset.displayUser||localStorage.getItem("nosso-controle-last-user");
-        if(typed&&!typed.includes("@"))saveUsername(typed,session.user.email);
-      }
-    });
-  }
+    if(signupButton && !signupButton.dataset.safeSignup211){
+      signupButton.dataset.safeSignup211 = "1";
 
-  async function clearLegacyCaches(){
-    if(!("caches" in window))return;
-    try{
-      const keys=await caches.keys();
-      await Promise.all(keys.map(key=>caches.delete(key)));
-    }catch{}
-  }
+      signupButton.addEventListener("click", event => {
+        const value = userField.value.trim();
 
-  async function forceServiceWorkerUpdate(){
-    if(!("serviceWorker" in navigator))return;
-    try{
-      const registrations=await navigator.serviceWorker.getRegistrations();
-      for(const registration of registrations){
-        try{await registration.update()}catch{}
-      }
-    }catch{}
-  }
+        if(value && !value.includes("@")){
+          event.preventDefault();
+          userField.value = "";
+          userField.placeholder = "seuemail@exemplo.com";
 
-  async function checkLatestApp(){
-    const lastCheck=Number(sessionStorage.getItem("nosso-v203-last-check")||0);
-    if(Date.now()-lastCheck<15000)return;
-    sessionStorage.setItem("nosso-v203-last-check",String(Date.now()));
+          const message = $("authMsg");
+          if(message){
+            message.textContent =
+              "Para criar uma conta, informe um e-mail completo.";
+          }
 
-    try{
-      const response=await fetch(`./app.js?version-check=${Date.now()}`,{cache:"no-store"});
-      if(!response.ok)return;
-      const source=await response.text();
-      const match=source.match(/const APP_VERSION="([^"]+)"/);
-      const remoteVersion=match?.[1];
-      if(remoteVersion&&remoteVersion!==APP_VERSION){
-        await clearLegacyCaches();
-        await forceServiceWorkerUpdate();
-        location.replace(`${location.pathname}?v=${encodeURIComponent(remoteVersion)}&t=${Date.now()}`);
-      }
-    }catch{}
-  }
-
-  function installUpdateLifecycle(){
-    if(window.__v203UpdateLifecycle)return;
-    window.__v203UpdateLifecycle=true;
-    forceServiceWorkerUpdate();
-    checkLatestApp();
-    window.addEventListener("focus",checkLatestApp);
-    window.addEventListener("online",checkLatestApp);
-    window.addEventListener("pageshow",checkLatestApp);
-    document.addEventListener("visibilitychange",()=>{
-      if(document.visibilityState==="visible")checkLatestApp();
-    });
-  }
-
-  function updateReleaseNotes(){
-    const panel=$("updatesDialog")?.querySelector(".updates-panel");
-    if(!panel||panel.querySelector(".v203-note"))return;
-
-    const note=document.createElement("section");
-    note.className="v12-release-note v203-note";
-    note.innerHTML=`
-      <span>VERSÃO 2.0.3 · CORREÇÃO</span>
-      <h3>Login simplificado e atualização automática</h3>
-      <ul>
-        <li>Campos de usuário e senha voltaram a aceitar toque e digitação.</li>
-        <li>Agora é possível entrar com o usuário <b>lucas</b>.</li>
-        <li>O usuário fica lembrado neste iPhone.</li>
-        <li>Novas contas continuam sendo criadas com e-mail real.</li>
-        <li>O aplicativo verifica novas versões ao abrir e voltar ao primeiro plano.</li>
-        <li>Service Worker e cache são atualizados automaticamente.</li>
-      </ul>
-    `;
-
-    const current=panel.querySelector(".current-version-card");
-    if(current)current.insertAdjacentElement("afterend",note);
-    panel.querySelectorAll(".version-orb").forEach(el=>el.textContent=APP_VERSION);
-    const title=panel.querySelector(".current-version-card strong");
-    if(title)title.textContent=`Nosso Controle ${APP_VERSION}`;
-  }
-
-  function addStyles(){
-    if($("v203Styles"))return;
-    const style=document.createElement("style");
-    style.id="v203Styles";
-    style.textContent=`
-      #authView.v203-auth-fixed,
-      #authView .v203-auth-panel{
-        position:relative!important;
-        z-index:20!important;
-        pointer-events:auto!important;
-      }
-
-      #authView.v203-auth-fixed::before,
-      #authView.v203-auth-fixed::after{
-        pointer-events:none!important;
-      }
-
-      #authView .v203-auth-panel label,
-      #authView .v203-auth-panel input,
-      #authView .v203-auth-panel button{
-        position:relative!important;
-        z-index:30!important;
-        pointer-events:auto!important;
-        touch-action:manipulation!important;
-      }
-
-      #authView input#email,
-      #authView input#password{
-        opacity:1!important;
-        visibility:visible!important;
-        user-select:text!important;
-        -webkit-user-select:text!important;
-        -webkit-appearance:none!important;
-      }
-
-      .v203-login-helper{
-        display:flex;
-        align-items:center;
-        gap:9px;
-        margin:10px 0;
-        padding:10px;
-        border-radius:14px;
-        border:1px solid rgba(63,230,162,.12);
-        background:rgba(63,230,162,.045);
-      }
-
-      .v203-login-helper>span{
-        width:30px;height:30px;min-width:30px;
-        display:grid;place-items:center;border-radius:10px;
-        background:rgba(63,230,162,.1);color:var(--green);font-weight:900;
-      }
-
-      .v203-login-helper strong,.v203-login-helper small{display:block}
-      .v203-login-helper strong{font-size:10px}
-      .v203-login-helper small{margin-top:3px;color:var(--muted);font-size:8px;line-height:1.4}
-    `;
-    document.head.appendChild(style);
-  }
-
-  function install(){
-    addStyles();
-    repairLoginForm();
-    rememberSuccessfulLogin();
-    installUpdateLifecycle();
-    updateReleaseNotes();
-    qsa(".updates-version-badge,.settings-version,.version-orb").forEach(el=>{
-      if(/^\d/.test(el.textContent.trim()))el.textContent=APP_VERSION;
-    });
-  }
-
-  install();
-  window.addEventListener("pageshow",install);
-  setTimeout(install,250);
-  setTimeout(install,1000);
-})();
-
-
-/* =========================================================
-   NOSSO CONTROLE 2.1.0 -- ATUALIZADOR PROFISSIONAL
-   Detecta, instala e aplica novas versões sem ?v=
-   ========================================================= */
-(function installProfessionalUpdater(){
-  const CURRENT_VERSION = "2.1.0";
-  window.__NOSSO_CONTROLE_VERSION__ = CURRENT_VERSION;
-
-  const CHECK_INTERVAL = 60_000;
-  const RELOAD_GUARD = "nosso-controle-update-reload";
-  let checking = false;
-  let intervalId = null;
-
-  function versionParts(value){
-    return String(value || "0")
-      .split(".")
-      .map(part => Number.parseInt(part, 10) || 0);
-  }
-
-  function isNewer(remote, current){
-    const a = versionParts(remote);
-    const b = versionParts(current);
-    const length = Math.max(a.length, b.length);
-
-    for(let index = 0; index < length; index += 1){
-      const remotePart = a[index] || 0;
-      const currentPart = b[index] || 0;
-      if(remotePart > currentPart) return true;
-      if(remotePart < currentPart) return false;
+          userField.focus();
+        }
+      }, true);
     }
-    return false;
+
+    /*
+      Um toque em qualquer parte do input sempre foca o campo.
+      Isso contorna comportamentos estranhos do Safari/PWA.
+    */
+    [userField, passwordField].forEach(input => {
+      if(input.dataset.focusFix211) return;
+      input.dataset.focusFix211 = "1";
+
+      input.addEventListener("touchend", () => {
+        window.setTimeout(() => input.focus(), 0);
+      }, { passive: true });
+    });
   }
 
-  function readRemoteVersion(source){
-    const matches = [
-      ...String(source).matchAll(
-        /window\.__NOSSO_CONTROLE_VERSION__\s*=\s*["']([^"']+)["']/g
+  function parseVersion(source){
+    const matches = Array.from(
+      String(source).matchAll(
+        /window\.NOSSO_CONTROLE_VERSION\s*=\s*["']([^"']+)["']/g
       )
-    ];
-    return matches.length ? matches[matches.length - 1][1] : null;
+    );
+
+    return matches.length
+      ? matches[matches.length - 1][1]
+      : null;
+  }
+
+  function compareVersions(remote, current){
+    const remoteParts = String(remote)
+      .split(".")
+      .map(value => Number(value) || 0);
+
+    const currentParts = String(current)
+      .split(".")
+      .map(value => Number(value) || 0);
+
+    const count = Math.max(
+      remoteParts.length,
+      currentParts.length
+    );
+
+    for(let index = 0; index < count; index += 1){
+      const a = remoteParts[index] || 0;
+      const b = currentParts[index] || 0;
+
+      if(a > b) return 1;
+      if(a < b) return -1;
+    }
+
+    return 0;
   }
 
   function ensureUpdateBanner(){
-    let banner = document.getElementById("professionalUpdateBanner");
+    let banner = $("safeUpdateBanner211");
     if(banner) return banner;
 
     banner = document.createElement("aside");
-    banner.id = "professionalUpdateBanner";
-    banner.className = "professional-update-banner";
+    banner.id = "safeUpdateBanner211";
     banner.hidden = true;
     banner.innerHTML = `
-      <span class="professional-update-icon">↻</span>
+      <span class="safe-update-icon">↻</span>
       <div>
-        <strong>Nova versão disponível</strong>
-        <small id="professionalUpdateText">Preparando atualização…</small>
+        <strong>Atualização disponível</strong>
+        <small id="safeUpdateMessage211">
+          Uma nova versão está pronta.
+        </small>
       </div>
-      <button id="professionalUpdateButton" type="button">Atualizar</button>
+      <button id="safeUpdateButton211" type="button">
+        Atualizar
+      </button>
     `;
+
     document.body.appendChild(banner);
     return banner;
   }
 
-  function setUpdateStatus(text, busy = false){
-    const banner = ensureUpdateBanner();
-    const label = document.getElementById("professionalUpdateText");
-    const button = document.getElementById("professionalUpdateButton");
+  async function removeAppCaches(){
+    if(!("caches" in window)) return;
 
-    banner.hidden = false;
-    if(label) label.textContent = text;
-    if(button){
-      button.disabled = busy;
-      button.textContent = busy ? "Atualizando…" : "Atualizar";
+    try{
+      const names = await caches.keys();
+      await Promise.all(
+        names.map(name => caches.delete(name))
+      );
+    }catch(error){
+      console.debug("Não foi possível limpar cache:", error);
     }
   }
 
-  async function deleteOldCaches(){
-    if(!("caches" in window)) return;
-    const names = await caches.keys();
-    await Promise.all(
-      names
-        .filter(name => name !== "nosso-controle-shell-2.1.0")
-        .map(name => caches.delete(name))
-    );
-  }
-
-  async function activateWaitingWorker(registration){
-    const waiting = registration?.waiting;
-    if(!waiting) return false;
-
-    await new Promise(resolve => {
-      const timeout = setTimeout(resolve, 1500);
-      navigator.serviceWorker.addEventListener(
-        "controllerchange",
-        () => {
-          clearTimeout(timeout);
-          resolve();
-        },
-        { once: true }
-      );
-      waiting.postMessage({ type: "SKIP_WAITING" });
-    });
-
-    return true;
-  }
-
   async function applyUpdate(remoteVersion){
-    const button = document.getElementById("professionalUpdateButton");
-    if(button) button.disabled = true;
+    const button = $("safeUpdateButton211");
+    const message = $("safeUpdateMessage211");
 
-    setUpdateStatus(`Instalando a versão ${remoteVersion}…`, true);
+    if(button){
+      button.disabled = true;
+      button.textContent = "Atualizando…";
+    }
+
+    if(message){
+      message.textContent =
+        `Instalando a versão ${remoteVersion}.`;
+    }
 
     try{
-      await deleteOldCaches();
+      await removeAppCaches();
 
       if("serviceWorker" in navigator){
         const registration =
@@ -5772,125 +5621,233 @@ boot();
 
         if(registration){
           await registration.update();
-          await new Promise(resolve => setTimeout(resolve, 600));
-          await activateWaitingWorker(registration);
+
+          if(registration.waiting){
+            registration.waiting.postMessage({
+              type: "SKIP_WAITING"
+            });
+          }
         }
       }
 
-      sessionStorage.setItem(RELOAD_GUARD, remoteVersion);
-      location.reload();
+      /*
+        reload() normal. O novo Service Worker usa rede primeiro,
+        portanto não precisa de ?v=.
+      */
+      window.location.reload();
     }catch(error){
-      console.error("Falha ao aplicar atualização:", error);
-      setUpdateStatus(
-        "Não foi possível atualizar agora. Toque para tentar novamente.",
-        false
-      );
+      console.error("Falha na atualização:", error);
+
+      if(button){
+        button.disabled = false;
+        button.textContent = "Tentar novamente";
+      }
+
+      if(message){
+        message.textContent =
+          "Não foi possível atualizar agora.";
+      }
     }
   }
 
-  async function checkForUpdate({ silent = true } = {}){
-    if(checking || !navigator.onLine) return;
-    checking = true;
+  let updateCheckRunning = false;
+  let lastUpdateCheck = 0;
+
+  async function checkForUpdate(){
+    const now = Date.now();
+
+    if(
+      updateCheckRunning ||
+      now - lastUpdateCheck < 30000 ||
+      !navigator.onLine
+    ){
+      return;
+    }
+
+    updateCheckRunning = true;
+    lastUpdateCheck = now;
 
     try{
       const response = await fetch(
-        `./app.js?update-check=${Date.now()}`,
-        {
-          cache: "no-store",
-          headers: {
-            "Cache-Control": "no-cache, no-store, must-revalidate",
-            "Pragma": "no-cache"
-          }
-        }
+        `./app.js?check=${now}`,
+        { cache: "no-store" }
       );
 
       if(!response.ok) return;
 
       const source = await response.text();
-      const remoteVersion = readRemoteVersion(source);
+      const remoteVersion = parseVersion(source);
 
-      if(remoteVersion && isNewer(remoteVersion, CURRENT_VERSION)){
+      if(
+        remoteVersion &&
+        compareVersions(remoteVersion, CURRENT_VERSION) > 0
+      ){
         const banner = ensureUpdateBanner();
-        const button = document.getElementById("professionalUpdateButton");
+        const message = $("safeUpdateMessage211");
+        const button = $("safeUpdateButton211");
 
-        setUpdateStatus(
-          `Versão ${remoteVersion} pronta para instalar.`,
-          false
-        );
-
-        if(button){
-          button.onclick = () => applyUpdate(remoteVersion);
+        if(message){
+          message.textContent =
+            `Versão ${remoteVersion} pronta para instalar.`;
         }
 
-        /*
-          Instala automaticamente quando o app volta ao primeiro plano.
-          O botão continua disponível caso o usuário queira aplicar na hora.
-        */
-        if(document.visibilityState === "visible"){
-          setTimeout(() => applyUpdate(remoteVersion), 900);
+        if(button){
+          button.disabled = false;
+          button.textContent = "Atualizar";
+          button.onclick =
+            () => applyUpdate(remoteVersion);
         }
 
         banner.hidden = false;
-      }else if(!silent){
-        const pending = document.getElementById("professionalUpdateBanner");
-        if(pending) pending.hidden = true;
       }
     }catch(error){
-      console.debug("Verificação de atualização indisponível:", error);
+      console.debug(
+        "Verificação de versão indisponível:",
+        error
+      );
     }finally{
-      checking = false;
+      updateCheckRunning = false;
     }
   }
 
-  async function registerFreshServiceWorker(){
+  async function registerServiceWorkerSafely(){
     if(!("serviceWorker" in navigator)) return;
 
     try{
-      const registration = await navigator.serviceWorker.register(
-        "./sw.js",
-        { updateViaCache: "none" }
-      );
+      const registration =
+        await navigator.serviceWorker.register(
+          "./sw.js",
+          { updateViaCache: "none" }
+        );
 
       await registration.update();
 
       if(registration.waiting){
-        await activateWaitingWorker(registration);
+        registration.waiting.postMessage({
+          type: "SKIP_WAITING"
+        });
       }
     }catch(error){
       console.error("Falha no Service Worker:", error);
     }
   }
 
-  function addUpdaterStyles(){
-    if(document.getElementById("professionalUpdaterStyles")) return;
+  function addReleaseNotes(){
+    const panel =
+      document.querySelector(
+        "#updatesDialog .updates-panel"
+      );
+
+    if(
+      !panel ||
+      panel.querySelector(".release-note-211")
+    ){
+      return;
+    }
+
+    const note = document.createElement("section");
+    note.className =
+      "v12-release-note release-note-211";
+
+    note.innerHTML = `
+      <span>VERSÃO 2.1.1 · CORREÇÃO CRÍTICA</span>
+      <h3>Login e atualizações estabilizados</h3>
+      <ul>
+        <li>Campos de usuário e senha voltaram a responder ao toque.</li>
+        <li>Login curto com o usuário <b>lucas</b>.</li>
+        <li>Removido o recarregamento automático em loop.</li>
+        <li>Novas versões aparecem em um aviso com o botão Atualizar.</li>
+        <li>O endereço normal funciona sem parâmetros <b>?v=</b>.</li>
+        <li>Cache utilizado apenas como alternativa quando estiver offline.</li>
+      </ul>
+    `;
+
+    const current =
+      panel.querySelector(".current-version-card");
+
+    if(current){
+      current.insertAdjacentElement("afterend", note);
+    }else{
+      panel.prepend(note);
+    }
+
+    panel.querySelectorAll(".version-orb")
+      .forEach(element => {
+        element.textContent = CURRENT_VERSION;
+      });
+
+    const title =
+      panel.querySelector(
+        ".current-version-card strong"
+      );
+
+    if(title){
+      title.textContent =
+        `Nosso Controle ${CURRENT_VERSION}`;
+    }
+  }
+
+  function addStyles(){
+    if($("safeStyles211")) return;
 
     const style = document.createElement("style");
-    style.id = "professionalUpdaterStyles";
+    style.id = "safeStyles211";
+
     style.textContent = `
-      .professional-update-banner{
+      #authView.login-hotfix-211,
+      #authView .login-panel-hotfix-211{
+        position:relative!important;
+        z-index:100!important;
+        pointer-events:auto!important;
+      }
+
+      #authView.login-hotfix-211::before,
+      #authView.login-hotfix-211::after{
+        pointer-events:none!important;
+      }
+
+      #authView .login-panel-hotfix-211 label,
+      #authView .login-panel-hotfix-211 input,
+      #authView .login-panel-hotfix-211 button{
+        position:relative!important;
+        z-index:110!important;
+        pointer-events:auto!important;
+        touch-action:manipulation!important;
+      }
+
+      #authView #email,
+      #authView #password{
+        opacity:1!important;
+        visibility:visible!important;
+        user-select:text!important;
+        -webkit-user-select:text!important;
+        cursor:text!important;
+      }
+
+      #safeUpdateBanner211{
         position:fixed;
         left:14px;
         right:14px;
         top:calc(12px + env(safe-area-inset-top));
-        z-index:99999;
+        z-index:999999;
         display:flex;
         align-items:center;
         gap:10px;
         padding:11px;
         border-radius:16px;
-        border:1px solid rgba(139,92,246,.25);
-        background:rgba(18,20,33,.97);
+        border:1px solid rgba(139,92,246,.26);
+        background:rgba(17,19,31,.98);
         color:#fff;
         box-shadow:0 18px 50px rgba(0,0,0,.38);
         backdrop-filter:blur(18px);
         -webkit-backdrop-filter:blur(18px);
       }
 
-      .professional-update-banner[hidden]{
+      #safeUpdateBanner211[hidden]{
         display:none!important;
       }
 
-      .professional-update-icon{
+      .safe-update-icon{
         width:34px;
         height:34px;
         min-width:34px;
@@ -5903,28 +5860,28 @@ boot();
         font-weight:900;
       }
 
-      .professional-update-banner>div{
+      #safeUpdateBanner211>div{
         min-width:0;
         flex:1;
       }
 
-      .professional-update-banner strong,
-      .professional-update-banner small{
+      #safeUpdateBanner211 strong,
+      #safeUpdateBanner211 small{
         display:block;
       }
 
-      .professional-update-banner strong{
+      #safeUpdateBanner211 strong{
         font-size:11px;
       }
 
-      .professional-update-banner small{
+      #safeUpdateBanner211 small{
         margin-top:3px;
         color:#9da1b5;
         font-size:8px;
         line-height:1.35;
       }
 
-      .professional-update-banner button{
+      #safeUpdateBanner211 button{
         border:0;
         padding:8px 10px;
         border-radius:10px;
@@ -5934,91 +5891,45 @@ boot();
         font-weight:900;
       }
 
-      .professional-update-banner button:disabled{
+      #safeUpdateBanner211 button:disabled{
         opacity:.65;
       }
     `;
+
     document.head.appendChild(style);
   }
 
-  function addReleaseNotes(){
-    const panel =
-      document.querySelector("#updatesDialog .updates-panel");
-
-    if(!panel || panel.querySelector(".v210-update-note")) return;
-
-    const note = document.createElement("section");
-    note.className = "v12-release-note v210-update-note";
-    note.innerHTML = `
-      <span>VERSÃO 2.1.0 · ATUALIZAÇÕES</span>
-      <h3>Atualização automática profissional</h3>
-      <ul>
-        <li>Não é mais necessário usar links com <b>?v=</b>.</li>
-        <li>O aplicativo verifica novas versões ao abrir e ao voltar para a tela.</li>
-        <li>O Service Worker ignora caches antigos durante a atualização.</li>
-        <li>Novas versões são instaladas automaticamente.</li>
-        <li>Um aviso discreto informa quando a atualização está sendo aplicada.</li>
-        <li>O endereço normal do Cloudflare passa a ser o único necessário.</li>
-      </ul>
-    `;
-
-    const current = panel.querySelector(".current-version-card");
-    if(current) current.insertAdjacentElement("afterend", note);
-    else panel.prepend(note);
-
-    panel.querySelectorAll(".version-orb").forEach(element => {
-      element.textContent = CURRENT_VERSION;
-    });
-
-    const title =
-      panel.querySelector(".current-version-card strong");
-    if(title) title.textContent = `Nosso Controle ${CURRENT_VERSION}`;
-  }
-
   async function initialize(){
-    addUpdaterStyles();
+    addStyles();
     ensureUpdateBanner();
+    fixLoginInputs();
     addReleaseNotes();
-    await registerFreshServiceWorker();
 
-    /*
-      Limpa o guard depois que a nova página realmente carregou.
-      Isso impede ciclos de recarregamento.
-    */
-    const guard = sessionStorage.getItem(RELOAD_GUARD);
-    if(guard === CURRENT_VERSION){
-      sessionStorage.removeItem(RELOAD_GUARD);
-      const banner = document.getElementById("professionalUpdateBanner");
-      if(banner) banner.hidden = true;
-    }
+    await registerServiceWorkerSafely();
 
-    await checkForUpdate({ silent: true });
-
-    if(intervalId) clearInterval(intervalId);
-    intervalId = setInterval(
-      () => checkForUpdate({ silent: true }),
-      CHECK_INTERVAL
-    );
+    window.setTimeout(checkForUpdate, 1500);
   }
-
-  window.addEventListener("focus", () => {
-    checkForUpdate({ silent: true });
-  });
-
-  window.addEventListener("online", () => {
-    checkForUpdate({ silent: true });
-  });
 
   window.addEventListener("pageshow", () => {
-    checkForUpdate({ silent: true });
+    fixLoginInputs();
+    checkForUpdate();
   });
 
-  document.addEventListener("visibilitychange", () => {
-    if(document.visibilityState === "visible"){
-      checkForUpdate({ silent: true });
+  window.addEventListener("focus", checkForUpdate);
+  window.addEventListener("online", checkForUpdate);
+
+  document.addEventListener(
+    "visibilitychange",
+    () => {
+      if(document.visibilityState === "visible"){
+        fixLoginInputs();
+        checkForUpdate();
+      }
     }
-  });
+  );
 
   initialize();
-  setTimeout(addReleaseNotes, 800);
+  window.setTimeout(fixLoginInputs, 400);
+  window.setTimeout(fixLoginInputs, 1200);
+  window.setTimeout(addReleaseNotes, 1000);
 })();
