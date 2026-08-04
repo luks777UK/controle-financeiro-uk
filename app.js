@@ -121,13 +121,13 @@
           </div>
           <section class="current-version-card">
             <div class="version-orb">1.1.2</div>
-            <div><span>VERSÃO INSTALADA</span><strong>Nosso Controle 2.0.3</strong><small>Build de 03/08/2026 · correção de login</small></div>
+            <div><span>VERSÃO INSTALADA</span><strong>Nosso Controle 2.1.0</strong><small>Build de 03/08/2026 · correção de login</small></div>
             <span class="version-status">Atual</span>
           </section>
           <section class="updates-timeline">
             <article class="update-entry latest">
               <div class="update-marker"></div><div class="update-content">
-                <div class="update-entry-head"><div><span>Versão 2.0.3</span><strong>Central de atualizações</strong></div><small>03/08/2026</small></div>
+                <div class="update-entry-head"><div><span>Versão 2.1.0</span><strong>Central de atualizações</strong></div><small>03/08/2026</small></div>
                 <ul><li>Nova área <b>Atualizações</b> no menu de três pontos.</li><li>Versão instalada e histórico de mudanças.</li><li>Fluxo preparado para atualização pelo iPhone.</li></ul>
               </div>
             </article>
@@ -1278,7 +1278,7 @@ boot();
           <div class="version-orb">1.1.3</div>
           <div>
             <span>VERSÃO INSTALADA</span>
-            <strong>Nosso Controle 2.0.3</strong>
+            <strong>Nosso Controle 2.1.0</strong>
             <small>Correção do menu e gerenciamento de dados</small>
           </div>
           <span class="version-status">Atual</span>
@@ -1289,7 +1289,7 @@ boot();
             <div class="update-marker"></div>
             <div class="update-content">
               <div class="update-entry-head">
-                <div><span>Versão 2.0.3</span><strong>Menu e manutenção</strong></div>
+                <div><span>Versão 2.1.0</span><strong>Menu e manutenção</strong></div>
                 <small>03/08/2026</small>
               </div>
               <ul>
@@ -1325,7 +1325,7 @@ boot();
             <div class="update-marker"></div>
             <div class="update-content">
               <div class="update-entry-head">
-                <div><span>Versão 2.0.3</span><strong>Histórico e produtividade</strong></div>
+                <div><span>Versão 2.1.0</span><strong>Histórico e produtividade</strong></div>
                 <small>Planejada</small>
               </div>
               <ul>
@@ -1342,7 +1342,7 @@ boot();
             <div class="update-marker"></div>
             <div class="update-content">
               <div class="update-entry-head">
-                <div><span>Versão 2.0.3</span><strong>Nuvem e aplicativo</strong></div>
+                <div><span>Versão 2.1.0</span><strong>Nuvem e aplicativo</strong></div>
                 <small>Planejada</small>
               </div>
               <ul>
@@ -1938,7 +1938,7 @@ boot();
   });
 
   document.querySelectorAll(".current-version-card strong").forEach(x=>{
-    if(x.textContent.includes("1.1.3"))x.textContent="Nosso Controle 2.0.3";
+    if(x.textContent.includes("1.1.3"))x.textContent="Nosso Controle 2.1.0";
   });
 })();
 
@@ -2167,7 +2167,7 @@ boot();
     if(el.textContent.trim()==="1.1.4")el.textContent="1.1.5";
   });
   document.querySelectorAll(".current-version-card strong").forEach(el=>{
-    if(el.textContent.includes("1.1.4"))el.textContent="Nosso Controle 2.0.3";
+    if(el.textContent.includes("1.1.4"))el.textContent="Nosso Controle 2.1.0";
   });
 })();
 
@@ -2328,7 +2328,7 @@ boot();
           <div class="version-orb">1.1.6</div>
           <div>
             <span>VERSÃO INSTALADA</span>
-            <strong>Nosso Controle 2.0.3</strong>
+            <strong>Nosso Controle 2.1.0</strong>
             <small>Calendário, logout e organização visual</small>
           </div>
           <span class="version-status">Atual</span>
@@ -2974,7 +2974,7 @@ boot();
       const strong=current.querySelector("strong");
       const small=current.querySelector("small");
       if(orb)orb.textContent="1.2";
-      if(strong)strong.textContent="Nosso Controle 2.0.3";
+      if(strong)strong.textContent="Nosso Controle 2.1.0";
       if(small)small.textContent="Experiência premium e conta compartilhada";
     }
 
@@ -3869,7 +3869,7 @@ boot();
 
     panel.querySelectorAll(".version-orb").forEach(x=>x.textContent="1.3");
     const strong=panel.querySelector(".current-version-card strong");
-    if(strong)strong.textContent="Nosso Controle 2.0.3";
+    if(strong)strong.textContent="Nosso Controle 2.1.0";
   }
 
   function addStyles(){
@@ -4115,7 +4115,7 @@ boot();
 
     panel.querySelectorAll(".version-orb").forEach(el=>el.textContent="1.3.1");
     const versionName=panel.querySelector(".current-version-card strong");
-    if(versionName)versionName.textContent="Nosso Controle 2.0.3";
+    if(versionName)versionName.textContent="Nosso Controle 2.1.0";
   }
 
   function addStyles(){
@@ -4592,7 +4592,7 @@ boot();
     if(current)current.insertAdjacentElement("afterend",note);
     panel.querySelectorAll(".version-orb").forEach(x=>x.textContent="1.4");
     const title=panel.querySelector(".current-version-card strong");
-    if(title)title.textContent="Nosso Controle 2.0.3";
+    if(title)title.textContent="Nosso Controle 2.1.0";
   }
 
   function addStyles(){
@@ -4938,7 +4938,7 @@ boot();
     if(current)current.insertAdjacentElement("afterend",note);
     panel.querySelectorAll(".version-orb").forEach(x=>x.textContent="2.0.1");
     const title=panel.querySelector(".current-version-card strong");
-    if(title)title.textContent="Nosso Controle 2.0.3";
+    if(title)title.textContent="Nosso Controle 2.1.0";
   }
 
   function addStyles(){
@@ -5148,7 +5148,7 @@ boot();
 
     panel.querySelectorAll(".version-orb").forEach(el=>el.textContent="2.0.2");
     const title=panel.querySelector(".current-version-card strong");
-    if(title)title.textContent="Nosso Controle 2.0.3";
+    if(title)title.textContent="Nosso Controle 2.1.0";
   }
 
   function addStyles(){
@@ -5649,4 +5649,376 @@ boot();
   window.addEventListener("pageshow",install);
   setTimeout(install,250);
   setTimeout(install,1000);
+})();
+
+
+/* =========================================================
+   NOSSO CONTROLE 2.1.0 -- ATUALIZADOR PROFISSIONAL
+   Detecta, instala e aplica novas versões sem ?v=
+   ========================================================= */
+(function installProfessionalUpdater(){
+  const CURRENT_VERSION = "2.1.0";
+  window.__NOSSO_CONTROLE_VERSION__ = CURRENT_VERSION;
+
+  const CHECK_INTERVAL = 60_000;
+  const RELOAD_GUARD = "nosso-controle-update-reload";
+  let checking = false;
+  let intervalId = null;
+
+  function versionParts(value){
+    return String(value || "0")
+      .split(".")
+      .map(part => Number.parseInt(part, 10) || 0);
+  }
+
+  function isNewer(remote, current){
+    const a = versionParts(remote);
+    const b = versionParts(current);
+    const length = Math.max(a.length, b.length);
+
+    for(let index = 0; index < length; index += 1){
+      const remotePart = a[index] || 0;
+      const currentPart = b[index] || 0;
+      if(remotePart > currentPart) return true;
+      if(remotePart < currentPart) return false;
+    }
+    return false;
+  }
+
+  function readRemoteVersion(source){
+    const matches = [
+      ...String(source).matchAll(
+        /window\.__NOSSO_CONTROLE_VERSION__\s*=\s*["']([^"']+)["']/g
+      )
+    ];
+    return matches.length ? matches[matches.length - 1][1] : null;
+  }
+
+  function ensureUpdateBanner(){
+    let banner = document.getElementById("professionalUpdateBanner");
+    if(banner) return banner;
+
+    banner = document.createElement("aside");
+    banner.id = "professionalUpdateBanner";
+    banner.className = "professional-update-banner";
+    banner.hidden = true;
+    banner.innerHTML = `
+      <span class="professional-update-icon">↻</span>
+      <div>
+        <strong>Nova versão disponível</strong>
+        <small id="professionalUpdateText">Preparando atualização…</small>
+      </div>
+      <button id="professionalUpdateButton" type="button">Atualizar</button>
+    `;
+    document.body.appendChild(banner);
+    return banner;
+  }
+
+  function setUpdateStatus(text, busy = false){
+    const banner = ensureUpdateBanner();
+    const label = document.getElementById("professionalUpdateText");
+    const button = document.getElementById("professionalUpdateButton");
+
+    banner.hidden = false;
+    if(label) label.textContent = text;
+    if(button){
+      button.disabled = busy;
+      button.textContent = busy ? "Atualizando…" : "Atualizar";
+    }
+  }
+
+  async function deleteOldCaches(){
+    if(!("caches" in window)) return;
+    const names = await caches.keys();
+    await Promise.all(
+      names
+        .filter(name => name !== "nosso-controle-shell-2.1.0")
+        .map(name => caches.delete(name))
+    );
+  }
+
+  async function activateWaitingWorker(registration){
+    const waiting = registration?.waiting;
+    if(!waiting) return false;
+
+    await new Promise(resolve => {
+      const timeout = setTimeout(resolve, 1500);
+      navigator.serviceWorker.addEventListener(
+        "controllerchange",
+        () => {
+          clearTimeout(timeout);
+          resolve();
+        },
+        { once: true }
+      );
+      waiting.postMessage({ type: "SKIP_WAITING" });
+    });
+
+    return true;
+  }
+
+  async function applyUpdate(remoteVersion){
+    const button = document.getElementById("professionalUpdateButton");
+    if(button) button.disabled = true;
+
+    setUpdateStatus(`Instalando a versão ${remoteVersion}…`, true);
+
+    try{
+      await deleteOldCaches();
+
+      if("serviceWorker" in navigator){
+        const registration =
+          await navigator.serviceWorker.getRegistration();
+
+        if(registration){
+          await registration.update();
+          await new Promise(resolve => setTimeout(resolve, 600));
+          await activateWaitingWorker(registration);
+        }
+      }
+
+      sessionStorage.setItem(RELOAD_GUARD, remoteVersion);
+      location.reload();
+    }catch(error){
+      console.error("Falha ao aplicar atualização:", error);
+      setUpdateStatus(
+        "Não foi possível atualizar agora. Toque para tentar novamente.",
+        false
+      );
+    }
+  }
+
+  async function checkForUpdate({ silent = true } = {}){
+    if(checking || !navigator.onLine) return;
+    checking = true;
+
+    try{
+      const response = await fetch(
+        `./app.js?update-check=${Date.now()}`,
+        {
+          cache: "no-store",
+          headers: {
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Pragma": "no-cache"
+          }
+        }
+      );
+
+      if(!response.ok) return;
+
+      const source = await response.text();
+      const remoteVersion = readRemoteVersion(source);
+
+      if(remoteVersion && isNewer(remoteVersion, CURRENT_VERSION)){
+        const banner = ensureUpdateBanner();
+        const button = document.getElementById("professionalUpdateButton");
+
+        setUpdateStatus(
+          `Versão ${remoteVersion} pronta para instalar.`,
+          false
+        );
+
+        if(button){
+          button.onclick = () => applyUpdate(remoteVersion);
+        }
+
+        /*
+          Instala automaticamente quando o app volta ao primeiro plano.
+          O botão continua disponível caso o usuário queira aplicar na hora.
+        */
+        if(document.visibilityState === "visible"){
+          setTimeout(() => applyUpdate(remoteVersion), 900);
+        }
+
+        banner.hidden = false;
+      }else if(!silent){
+        const pending = document.getElementById("professionalUpdateBanner");
+        if(pending) pending.hidden = true;
+      }
+    }catch(error){
+      console.debug("Verificação de atualização indisponível:", error);
+    }finally{
+      checking = false;
+    }
+  }
+
+  async function registerFreshServiceWorker(){
+    if(!("serviceWorker" in navigator)) return;
+
+    try{
+      const registration = await navigator.serviceWorker.register(
+        "./sw.js",
+        { updateViaCache: "none" }
+      );
+
+      await registration.update();
+
+      if(registration.waiting){
+        await activateWaitingWorker(registration);
+      }
+    }catch(error){
+      console.error("Falha no Service Worker:", error);
+    }
+  }
+
+  function addUpdaterStyles(){
+    if(document.getElementById("professionalUpdaterStyles")) return;
+
+    const style = document.createElement("style");
+    style.id = "professionalUpdaterStyles";
+    style.textContent = `
+      .professional-update-banner{
+        position:fixed;
+        left:14px;
+        right:14px;
+        top:calc(12px + env(safe-area-inset-top));
+        z-index:99999;
+        display:flex;
+        align-items:center;
+        gap:10px;
+        padding:11px;
+        border-radius:16px;
+        border:1px solid rgba(139,92,246,.25);
+        background:rgba(18,20,33,.97);
+        color:#fff;
+        box-shadow:0 18px 50px rgba(0,0,0,.38);
+        backdrop-filter:blur(18px);
+        -webkit-backdrop-filter:blur(18px);
+      }
+
+      .professional-update-banner[hidden]{
+        display:none!important;
+      }
+
+      .professional-update-icon{
+        width:34px;
+        height:34px;
+        min-width:34px;
+        display:grid;
+        place-items:center;
+        border-radius:11px;
+        color:#b79cff;
+        background:rgba(139,92,246,.14);
+        font-size:18px;
+        font-weight:900;
+      }
+
+      .professional-update-banner>div{
+        min-width:0;
+        flex:1;
+      }
+
+      .professional-update-banner strong,
+      .professional-update-banner small{
+        display:block;
+      }
+
+      .professional-update-banner strong{
+        font-size:11px;
+      }
+
+      .professional-update-banner small{
+        margin-top:3px;
+        color:#9da1b5;
+        font-size:8px;
+        line-height:1.35;
+      }
+
+      .professional-update-banner button{
+        border:0;
+        padding:8px 10px;
+        border-radius:10px;
+        background:#8b5cf6;
+        color:#fff;
+        font-size:9px;
+        font-weight:900;
+      }
+
+      .professional-update-banner button:disabled{
+        opacity:.65;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  function addReleaseNotes(){
+    const panel =
+      document.querySelector("#updatesDialog .updates-panel");
+
+    if(!panel || panel.querySelector(".v210-update-note")) return;
+
+    const note = document.createElement("section");
+    note.className = "v12-release-note v210-update-note";
+    note.innerHTML = `
+      <span>VERSÃO 2.1.0 · ATUALIZAÇÕES</span>
+      <h3>Atualização automática profissional</h3>
+      <ul>
+        <li>Não é mais necessário usar links com <b>?v=</b>.</li>
+        <li>O aplicativo verifica novas versões ao abrir e ao voltar para a tela.</li>
+        <li>O Service Worker ignora caches antigos durante a atualização.</li>
+        <li>Novas versões são instaladas automaticamente.</li>
+        <li>Um aviso discreto informa quando a atualização está sendo aplicada.</li>
+        <li>O endereço normal do Cloudflare passa a ser o único necessário.</li>
+      </ul>
+    `;
+
+    const current = panel.querySelector(".current-version-card");
+    if(current) current.insertAdjacentElement("afterend", note);
+    else panel.prepend(note);
+
+    panel.querySelectorAll(".version-orb").forEach(element => {
+      element.textContent = CURRENT_VERSION;
+    });
+
+    const title =
+      panel.querySelector(".current-version-card strong");
+    if(title) title.textContent = `Nosso Controle ${CURRENT_VERSION}`;
+  }
+
+  async function initialize(){
+    addUpdaterStyles();
+    ensureUpdateBanner();
+    addReleaseNotes();
+    await registerFreshServiceWorker();
+
+    /*
+      Limpa o guard depois que a nova página realmente carregou.
+      Isso impede ciclos de recarregamento.
+    */
+    const guard = sessionStorage.getItem(RELOAD_GUARD);
+    if(guard === CURRENT_VERSION){
+      sessionStorage.removeItem(RELOAD_GUARD);
+      const banner = document.getElementById("professionalUpdateBanner");
+      if(banner) banner.hidden = true;
+    }
+
+    await checkForUpdate({ silent: true });
+
+    if(intervalId) clearInterval(intervalId);
+    intervalId = setInterval(
+      () => checkForUpdate({ silent: true }),
+      CHECK_INTERVAL
+    );
+  }
+
+  window.addEventListener("focus", () => {
+    checkForUpdate({ silent: true });
+  });
+
+  window.addEventListener("online", () => {
+    checkForUpdate({ silent: true });
+  });
+
+  window.addEventListener("pageshow", () => {
+    checkForUpdate({ silent: true });
+  });
+
+  document.addEventListener("visibilitychange", () => {
+    if(document.visibilityState === "visible"){
+      checkForUpdate({ silent: true });
+    }
+  });
+
+  initialize();
+  setTimeout(addReleaseNotes, 800);
 })();
