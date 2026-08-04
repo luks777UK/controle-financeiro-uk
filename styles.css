@@ -945,3 +945,13 @@ body,
     font-size:15px;
   }
 }
+
+
+/* Nosso Controle 2.1.11 — estado do login */
+#loginBtn.is-loading{
+  opacity:.72;
+  pointer-events:none;
+}
+#loginBtn:disabled{
+  cursor:wait;
+}

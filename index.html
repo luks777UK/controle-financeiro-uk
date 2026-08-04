@@ -9,7 +9,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="styles.css?v=2.1.8">
+  <link rel="stylesheet" href="styles.css?v=2.1.11">
   <title>Nosso Controle 2.1.1</title>
 </head>
 <body>
@@ -779,7 +779,7 @@
       if(dialog){try{if(dialog.open)dialog.close()}catch{} dialog.removeAttribute("open");}
     });
   </script>
-  <script src="app.js?v=2.1.8"></script>
+  <script src="app.js?v=2.1.11"></script>
 <script>
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", async () => {
@@ -801,7 +801,7 @@ if ("serviceWorker" in navigator) {
 /* Nosso Controle 2.1.8 — correção independente de Limpezas, Configurações e Atualizações */
 (function(){
   'use strict';
-  const VERSION='2.1.10';
+  const VERSION='2.1.11';
   const $=id=>document.getElementById(id);
   const qs=(s,r=document)=>r.querySelector(s);
   const qsa=(s,r=document)=>Array.from(r.querySelectorAll(s));
@@ -920,6 +920,7 @@ if ("serviceWorker" in navigator) {
   function escapeHtml(v){const d=document.createElement('div');d.textContent=String(v??'');return d.innerHTML;}
 
   const RELEASES=[
+    ['2.1.11','05/08/2026','Login restaurado',['Unificado o login em um único fluxo.','Entrada aceita Username ou e-mail.','Mensagens de erro agora aparecem corretamente.','Corrigido conflito entre manipuladores antigos do botão Entrar.','Mantido o resumo Envelope e Cartão.']],
     ['2.1.10','04/08/2026','Resumo do dinheiro guardado',['Removido o card Compartilhar da tela de Bills.','Envelope e Cartão agora aparecem lado a lado.','Adicionado total guardado entre os dois locais.','Compartilhamento mantido em Configurações → Casa compartilhada.']],
     ['2.1.9','04/08/2026','Central de controle completa',['Configurações reorganizadas por áreas.','Resumo mensal e atalhos financeiros.','Backup completo e restauração de dados.','Exportação de relatório em PDF.','Diagnóstico do aplicativo e da sincronização.','Atalhos para pagamentos de limpezas, Bills e Cofre.']],
     ['2.1.8','04/08/2026','Correção das limpezas e Configurações',['Controle diário de limpezas carregado de forma independente.','Totais de hoje, semana e mês.','Edição e exclusão dos pagamentos.','Configurações reorganizadas e versão corrigida.','Aba Atualizações reconstruída.']],
@@ -970,7 +971,7 @@ if ("serviceWorker" in navigator) {
 <script>
 /* Nosso Controle 2.1.9 — Central de controle completa */
 (function installControlCenter219(){
-  const VERSION_219 = "2.1.10";
+  const VERSION_219 = "2.1.11";
   const $ = id => document.getElementById(id);
   const qs = (s,r=document) => r.querySelector(s);
   const qsa = (s,r=document) => [...r.querySelectorAll(s)];
@@ -1424,6 +1425,135 @@ if ("serviceWorker" in navigator) {
   document.addEventListener("DOMContentLoaded", updateWalletSplit210);
   setTimeout(updateWalletSplit210, 300);
   setTimeout(updateWalletSplit210, 1200);
+})();
+</script>
+
+
+<script>
+/* Nosso Controle 2.1.11 — login único e estável */
+(function installStableLogin2111(){
+  const field = document.getElementById("email");
+  const password = document.getElementById("password");
+  const oldButton = document.getElementById("loginBtn");
+  const feedbackEl = document.getElementById("authMsg");
+  if(!field || !password || !oldButton) return;
+
+  const button = oldButton.cloneNode(true);
+  oldButton.replaceWith(button);
+
+  const normalizeUsername = value => String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9._-]/g, "");
+
+  const showMessage = message => {
+    if(feedbackEl) feedbackEl.textContent = message || "";
+  };
+
+  const setLoading = loading => {
+    button.disabled = loading;
+    button.textContent = loading ? "Entrando…" : "Entrar";
+    button.classList.toggle("is-loading", loading);
+  };
+
+  const resolveEmail = entered => {
+    if(entered.includes("@")) return entered;
+
+    const username = normalizeUsername(entered);
+    if(!username) return "";
+
+    const mapped = localStorage.getItem(`nosso-controle-username-email:${username}`);
+    if(mapped) return mapped;
+
+    const savedUsername = normalizeUsername(localStorage.getItem("nosso-controle-username"));
+    const savedEmail = localStorage.getItem("nosso-controle-email");
+    if(savedEmail && savedUsername === username) return savedEmail;
+
+    return `${username}@nosso-controle.app`;
+  };
+
+  const remember = (entered,email) => {
+    if(!entered || !email) return;
+    const username = entered.includes("@")
+      ? normalizeUsername(email.split("@")[0])
+      : normalizeUsername(entered);
+
+    if(username){
+      localStorage.setItem("nosso-controle-username", username);
+      localStorage.setItem(`nosso-controle-username-email:${username}`, email);
+    }
+    localStorage.setItem("nosso-controle-email", email);
+  };
+
+  async function doLogin(){
+    showMessage("");
+
+    const entered = String(field.value || "").trim().toLowerCase();
+    const pass = String(password.value || "");
+
+    if(!entered){
+      showMessage("Digite seu Username ou e-mail.");
+      field.focus();
+      return;
+    }
+    if(!pass){
+      showMessage("Digite sua senha.");
+      password.focus();
+      return;
+    }
+
+    const email = resolveEmail(entered);
+    if(!email){
+      showMessage("Não foi possível identificar esta conta.");
+      return;
+    }
+
+    setLoading(true);
+
+    try{
+      const result = await sb.auth.signInWithPassword({email,password:pass});
+      if(result.error){
+        showMessage("Username, e-mail ou senha incorretos.");
+        return;
+      }
+
+      const session = result.data?.session;
+      if(!session?.user){
+        showMessage("A sessão não foi criada. Tente novamente.");
+        return;
+      }
+
+      remember(entered,session.user.email || email);
+      user = session.user;
+
+      document.activeElement?.blur?.();
+      if(typeof closeKeyboardAndResetViewport === "function"){
+        closeKeyboardAndResetViewport(true);
+      }
+
+      await loadMembership();
+    }catch(error){
+      console.error("Falha no login:",error);
+      showMessage("Não foi possível entrar. Verifique a internet e tente novamente.");
+    }finally{
+      setLoading(false);
+    }
+  }
+
+  button.addEventListener("click",event=>{
+    event.preventDefault();
+    doLogin();
+  });
+
+  password.addEventListener("keydown",event=>{
+    if(event.key === "Enter"){
+      event.preventDefault();
+      doLogin();
+    }
+  });
+
+  document.querySelectorAll(".updates-version-badge,.settings-version,.version-pill-219")
+    .forEach(el=>el.textContent="2.1.11");
 })();
 </script>
 

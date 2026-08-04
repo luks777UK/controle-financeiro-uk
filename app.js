@@ -5569,7 +5569,7 @@ boot();
 
 
 /* =========================================================
-   NOSSO CONTROLE 2.1.10 — LIMPEZAS DIÁRIAS E RELEASE NOTES
+   NOSSO CONTROLE 2.1.11 — LIMPEZAS DIÁRIAS E RELEASE NOTES
    ========================================================= */
 (function installV217CleaningControl(){
   const VERSION="2.1.7";
