@@ -968,3 +968,14 @@ body,
 .text-button{width:100%;padding:9px;border:0;background:transparent;color:#a98bff;font-weight:800;font-size:9px}
 .auth-dialog-card{max-width:520px}
 .auth-dialog-card .feedback{min-height:18px}
+
+
+/* Nosso Controle 3.0.1 — confirmação de cadastro */
+#resendConfirmationBtn{
+  width:100%;
+  margin-top:5px;
+  text-align:center;
+}
+#signupMsg{
+  line-height:1.4;
+}

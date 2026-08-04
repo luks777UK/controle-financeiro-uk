@@ -1,4 +1,4 @@
-/* Nosso Controle 3.0.0 — aplicação refatorada */
+/* Nosso Controle 3.0.1 — aplicação refatorada */
 const cfg={
   SUPABASE_URL:"https://lhihsssbsjfliggtlaza.supabase.co",
   SUPABASE_ANON_KEY:"sb_publishable_0bttyUW7ASI8ylAyZjLkPA_NS8eThfO",
@@ -174,6 +174,35 @@ function setAuthLoading(loading){
   button.disabled=loading;
   button.textContent=loading?"Entrando…":"Entrar";
 }
+
+function pendingSignup(){
+  try{return JSON.parse(localStorage.getItem("nosso-controle-pending-signup")||"null")}catch{return null}
+}
+function savePendingSignup(username,email){
+  localStorage.setItem("nosso-controle-pending-signup",JSON.stringify({username,email,createdAt:new Date().toISOString()}));
+}
+function clearPendingSignup(){
+  localStorage.removeItem("nosso-controle-pending-signup");
+}
+function showResendConfirmation(show=true){
+  const button=$("resendConfirmationBtn");
+  if(button)button.classList.toggle("hidden",!show);
+}
+function authErrorMessage(error,email){
+  const message=String(error?.message||"").toLowerCase();
+  const pending=pendingSignup();
+  if(message.includes("email not confirmed")||message.includes("not confirmed")){
+    return "Confirme o e-mail enviado para sua caixa de entrada antes de entrar.";
+  }
+  if(message.includes("invalid login")||message.includes("invalid credentials")){
+    if(pending?.email===email){
+      return "Confirme o e-mail recebido. Depois, faça o primeiro acesso usando o e-mail completo.";
+    }
+    return "E-mail/Username ou senha incorretos. Se este e-mail já tinha conta, use Recuperar senha.";
+  }
+  return error?.message||"Não foi possível entrar.";
+}
+
 async function handleLogin(){
   feedback("authMsg","");
   const identifier=$("email").value.trim();
@@ -190,13 +219,14 @@ async function handleLogin(){
     const {data,error}=await sb.auth.signInWithPassword({email,password});
     if(error){
       console.warn("Auth:",error.message);
-      feedback("authMsg",error.message?.toLowerCase().includes("invalid login")?"E-mail/Username ou senha incorretos.":error.message);
+      feedback("authMsg",authErrorMessage(error,email));
       return;
     }
     if(!data?.session?.user)return feedback("authMsg","Não foi possível criar a sessão.");
     user=data.session.user;
     const username=identifier.includes("@")?normalizeUsername(user.user_metadata?.username||identifier.split("@")[0]):normalizeUsername(identifier);
     await ensureProfile(user,username);
+    clearPendingSignup();
     closeKeyboardAndResetViewport(true);
     await loadMembership();
   }catch(error){
@@ -209,10 +239,13 @@ $("password").addEventListener("keydown",event=>{if(event.key==="Enter"){event.p
 $("signupBtn").onclick=()=>{
   feedback("signupMsg","");
   $("signupEmail").value=$("email").value.includes("@")?$("email").value.trim():"";
+  const pending=pendingSignup();
+  if(pending?.email){$("signupEmail").value=pending.email;$("signupUsername").value=pending.username||"";showResendConfirmation(true);}
   try{$("signupDialog").showModal()}catch{$("signupDialog").setAttribute("open","")}
 };
 $("createAccountBtn").onclick=async()=>{
   feedback("signupMsg","");
+  showResendConfirmation(false);
   const username=normalizeUsername($("signupUsername").value);
   const email=$("signupEmail").value.trim().toLowerCase();
   const password=$("signupPassword").value;
@@ -221,21 +254,85 @@ $("createAccountBtn").onclick=async()=>{
   if(!email.includes("@"))return feedback("signupMsg","Digite um e-mail válido.");
   if(password.length<6)return feedback("signupMsg","A senha precisa ter pelo menos 6 caracteres.");
   if(password!==confirm)return feedback("signupMsg","As senhas não são iguais.");
-  const button=$("createAccountBtn");button.disabled=true;button.textContent="Criando…";
+
+  const button=$("createAccountBtn");
+  button.disabled=true;
+  button.textContent="Criando…";
+
   try{
-    try{
-      const {data:existing}=await sb.from("profiles").select("id").eq("username",username).maybeSingle();
-      if(existing)return feedback("signupMsg","Este Username já está em uso.");
-    }catch{}
-    const {data,error}=await sb.auth.signUp({email,password,options:{data:{username}}});
-    if(error)return feedback("signupMsg",error.message);
-    if(data?.user)await ensureProfile(data.user,username);
+    const {data,error}=await sb.auth.signUp({
+      email,
+      password,
+      options:{
+        data:{username},
+        emailRedirectTo:`${location.origin}${location.pathname}`
+      }
+    });
+
+    if(error){
+      const msg=String(error.message||"").toLowerCase();
+      if(msg.includes("already registered")||msg.includes("already been registered")){
+        feedback("signupMsg","Este e-mail já possui uma conta. Entre com a senha antiga ou toque em Esqueci minha senha.");
+      }else{
+        feedback("signupMsg",error.message);
+      }
+      return;
+    }
+
+    const identities=data?.user?.identities||[];
+    if(data?.user && identities.length===0){
+      feedback("signupMsg","Este e-mail já possui uma conta. Não foi criada uma nova. Use Entrar ou Recuperar senha.");
+      $("email").value=email;
+      localStorage.setItem("nosso-controle-email",email);
+      return;
+    }
+
     rememberIdentity(username,email);
-    feedback("signupMsg",data?.session?"Conta criada. Entrando…":"Conta criada. Confirme o e-mail e depois entre.");
-    if(data?.session){user=data.user;try{$("signupDialog").close()}catch{};await loadMembership()}
-  }catch(error){feedback("signupMsg",error?.message||"Não foi possível criar a conta.")}
-  finally{button.disabled=false;button.textContent="Criar minha conta"}
+
+    if(data?.session?.user){
+      user=data.session.user;
+      await ensureProfile(user,username);
+      clearPendingSignup();
+      feedback("signupMsg","Conta criada. Entrando…");
+      try{$("signupDialog").close()}catch{}
+      await loadMembership();
+      return;
+    }
+
+    savePendingSignup(username,email);
+    $("email").value=email;
+    feedback("signupMsg","Conta criada. Abra o e-mail de confirmação enviado pelo Supabase. Depois volte e faça o primeiro acesso usando o e-mail completo.");
+    showResendConfirmation(true);
+  }catch(error){
+    feedback("signupMsg",navigator.onLine?(error?.message||"Não foi possível criar a conta."):"Sem conexão com a internet.");
+  }finally{
+    button.disabled=false;
+    button.textContent="Criar minha conta";
+  }
 };
+
+$("resendConfirmationBtn").onclick=async()=>{
+  const pending=pendingSignup();
+  const email=$("signupEmail").value.trim().toLowerCase()||pending?.email||"";
+  if(!email.includes("@"))return feedback("signupMsg","Digite o e-mail usado no cadastro.");
+  const button=$("resendConfirmationBtn");
+  button.disabled=true;
+  button.textContent="Reenviando…";
+  try{
+    const {error}=await sb.auth.resend({
+      type:"signup",
+      email,
+      options:{emailRedirectTo:`${location.origin}${location.pathname}`}
+    });
+    feedback("signupMsg",error?error.message:"E-mail de confirmação reenviado. Verifique também Spam e Lixo eletrônico.");
+  }catch(error){
+    feedback("signupMsg",error?.message||"Não foi possível reenviar agora.");
+  }finally{
+    button.disabled=false;
+    button.textContent="Reenviar e-mail de confirmação";
+  }
+};
+
 $("forgotPasswordBtn").onclick=()=>{
   feedback("resetMsg","");
   $("resetEmail").value=$("email").value.includes("@")?$("email").value.trim():localStorage.getItem("nosso-controle-email")||"";
@@ -1181,9 +1278,9 @@ $("saveVaultDeposit").onclick=async e=>{
 };
 
 
-const APP_VERSION="3.0.0";
+const APP_VERSION="3.0.1";
 const RELEASE_NOTES=[
-  {version:"3.0.0",date:"05/08/2026",title:"Refatoração de estabilidade",changes:[
+  {version:"3.0.1",date:"05/08/2026",title:"Refatoração de estabilidade",changes:[
     "Removidos scripts e manipuladores duplicados.",
     "Login unificado em um único fluxo.",
     "Dashboard, Bills e filtros renderizados uma única vez.",

@@ -779,6 +779,7 @@
       <label>Confirmar senha<input id="signupPasswordConfirm" type="password" autocomplete="new-password" placeholder="Digite novamente"></label>
       <div id="signupMsg" class="feedback"></div>
       <button id="createAccountBtn" value="cancel" class="primary-button" type="button">Criar minha conta</button>
+      <button id="resendConfirmationBtn" class="text-button hidden" type="button">Reenviar e-mail de confirmação</button>
     </form>
   </dialog>
 
@@ -794,12 +795,12 @@
   <div id="toast" class="toast"></div>
   <canvas id="confetti"></canvas>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=3.0.0"></script>
+  <script src="app.js?v=3.0.1"></script>
   <script>
     if("serviceWorker" in navigator){
       window.addEventListener("load",async()=>{
         try{
-          const reg=await navigator.serviceWorker.register("./sw.js?v=3.0.0",{updateViaCache:"none"});
+          const reg=await navigator.serviceWorker.register("./sw.js?v=3.0.1",{updateViaCache:"none"});
           reg.update();
         }catch(error){console.warn("Service Worker:",error);}
       });
