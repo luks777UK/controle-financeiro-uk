@@ -618,3 +618,22 @@ body.keyboard-closing{
 .username-setup-card{max-width:430px}
 .username-setup-help{display:block;margin:-4px 0 10px;color:var(--muted);font-size:11px;line-height:1.4}
 #usernameSetupDialog{width:min(92vw,460px)}
+
+
+/* 2.1.6 — estabilidade de scroll e remoção de componentes legados */
+html{
+  scroll-behavior:auto !important;
+  overflow-anchor:none;
+  overscroll-behavior-y:none;
+}
+body,
+#appView,
+#overviewView,
+#billsView{
+  overflow-anchor:none;
+}
+#v201Dashboard,
+#v201BillsSummary,
+#v201BillFilters{
+  display:none !important;
+}

@@ -4785,89 +4785,7 @@ boot();
   }
 
   function buildNewDashboard(){
-    const overview=$("overviewView");
-    if(!overview)return;
-
-    let dashboard=$("v201Dashboard");
-    if(!dashboard){
-      dashboard=document.createElement("div");
-      dashboard.id="v201Dashboard";
-      dashboard.className="v201-dashboard";
-      overview.prepend(dashboard);
-    }
-
-    const data=monthlyData();
-    const used=Math.max(0,data.income-data.free);
-    const usedPct=data.income?Math.min(100,used/data.income*100):0;
-    const notice=smartNotice();
-
-    dashboard.innerHTML=`
-      <section class="v201-notice ${notice.tone}">
-        <span class="v201-notice-dot"></span>
-        <div>
-          <small>${notice.eyebrow}</small>
-          <strong>${notice.title}</strong>
-          <p>${notice.text}</p>
-        </div>
-      </section>
-
-      <section class="v201-balance">
-        <div class="v201-balance-head">
-          <div>
-            <span>SALDO LIVRE DO MÊS</span>
-            <strong>${money(data.free)}</strong>
-            <p>Depois de Bills, gastos e Cofre.</p>
-          </div>
-          <div class="v201-ring" style="--pct:${Math.max(0,100-usedPct)}">
-            <b>${Math.max(0,100-usedPct).toFixed(0)}%</b>
-            <small>livre</small>
-          </div>
-        </div>
-        <div class="v201-allocation">
-          <i style="width:${usedPct}%"></i>
-        </div>
-      </section>
-
-      <section class="v201-metrics">
-        <article class="income"><span>Receitas</span><strong>${money(data.income)}</strong></article>
-        <article class="bills"><span>Bills reservadas</span><strong>${money(data.reserved)}</strong></article>
-        <article class="expense"><span>Gastos</span><strong>${money(data.expense)}</strong></article>
-        <article class="vault"><span>Cofre</span><strong>${money(data.vault)}</strong></article>
-      </section>
-
-      <section class="v201-actions">
-        <button id="v201AddIncome"><span>＋</span><div><strong>Adicionar receita</strong><small>Registrar entrada</small></div></button>
-        <button id="v201OpenStats"><span>⌁</span><div><strong>Estatísticas</strong><small>Histórico e gráficos</small></div></button>
-      </section>
-
-      <section class="v201-timeline">
-        <div class="v201-section-title">
-          <div><span>ÚLTIMAS RECEITAS</span><h3>Movimentações recentes</h3></div>
-          <button id="v201SeeAllIncome">Ver todas</button>
-        </div>
-        <div id="v201IncomeList"></div>
-      </section>
-    `;
-
-    $("v201AddIncome").onclick=()=>$("openIncome")?.click();
-    $("v201OpenStats").onclick=()=>{
-      if(typeof renderInsights==="function")renderInsights();
-      try{$("insightsDialog")?.showModal()}catch{}
-    };
-    $("v201SeeAllIncome").onclick=()=>{
-      qs(".section-heading",overview)?.scrollIntoView({behavior:"smooth"});
-    };
-
-    const recent=[...(state?.incomes||[])]
-      .sort((a,b)=>String(b.date).localeCompare(String(a.date)))
-      .slice(0,4);
-    $("v201IncomeList").innerHTML=recent.length?recent.map(x=>`
-      <article>
-        <span class="v201-income-icon">↗</span>
-        <div><strong>${x.description||"Receita"}</strong><small>${new Date(`${x.date}T12:00:00`).toLocaleDateString("pt-BR")}</small></div>
-        <b>+${money(Number(x.amount||0))}</b>
-      </article>
-    `).join(""):`<div class="v201-empty">Nenhuma receita registrada neste mês.</div>`;
+    document.getElementById("v201Dashboard")?.remove();
   }
 
   function rebuildBillsCards(){
@@ -4904,58 +4822,11 @@ boot();
   }
 
   function buildBillsSummary(){
-    const list=$("billList");
-    if(!list)return;
-    let summary=$("v201BillsSummary");
-    if(!summary){
-      summary=document.createElement("section");
-      summary.id="v201BillsSummary";
-      summary.className="v201-bills-summary";
-      list.parentElement.insertBefore(summary,list);
-    }
-    const bills=activeBillsSorted();
-    const total=bills.reduce((t,x)=>t+Number(x.amount||0),0);
-    const reserved=bills.reduce((t,x)=>t+Number(x.reserved||0),0);
-    const pct=total?Math.min(100,reserved/total*100):0;
-    summary.innerHTML=`
-      <div><span>BILLS ATIVAS</span><strong>${bills.length}</strong><small>${money(total)} no total</small></div>
-      <div class="v201-bills-progress"><i style="width:${pct}%"></i></div>
-      <b>${pct.toFixed(0)}% reservado</b>
-    `;
+    document.getElementById("v201BillsSummary")?.remove();
   }
 
   function addBillFilters(){
-    const list=$("billList");
-    if(!list||$("v201BillFilters"))return;
-    const filters=document.createElement("div");
-    filters.id="v201BillFilters";
-    filters.className="v201-bill-filters";
-    filters.innerHTML=`
-      <button class="active" data-mode="all">Todas</button>
-      <button data-mode="late">Atrasadas</button>
-      <button data-mode="week">7 dias</button>
-      <button data-mode="month">Este mês</button>
-      <button data-mode="ready">Reservadas</button>
-    `;
-    list.parentElement.insertBefore(filters,list);
-    filters.onclick=e=>{
-      const button=e.target.closest("button");
-      if(!button)return;
-      qsa("button",filters).forEach(x=>x.classList.toggle("active",x===button));
-      const bills=activeBillsSorted();
-      qsa("#billList .bill-card").forEach((card,index)=>{
-        const bill=bills[index];
-        if(!bill)return;
-        const d=daysTo(bill.due);
-        const ready=Number(bill.reserved||0)>=Number(bill.amount||0);
-        let show=true;
-        if(button.dataset.mode==="late")show=d<0;
-        if(button.dataset.mode==="week")show=d>=0&&d<=7;
-        if(button.dataset.mode==="month")show=d>=0&&d<=31;
-        if(button.dataset.mode==="ready")show=ready;
-        card.style.display=show?"":"none";
-      });
-    };
+    document.getElementById("v201BillFilters")?.remove();
   }
 
   function cleanBottomNav(){
@@ -5507,4 +5378,191 @@ boot();
   document.querySelectorAll('.updates-version-badge,.settings-version,.version-orb').forEach(el=>{
     if(/^\d/.test(el.textContent.trim()))el.textContent='2.1.4';
   });
+})();
+
+
+/* =========================================================
+   NOSSO CONTROLE 2.1.6 — CORREÇÃO DE ABERTURA AUTOMÁTICA
+   ========================================================= */
+(function installV215DialogStartupFix(){
+  const closeUpdatesDialog=()=>{
+    const dialog=document.getElementById('updatesDialog');
+    if(!dialog)return;
+    try{
+      if(dialog.open)dialog.close();
+    }catch{}
+    dialog.removeAttribute('open');
+    dialog.classList.remove('force-open','is-open','visible','active');
+    document.documentElement.classList.remove('dialog-open','modal-open');
+    document.body?.classList.remove('dialog-open','modal-open','no-scroll');
+  };
+
+  // Safari pode restaurar um <dialog> aberto ao voltar, atualizar ou reabrir a aba.
+  // Fechamos em todos os ciclos de inicialização e permitimos abertura apenas pelo botão.
+  closeUpdatesDialog();
+  document.addEventListener('DOMContentLoaded',closeUpdatesDialog,{once:true});
+  window.addEventListener('pageshow',()=>{
+    closeUpdatesDialog();
+    requestAnimationFrame(closeUpdatesDialog);
+    setTimeout(closeUpdatesDialog,120);
+  });
+
+  const bindOpenButton=()=>{
+    const button=document.getElementById('openUpdatesPanel');
+    const dialog=document.getElementById('updatesDialog');
+    if(!button||!dialog||button.dataset.v215Bound==='1')return;
+    button.dataset.v215Bound='1';
+    button.onclick=event=>{
+      event.preventDefault();
+      event.stopPropagation();
+      try{dialog.showModal()}catch{dialog.setAttribute('open','')}
+    };
+  };
+
+  const updateVersionCard=()=>{
+    const dialog=document.getElementById('updatesDialog');
+    if(!dialog)return;
+    dialog.querySelectorAll('.version-orb,.updates-version-badge,.settings-version').forEach(el=>el.textContent='2.1.5');
+    const title=dialog.querySelector('.current-version-card strong');
+    const caption=dialog.querySelector('.current-version-card small');
+    if(title)title.textContent='Nosso Controle 2.1.5';
+    if(caption)caption.textContent='Correção da abertura automática da tela de Atualizações';
+
+    const panel=dialog.querySelector('.updates-panel');
+    if(panel&&!panel.querySelector('.v215-note')){
+      const note=document.createElement('section');
+      note.className='v12-release-note v215-note';
+      note.innerHTML='<span>VERSÃO 2.1.5 · CORREÇÃO</span><h3>Inicialização corrigida</h3><ul><li>A tela de Atualizações não abre mais sozinha.</li><li>O estado antigo do diálogo é removido ao iniciar ou restaurar a página no Safari.</li><li>A tela abre somente ao tocar em Atualizações.</li><li>O cartão da versão instalada agora mostra a versão correta.</li></ul>';
+      const current=panel.querySelector('.current-version-card');
+      if(current)current.after(note);else panel.prepend(note);
+    }
+  };
+
+  bindOpenButton();
+  updateVersionCard();
+  setTimeout(()=>{closeUpdatesDialog();bindOpenButton();updateVersionCard()},250);
+  setTimeout(()=>{closeUpdatesDialog();bindOpenButton();updateVersionCard()},1000);
+})();
+
+
+/* =========================================================
+   NOSSO CONTROLE 2.1.6 — dashboard único, scroll estável e atualização imediata
+   ========================================================= */
+(function installV216Stability(){
+  const VERSION="2.1.6";
+
+  function removeLegacyDuplicates(){
+    document.getElementById("v201Dashboard")?.remove();
+    document.getElementById("v201BillsSummary")?.remove();
+    document.getElementById("v201BillFilters")?.remove();
+
+    ["v21Dashboard","v21BillSummary","v21BillFilters"].forEach(id=>{
+      const nodes=[...document.querySelectorAll(`[id="${id}"]`)];
+      nodes.slice(1).forEach(node=>node.remove());
+    });
+  }
+
+  // Avoid useless scrollTo(current position) calls generated by older iPhone fixes.
+  if(!window.__v216ScrollPatched){
+    window.__v216ScrollPatched=true;
+    const nativeScrollTo=window.scrollTo.bind(window);
+    window.scrollTo=function(...args){
+      let top,left;
+      if(typeof args[0]==="object"&&args[0]!==null){
+        top=Number(args[0].top ?? window.scrollY);
+        left=Number(args[0].left ?? window.scrollX);
+      }else{
+        left=Number(args[0] ?? window.scrollX);
+        top=Number(args[1] ?? window.scrollY);
+      }
+      if(Math.abs(top-window.scrollY)<2&&Math.abs(left-window.scrollX)<2)return;
+      return nativeScrollTo(...args);
+    };
+  }
+
+  // Replaces the old nested viewport reset that caused Safari to fight the user scroll.
+  closeKeyboardAndResetViewport=function(goTop=false){
+    try{document.activeElement?.blur()}catch{}
+    if(goTop){
+      requestAnimationFrame(()=>window.scrollTo({top:0,left:0,behavior:"auto"}));
+    }
+  };
+
+  // Persist without rebuilding and restoring scroll several times.
+  persist=async function(successMessage){
+    try{document.activeElement?.blur()}catch{}
+    state.updatedAt=new Date().toISOString();
+    render();
+    removeLegacyDuplicates();
+    const payload=structuredClone(state);
+    const {error}=await sb.from("finance_state")
+      .update({data:payload,updated_at:payload.updatedAt})
+      .eq("household_id",householdId);
+    if(error){
+      toast("Falha ao sincronizar. Tentando novamente…");
+      setTimeout(async()=>{
+        const retry=await sb.from("finance_state")
+          .update({data:payload,updated_at:new Date().toISOString()})
+          .eq("household_id",householdId);
+        toast(retry.error?"Não foi possível sincronizar":"Sincronizado");
+      },1200);
+    }else if(successMessage){
+      toast(successMessage);
+    }
+  };
+
+  function updateVersionUI(){
+    const panel=document.querySelector("#updatesDialog .updates-panel");
+    if(panel){
+      panel.querySelectorAll(".version-orb,.updates-version-badge,.settings-version")
+        .forEach(el=>el.textContent=VERSION);
+      const currentTitle=panel.querySelector(".current-version-card strong");
+      if(currentTitle)currentTitle.textContent=`Nosso Controle ${VERSION}`;
+      const currentSubtitle=panel.querySelector(".current-version-card small");
+      if(currentSubtitle)currentSubtitle.textContent="Dashboard único, scroll estável e atualização automática";
+
+      if(!panel.querySelector(".v216-note")){
+        const note=document.createElement("section");
+        note.className="v12-release-note v216-note";
+        note.innerHTML=`
+          <span>VERSÃO ${VERSION} · ESTABILIDADE</span>
+          <h3>Interface e atualização corrigidas</h3>
+          <ul>
+            <li>Removido definitivamente o dashboard antigo que duplicava a tela.</li>
+            <li>Mantido apenas um resumo e um conjunto de filtros nas Bills.</li>
+            <li>Scroll estabilizado no Safari durante movimentos rápidos.</li>
+            <li>Removidas reconstruções e reposicionamentos repetidos da página.</li>
+            <li>Arquivos passam a ser buscados diretamente da rede, sem cache antigo.</li>
+            <li>Atualizações entram automaticamente ao abrir o endereço normal.</li>
+          </ul>`;
+        const current=panel.querySelector(".current-version-card");
+        if(current)current.insertAdjacentElement("afterend",note);
+        else panel.prepend(note);
+      }
+    }
+    document.querySelectorAll(".updates-version-badge,.settings-version")
+      .forEach(el=>el.textContent=VERSION);
+  }
+
+  function closeUpdatesOnStartup(){
+    const dialog=document.getElementById("updatesDialog");
+    if(dialog?.open){
+      try{dialog.close()}catch{dialog.removeAttribute("open")}
+    }
+  }
+
+  function install(){
+    removeLegacyDuplicates();
+    updateVersionUI();
+  }
+
+  history.scrollRestoration="manual";
+  closeUpdatesOnStartup();
+  install();
+  window.addEventListener("pageshow",()=>{
+    closeUpdatesOnStartup();
+    requestAnimationFrame(install);
+  });
+  setTimeout(install,250);
+  setTimeout(install,1000);
 })();
