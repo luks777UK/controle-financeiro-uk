@@ -1,4 +1,4 @@
-/* Nosso Controle 2.2.0 — aplicação refatorada */
+/* Nosso Controle 3.0.0 — aplicação refatorada */
 const cfg={
   SUPABASE_URL:"https://lhihsssbsjfliggtlaza.supabase.co",
   SUPABASE_ANON_KEY:"sb_publishable_0bttyUW7ASI8ylAyZjLkPA_NS8eThfO",
@@ -55,9 +55,12 @@ function restoreUsernameField(){
   if(saved)field.value=saved;
 }
 async function boot(){
-  const {data:{session}}=await sb.auth.getSession();
-  if(!session){show("authView");return}
-  user=session.user;await loadMembership();
+  try{
+    const {data:{session},error}=await sb.auth.getSession();
+    if(error)throw error;
+    if(!session){show("authView");return}
+    user=session.user;await ensureProfile(user);await loadMembership();
+  }catch(error){console.error("Boot:",error);show("authView");feedback("authMsg","Não foi possível restaurar a sessão. Entre novamente.")}
 }
 async function loadMembership(){
   const {data,error}=await sb.from("household_members").select("household_id, households(code)").eq("user_id",user.id).maybeSingle();
@@ -136,32 +139,35 @@ function subscribe(){
 function normalizeUsername(value){
   return String(value||"").trim().toLowerCase().replace(/[^a-z0-9._-]/g,"");
 }
-function usernameEmail(username){
+function rememberIdentity(username,email){
   const clean=normalizeUsername(username);
-  if(!clean)return "";
-  const mapped=localStorage.getItem(`nosso-controle-username-email:${clean}`);
-  if(mapped)return mapped;
-  const savedEmail=localStorage.getItem("nosso-controle-email");
-  const savedUsername=localStorage.getItem("nosso-controle-username");
-  if(savedEmail&&(savedUsername===clean||savedEmail.split("@")[0].toLowerCase()===clean))return savedEmail;
-  return `${clean}@nosso-controle.app`;
+  if(email)localStorage.setItem("nosso-controle-email",email);
+  if(clean){
+    localStorage.setItem("nosso-controle-username",clean);
+    if(email)localStorage.setItem(`nosso-controle-username-email:${clean}`,email);
+  }
 }
-function rememberUsername(username,email){
-  const clean=normalizeUsername(username);
-  if(!clean||!email)return;
-  localStorage.setItem("nosso-controle-username",clean);
-  localStorage.setItem("nosso-controle-email",email);
-  localStorage.setItem(`nosso-controle-username-email:${clean}`,email);
+async function ensureProfile(authUser,preferredUsername=""){
+  if(!authUser)return;
+  const username=normalizeUsername(preferredUsername||authUser.user_metadata?.username||authUser.email?.split("@")[0]);
+  if(!username)return;
+  rememberIdentity(username,authUser.email||"");
+  try{
+    await sb.from("profiles").upsert({id:authUser.id,username,email:authUser.email},{onConflict:"id"});
+  }catch(error){console.warn("Profile sync unavailable:",error?.message||error)}
 }
-
-function authEmailFromIdentifier(value){
-  const identifier=String(value||"").trim().toLowerCase();
-  if(identifier.includes("@"))return identifier;
-  const clean=normalizeUsername(identifier);
-  if(!clean)return "";
-  return localStorage.getItem(`nosso-controle-username-email:${clean}`)
-    || (localStorage.getItem("nosso-controle-username")===clean?localStorage.getItem("nosso-controle-email"):"")
-    || `${clean}@nosso-controle.app`;
+async function resolveLoginEmail(identifier){
+  const value=String(identifier||"").trim().toLowerCase();
+  if(value.includes("@"))return value;
+  const username=normalizeUsername(value);
+  if(!username)return "";
+  const local=localStorage.getItem(`nosso-controle-username-email:${username}`);
+  if(local)return local;
+  try{
+    const {data,error}=await sb.from("profiles").select("email").eq("username",username).maybeSingle();
+    if(!error&&data?.email)return data.email;
+  }catch{}
+  return "";
 }
 function setAuthLoading(loading){
   const button=$("loginBtn");
@@ -174,39 +180,78 @@ async function handleLogin(){
   const password=$("password").value;
   if(!identifier)return feedback("authMsg","Digite seu Username ou e-mail.");
   if(!password)return feedback("authMsg","Digite sua senha.");
-  if(!window.supabase||!sb)return feedback("authMsg","O serviço de login não carregou. Atualize a página.");
   setAuthLoading(true);
   try{
-    const email=authEmailFromIdentifier(identifier);
+    const email=await resolveLoginEmail(identifier);
+    if(!email){
+      feedback("authMsg","Username ainda não vinculado. Entre uma vez usando seu e-mail.");
+      return;
+    }
     const {data,error}=await sb.auth.signInWithPassword({email,password});
-    if(error)return feedback("authMsg","Username, e-mail ou senha incorretos.");
+    if(error){
+      console.warn("Auth:",error.message);
+      feedback("authMsg",error.message?.toLowerCase().includes("invalid login")?"E-mail/Username ou senha incorretos.":error.message);
+      return;
+    }
     if(!data?.session?.user)return feedback("authMsg","Não foi possível criar a sessão.");
-    const username=identifier.includes("@")?normalizeUsername(identifier.split("@")[0]):normalizeUsername(identifier);
-    rememberUsername(username,data.session.user.email||email);
     user=data.session.user;
+    const username=identifier.includes("@")?normalizeUsername(user.user_metadata?.username||identifier.split("@")[0]):normalizeUsername(identifier);
+    await ensureProfile(user,username);
     closeKeyboardAndResetViewport(true);
     await loadMembership();
   }catch(error){
     console.error("Login:",error);
-    feedback("authMsg",error?.message||"Não foi possível entrar agora.");
+    feedback("authMsg",navigator.onLine?"Não foi possível entrar agora. Tente novamente.":"Sem conexão com a internet.");
   }finally{setAuthLoading(false)}
 }
 $("loginBtn").onclick=event=>{event.preventDefault();handleLogin()};
 $("password").addEventListener("keydown",event=>{if(event.key==="Enter"){event.preventDefault();handleLogin()}});
-$("signupBtn").onclick=async()=>{
-  feedback("authMsg","");
-  const entered=$("email").value.trim().toLowerCase();
-  const password=$("password").value;
-  if(!password||password.length<6)return feedback("authMsg","A senha precisa ter pelo menos 6 caracteres.");
-  const username=entered.includes("@")?normalizeUsername(entered.split("@")[0]):normalizeUsername(entered);
-  if(username.length<3)return feedback("authMsg","Use um Username com pelo menos 3 caracteres.");
-  const email=entered.includes("@")?entered:`${username}@nosso-controle.app`;
+$("signupBtn").onclick=()=>{
+  feedback("signupMsg","");
+  $("signupEmail").value=$("email").value.includes("@")?$("email").value.trim():"";
+  try{$("signupDialog").showModal()}catch{$("signupDialog").setAttribute("open","")}
+};
+$("createAccountBtn").onclick=async()=>{
+  feedback("signupMsg","");
+  const username=normalizeUsername($("signupUsername").value);
+  const email=$("signupEmail").value.trim().toLowerCase();
+  const password=$("signupPassword").value;
+  const confirm=$("signupPasswordConfirm").value;
+  if(username.length<3)return feedback("signupMsg","Use um Username com pelo menos 3 caracteres.");
+  if(!email.includes("@"))return feedback("signupMsg","Digite um e-mail válido.");
+  if(password.length<6)return feedback("signupMsg","A senha precisa ter pelo menos 6 caracteres.");
+  if(password!==confirm)return feedback("signupMsg","As senhas não são iguais.");
+  const button=$("createAccountBtn");button.disabled=true;button.textContent="Criando…";
   try{
-    const {error}=await sb.auth.signUp({email,password,options:{data:{username}}});
-    if(error)return feedback("authMsg",error.message);
-    rememberUsername(username,email);
-    feedback("authMsg","Conta criada. Agora toque em Entrar.");
-  }catch(error){feedback("authMsg",error?.message||"Não foi possível criar a conta.")}
+    try{
+      const {data:existing}=await sb.from("profiles").select("id").eq("username",username).maybeSingle();
+      if(existing)return feedback("signupMsg","Este Username já está em uso.");
+    }catch{}
+    const {data,error}=await sb.auth.signUp({email,password,options:{data:{username}}});
+    if(error)return feedback("signupMsg",error.message);
+    if(data?.user)await ensureProfile(data.user,username);
+    rememberIdentity(username,email);
+    feedback("signupMsg",data?.session?"Conta criada. Entrando…":"Conta criada. Confirme o e-mail e depois entre.");
+    if(data?.session){user=data.user;try{$("signupDialog").close()}catch{};await loadMembership()}
+  }catch(error){feedback("signupMsg",error?.message||"Não foi possível criar a conta.")}
+  finally{button.disabled=false;button.textContent="Criar minha conta"}
+};
+$("forgotPasswordBtn").onclick=()=>{
+  feedback("resetMsg","");
+  $("resetEmail").value=$("email").value.includes("@")?$("email").value.trim():localStorage.getItem("nosso-controle-email")||"";
+  try{$("resetPasswordDialog").showModal()}catch{$("resetPasswordDialog").setAttribute("open","")}
+};
+$("sendResetBtn").onclick=async()=>{
+  feedback("resetMsg","");
+  const email=$("resetEmail").value.trim().toLowerCase();
+  if(!email.includes("@"))return feedback("resetMsg","Digite o e-mail da conta.");
+  const button=$("sendResetBtn");button.disabled=true;button.textContent="Enviando…";
+  try{
+    const redirectTo=`${location.origin}${location.pathname}`;
+    const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo});
+    feedback("resetMsg",error?error.message:"Link enviado. Verifique também a pasta de spam.");
+  }catch(error){feedback("resetMsg",error?.message||"Não foi possível enviar o link.")}
+  finally{button.disabled=false;button.textContent="Enviar link"}
 };
 $("createHouseholdBtn").onclick=async()=>{
   const c=makeCode();
@@ -1136,9 +1181,9 @@ $("saveVaultDeposit").onclick=async e=>{
 };
 
 
-const APP_VERSION="2.2.0";
+const APP_VERSION="3.0.0";
 const RELEASE_NOTES=[
-  {version:"2.2.0",date:"05/08/2026",title:"Refatoração de estabilidade",changes:[
+  {version:"3.0.0",date:"05/08/2026",title:"Refatoração de estabilidade",changes:[
     "Removidos scripts e manipuladores duplicados.",
     "Login unificado em um único fluxo.",
     "Dashboard, Bills e filtros renderizados uma única vez.",

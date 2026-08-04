@@ -963,3 +963,8 @@ body,
 #v22Dashboard .v21-actions{grid-template-columns:repeat(3,1fr)}
 @media(max-width:560px){#v22Dashboard .v21-actions{grid-template-columns:1fr 1fr}#v22Cleaning{grid-column:1/-1}}
 #v201Dashboard,#v21Dashboard,#v201BillsSummary,#v201BillFilters,#v21BillSummary,#v21BillFilters{display:none!important}
+
+/* Nosso Controle 3.0.0 — autenticação */
+.text-button{width:100%;padding:9px;border:0;background:transparent;color:#a98bff;font-weight:800;font-size:9px}
+.auth-dialog-card{max-width:520px}
+.auth-dialog-card .feedback{min-height:18px}
