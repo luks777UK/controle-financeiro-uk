@@ -206,11 +206,28 @@ const classes={council:"council",energy:"energy",rent:"rent",insurance:"insuranc
 function money(v){return new Intl.NumberFormat("pt-BR",{style:"currency",currency:"GBP"}).format(Number(v)||0)}
 function formatDate(s){return new Date(s+"T00:00:00").toLocaleDateString("pt-BR")}
 function daysUntil(s){const n=new Date();n.setHours(0,0,0,0);return Math.ceil((new Date(s+"T00:00:00")-n)/86400000)}
-function show(id){["authView","householdView","appView"].forEach(x=>$(x).classList.add("hidden"));$(id).classList.remove("hidden")}
+function show(id){["authView","householdView","appView"].forEach(x=>$(x).classList.add("hidden"));$(id).classList.remove("hidden");if(id==="appView")closeKeyboardAndResetViewport(true);if(id==="authView")setTimeout(restoreUsernameField,0)}
 function feedback(id,t){$(id).textContent=t||""}
 function toast(t){$("toast").textContent=t;$("toast").classList.add("show");setTimeout(()=>$("toast").classList.remove("show"),2100)}
 function makeCode(){return Math.random().toString(36).slice(2,10).toUpperCase()}
 
+function closeKeyboardAndResetViewport(goTop=false){
+  try{document.activeElement?.blur()}catch{}
+  document.body.classList.add("keyboard-closing");
+  requestAnimationFrame(()=>{
+    requestAnimationFrame(()=>{
+      if(goTop)window.scrollTo({top:0,left:0,behavior:"instant"});
+      else window.scrollTo({top:Math.max(0,window.scrollY),left:0,behavior:"instant"});
+      document.body.classList.remove("keyboard-closing");
+    });
+  });
+}
+function restoreUsernameField(){
+  const field=$("email");
+  if(!field)return;
+  const saved=localStorage.getItem("nosso-controle-username");
+  if(saved)field.value=saved;
+}
 async function boot(){
   const {data:{session}}=await sb.auth.getSession();
   if(!session){show("authView");return}
@@ -266,8 +283,11 @@ async function loadState(){
   render();
 }
 async function persist(successMessage){
+  const stableScrollY=window.scrollY;
+  closeKeyboardAndResetViewport(false);
   state.updatedAt=new Date().toISOString();
   render();
+  requestAnimationFrame(()=>window.scrollTo({top:stableScrollY,left:0,behavior:"instant"}));
   const payload=structuredClone(state);
   const {error}=await sb.from("finance_state").update({data:payload,updated_at:payload.updatedAt}).eq("household_id",householdId);
   if(error){
@@ -287,15 +307,46 @@ function subscribe(){
     payload=>{state=payload.new.data;render();toast("Atualizado pelo outro celular")}).subscribe();
 }
 
+function normalizeUsername(value){
+  return String(value||"").trim().toLowerCase().replace(/[^a-z0-9._-]/g,"");
+}
+function usernameEmail(username){
+  const clean=normalizeUsername(username);
+  if(!clean)return "";
+  const mapped=localStorage.getItem(`nosso-controle-username-email:${clean}`);
+  if(mapped)return mapped;
+  const savedEmail=localStorage.getItem("nosso-controle-email");
+  const savedUsername=localStorage.getItem("nosso-controle-username");
+  if(savedEmail&&(savedUsername===clean||savedEmail.split("@")[0].toLowerCase()===clean))return savedEmail;
+  return `${clean}@nosso-controle.app`;
+}
+function rememberUsername(username,email){
+  const clean=normalizeUsername(username);
+  if(!clean||!email)return;
+  localStorage.setItem("nosso-controle-username",clean);
+  localStorage.setItem("nosso-controle-email",email);
+  localStorage.setItem(`nosso-controle-username-email:${clean}`,email);
+}
 $("loginBtn").onclick=async()=>{
   feedback("authMsg","");
-  const {error}=await sb.auth.signInWithPassword({email:$("email").value,password:$("password").value});
-  if(error)return feedback("authMsg",error.message);
-  const {data:{session}}=await sb.auth.getSession();user=session.user;await loadMembership();
+  const username=normalizeUsername($("email").value);
+  if(!username)return feedback("authMsg","Digite seu username.");
+  const email=usernameEmail(username);
+  const {error}=await sb.auth.signInWithPassword({email,password:$("password").value});
+  if(error)return feedback("authMsg","Username ou senha incorretos.");
+  rememberUsername(username,email);
+  const {data:{session}}=await sb.auth.getSession();user=session.user;
+  closeKeyboardAndResetViewport(true);
+  await loadMembership();
 };
 $("signupBtn").onclick=async()=>{
-  const {error}=await sb.auth.signUp({email:$("email").value,password:$("password").value});
-  feedback("authMsg",error?error.message:"Conta criada. Confirme o e-mail caso seja solicitado.");
+  feedback("authMsg","");
+  const username=normalizeUsername($("email").value);
+  if(username.length<3)return feedback("authMsg","Use um username com pelo menos 3 caracteres.");
+  const email=`${username}@nosso-controle.app`;
+  const {error}=await sb.auth.signUp({email,password:$("password").value,options:{data:{username}}});
+  if(!error)rememberUsername(username,email);
+  feedback("authMsg",error?error.message:"Conta criada. Agora toque em Entrar.");
 };
 $("createHouseholdBtn").onclick=async()=>{
   const c=makeCode();
@@ -5174,14 +5225,14 @@ boot();
     sheet.classList.add('v21-settings');
     const title=qs('.sheet-title h2',sheet); if(title)title.textContent='Configurações';
     qsa('.sheet-action',sheet).forEach(btn=>btn.classList.add('v21-setting-row'));
-    const version=qs('.updates-version-badge',sheet); if(version)version.textContent='2.1';
+    const version=qs('.updates-version-badge',sheet); if(version)version.textContent='2.1.1';
   }
 
   function updateNotes(){
     const panel=$('updatesDialog')?.querySelector('.updates-panel'); if(!panel||qs('.v21-note',panel))return;
-    const note=document.createElement('section');note.className='v12-release-note v21-note';note.innerHTML='<span>VERSÃO 2.1 · INSTALADA</span><h3>Clean System</h3><ul><li>Dashboard reconstruído e mais enxuto.</li><li>Saldo livre como informação principal.</li><li>Alerta inteligente de prioridade.</li><li>Bills totalmente redesenhadas e compactas.</li><li>Filtros rápidos para Bills.</li><li>Configurações mais limpas.</li><li>Sessão persistente no iPhone.</li><li>Service Worker atualizado para evitar cache antigo.</li></ul>';
+    const note=document.createElement('section');note.className='v12-release-note v21-note';note.innerHTML='<span>VERSÃO 2.1.1 · INSTALADA</span><h3>Clean System</h3><ul><li>Dashboard reconstruído e mais enxuto.</li><li>Saldo livre como informação principal.</li><li>Alerta inteligente de prioridade.</li><li>Bills totalmente redesenhadas e compactas.</li><li>Filtros rápidos para Bills.</li><li>Configurações mais limpas.</li><li>Sessão persistente no iPhone.</li><li>Service Worker atualizado para evitar cache antigo.</li></ul>';
     const current=qs('.current-version-card',panel); if(current)current.after(note);
-    qsa('.version-orb',panel).forEach(x=>x.textContent='2.1'); const t=qs('.current-version-card strong',panel);if(t)t.textContent='Nosso Controle 2.1';
+    qsa('.version-orb',panel).forEach(x=>x.textContent='2.1.1'); const t=qs('.current-version-card strong',panel);if(t)t.textContent='Nosso Controle 2.1.1';
   }
 
   const oldRender=window.render;
@@ -5190,7 +5241,76 @@ boot();
   function install(){
     if(state){renderDashboardV21();renderBillsV21()}
     cleanSettings();updateNotes();
-    qsa('.updates-version-badge,.settings-version,.version-orb').forEach(x=>{if(/^\d/.test(x.textContent.trim()))x.textContent='2.1'});
+    qsa('.updates-version-badge,.settings-version,.version-orb').forEach(x=>{if(/^\d/.test(x.textContent.trim()))x.textContent='2.1.1'});
   }
   install();window.addEventListener('pageshow',install);setTimeout(install,400);setTimeout(install,1200);
+})();
+
+
+/* =========================================================
+   NOSSO CONTROLE 2.1.1 — zoom + filtros + username
+   ========================================================= */
+(function installV211Fixes(){
+  let activeBillFilter="all";
+
+  function applyActiveBillFilter(){
+    const buttons=[...document.querySelectorAll("#v21BillFilters button")];
+    buttons.forEach(button=>button.classList.toggle("active",button.dataset.f===activeBillFilter));
+    document.querySelectorAll(".v21-bill-card").forEach(card=>{
+      const days=Number(card.dataset.days);
+      const ready=card.dataset.ready==="true";
+      let visible=true;
+      if(activeBillFilter==="late")visible=days<0;
+      if(activeBillFilter==="week")visible=days>=0&&days<=7;
+      if(activeBillFilter==="ready")visible=ready;
+      card.hidden=!visible;
+      card.style.display=visible?"":"none";
+    });
+  }
+
+  document.addEventListener("click",event=>{
+    const button=event.target.closest("#v21BillFilters button");
+    if(button){
+      activeBillFilter=button.dataset.f||"all";
+      requestAnimationFrame(applyActiveBillFilter);
+      return;
+    }
+
+    const saveButton=event.target.closest("#saveIncome,#saveExpense,#saveDeposit,#saveVaultDeposit,#saveNewBill,#confirmBillPayment,#loginBtn,#signupBtn");
+    if(saveButton){
+      const y=window.scrollY;
+      setTimeout(()=>{
+        closeKeyboardAndResetViewport(saveButton.id==="loginBtn");
+        if(saveButton.id!=="loginBtn")window.scrollTo({top:y,left:0,behavior:"instant"});
+      },60);
+    }
+  },true);
+
+  const billList=document.getElementById("billList");
+  if(billList){
+    const observer=new MutationObserver(()=>requestAnimationFrame(applyActiveBillFilter));
+    observer.observe(billList,{childList:true,subtree:false});
+  }
+
+  window.addEventListener("pageshow",()=>{
+    restoreUsernameField();
+    closeKeyboardAndResetViewport(document.getElementById("appView")&&!document.getElementById("appView").classList.contains("hidden"));
+    requestAnimationFrame(applyActiveBillFilter);
+  });
+
+  window.visualViewport?.addEventListener("resize",()=>{
+    if(document.activeElement===document.body||!document.activeElement)window.scrollTo({left:0,top:window.scrollY,behavior:"instant"});
+  });
+
+  const notes=document.querySelector("#updatesDialog .updates-panel");
+  if(notes&&!notes.querySelector(".v211-note")){
+    const note=document.createElement("section");
+    note.className="v12-release-note v211-note";
+    note.innerHTML='<span>VERSÃO 2.1.1 · CORREÇÕES</span><h3>Estabilidade no iPhone</h3><ul><li>Zoom automático eliminado ao entrar e salvar lançamentos.</li><li>Layout ajustado para o iPhone 17 Pro Max.</li><li>Teclado e foco fechados corretamente após as ações.</li><li>Filtros das Bills corrigidos e preservados após atualizar a lista.</li><li>Login simplificado para Username e senha.</li><li>Sessão persistente mantida neste aparelho.</li></ul>';
+    const current=notes.querySelector(".current-version-card");
+    if(current)current.after(note);else notes.prepend(note);
+  }
+
+  restoreUsernameField();
+  requestAnimationFrame(applyActiveBillFilter);
 })();

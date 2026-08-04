@@ -568,3 +568,48 @@ body{
 #billsView>.today-card,#billsView>.balance-grid,#billsView>.progress-card{display:none!important}.v21-bill-summary{padding:13px;border-radius:18px;background:#131522;border:1px solid rgba(255,255,255,.065);margin-bottom:8px}.v21-bill-summary>div:first-child{display:flex;align-items:baseline;gap:7px}.v21-bill-summary small{font-size:7px;color:var(--purple-2);font-weight:900}.v21-bill-summary strong{font-size:16px}.v21-bill-summary span{font-size:8px;color:var(--muted)}.v21-summary-track{height:6px;margin-top:9px;border-radius:999px;background:#272a3b;overflow:hidden}.v21-summary-track i{display:block;height:100%;background:linear-gradient(90deg,var(--purple),var(--blue));border-radius:inherit}.v21-bill-summary>b{display:block;font-size:8px;color:var(--muted);margin-top:6px}.v21-filters{display:flex;gap:6px;overflow:auto;margin-bottom:8px}.v21-filters button{white-space:nowrap;padding:7px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.065);background:#131522;color:var(--muted);font-size:8px}.v21-filters button.active{background:rgba(139,92,246,.17);color:#fff;border-color:rgba(139,92,246,.25)}
 .v21-bill-card{padding:12px;border-radius:18px;background:#131522;border:1px solid rgba(255,255,255,.065);display:grid;gap:9px}.v21-bill-top{display:flex;align-items:center;gap:10px}.v21-bill-icon{width:45px;height:45px;display:grid;place-items:center;border-radius:14px;background:rgba(139,92,246,.12);font-size:19px}.v21-bill-top>div{min-width:0;flex:1}.v21-bill-top strong,.v21-bill-top small{display:block}.v21-bill-top strong{font-size:13px}.v21-bill-top small{font-size:8px;color:var(--muted);margin-top:3px}.v21-bill-top em{font-style:normal;padding:5px 7px;border-radius:999px;background:rgba(63,230,162,.09);color:var(--green);font-size:8px}.v21-bill-top em.warning{background:rgba(255,189,92,.11);color:var(--orange)}.v21-bill-top em.danger{background:rgba(255,112,132,.1);color:var(--red)}.v21-bill-progress{height:5px;border-radius:999px;background:#272a3b;overflow:hidden}.v21-bill-progress i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--purple),var(--blue))}.v21-bill-bottom{display:flex;justify-content:space-between;align-items:center}.v21-bill-bottom strong,.v21-bill-bottom small{display:block}.v21-bill-bottom strong{font-size:10px}.v21-bill-bottom strong span{color:var(--muted);font-weight:500}.v21-bill-bottom small{font-size:7px;color:var(--muted);margin-top:3px}.v21-bill-actions{display:flex;gap:5px}.v21-bill-actions button{width:36px;height:34px;border-radius:10px;border:1px solid rgba(255,255,255,.07);background:#1b1d2d;color:var(--ink)}.v21-installment{display:flex;align-items:center;gap:8px}.v21-installment span{font-size:7px;color:var(--muted)}.v21-installment i{height:4px;flex:1;border-radius:999px;background:#272a3b;overflow:hidden}.v21-installment b{display:block;height:100%;background:var(--purple);border-radius:inherit}
 .v21-settings .settings-sheet{background:#11131f!important}.v21-setting-row{margin-top:7px!important;padding:11px!important;border-radius:13px!important;background:#191b2a!important}.bottom-nav{padding:6px!important}.nav-item span{font-size:18px!important}.nav-item b{font-size:10px!important}
+
+
+/* ===== Nosso Controle 2.1.1 — iPhone 17 Pro Max stability ===== */
+html{
+  width:100%;
+  min-width:100%;
+  overflow-x:hidden;
+  -webkit-text-size-adjust:100%;
+  text-size-adjust:100%;
+}
+body{
+  width:100%;
+  min-width:100%;
+  max-width:100%;
+  overflow-x:hidden;
+  overscroll-behavior-x:none;
+  touch-action:pan-y;
+}
+.app,.auth-screen,.panel,dialog{
+  max-width:100%;
+  box-sizing:border-box;
+}
+input,select,textarea{
+  font-size:16px!important;
+  line-height:1.25;
+  transform:none!important;
+  zoom:1!important;
+}
+button,input,select,textarea{
+  -webkit-tap-highlight-color:transparent;
+}
+body.keyboard-closing{
+  pointer-events:none;
+}
+.v21-bill-card[hidden]{
+  display:none!important;
+}
+.v21-filters button{
+  touch-action:manipulation;
+}
+@media (min-width:430px) and (max-width:460px){
+  .app{width:100%;padding-left:16px;padding-right:16px}
+  .auth-screen{padding-left:24px;padding-right:24px}
+  .header{margin-left:-16px;margin-right:-16px}
+}
