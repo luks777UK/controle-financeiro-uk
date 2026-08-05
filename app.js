@@ -175,6 +175,7 @@ async function loadState(){
     ...b
   }));
 
+  recalculateDailyGoal();
   render();
   return true;
 }
@@ -987,8 +988,61 @@ $("saveIncome").onclick=async e=>{
 };
 
 
+
+function requiredDailyGoalForBills(bills){
+  const active=(bills||[])
+    .filter(b=>!b.completed&&!b.paid)
+    .map(b=>({...b,remaining:Math.max(0,Number(b.amount||0)-Number(b.reserved||0))}))
+    .filter(b=>b.remaining>0)
+    .sort((a,b)=>new Date(a.due)-new Date(b.due));
+
+  let cumulative=0;
+  let required=0;
+  for(const bill of active){
+    cumulative+=bill.remaining;
+    const days=Math.max(1,daysUntil(bill.due)+1);
+    required=Math.max(required,cumulative/days);
+  }
+  return Math.ceil(required*100)/100;
+}
+
+function recalculateDailyGoal(){
+  const goal=requiredDailyGoalForBills(state?.bills||[]);
+  state.dailyGoal=goal;
+  return goal;
+}
+
+function draftBillsForGoalPreview(){
+  const bills=(state?.bills||[]).map(b=>({...b}));
+  const amount=Number($("newBillAmount")?.value)||0;
+  const due=$("newBillDue")?.value;
+  if(amount<=0||!due)return bills;
+
+  const editId=$("billCreateEditId")?.value||"";
+  const draft={
+    id:editId||"preview_bill",
+    amount,
+    due,
+    reserved:editId?Number(bills.find(b=>b.id===editId)?.reserved||0):0,
+    paid:false,
+    completed:false
+  };
+  const index=bills.findIndex(b=>b.id===editId);
+  if(index>=0)bills[index]={...bills[index],...draft};
+  else bills.push(draft);
+  return bills;
+}
+
+function updateBillGoalPreview(){
+  const value=$("billGoalPreviewValue");
+  if(!value)return;
+  const goal=requiredDailyGoalForBills(draftBillsForGoalPreview());
+  value.textContent=`${money(goal)} por dia`;
+}
+
 $("openNewBill").onclick=()=>openBillCreateDialog();
-$("newBillType").onchange=()=>{$("installmentFields").classList.toggle("hidden",$("newBillType").value!=="installment")};
+$("newBillType").onchange=()=>{$("installmentFields").classList.toggle("hidden",$("newBillType").value!=="installment");updateBillGoalPreview()};
+["newBillAmount","newBillDue","newBillFrequency","newBillCurrentInstallment","newBillTotalInstallments"].forEach(id=>$(id)?.addEventListener("input",updateBillGoalPreview));
 $("saveNewBill").onclick=async e=>{
   e.preventDefault();
   const name=$("newBillName").value.trim();
@@ -1020,8 +1074,9 @@ $("saveNewBill").onclick=async e=>{
       ...payload
     });
   }
+  const newGoal=recalculateDailyGoal();
   $("billCreateDialog").close();
-  await persist(editId?"Bill atualizada":"Bill adicionada");
+  await persist(`${editId?"Bill atualizada":"Bill adicionada"} · nova meta ${money(newGoal)}/dia`);
 };
 $("openCompletedBills").onclick=()=>{
   $("settingsSheet").classList.add("hidden");
@@ -1164,7 +1219,7 @@ function openBillCreateDialog(id=null){
     $("newBillTotalInstallments").value=bill.totalInstallments||12;
     $("installmentFields").classList.toggle("hidden",bill.type!=="installment");
   }
-  $("billCreateDialog").showModal();
+  $("billCreateDialog").showModal();setTimeout(updateBillGoalPreview,0);
 }
 function renderCompletedBills(){
   const list=state.completedBills||[];
@@ -1356,8 +1411,15 @@ $("saveVaultDeposit").onclick=async e=>{
 };
 
 
-const APP_VERSION="3.1.0";
+const APP_VERSION="3.1.1";
 const RELEASE_NOTES=[
+  {version:"3.1.1",date:"05/08/2026",title:"Meta diária inteligente e diagnóstico completo",changes:[
+    "Envelope e Cartão exibidos diretamente no resumo das Bills.",
+    "Meta diária recalculada automaticamente ao criar ou editar uma Bill.",
+    "Prévia da nova meta dentro do formulário de Bill.",
+    "Cálculo considera valores restantes e datas de vencimento.",
+    "Diagnóstico ampliado com versão, cache, sessão, saldos e tempo de resposta."
+  ]},
   {version:"3.1.0",date:"05/08/2026",title:"Refatoração de estabilidade",changes:[
     "Removidos scripts e manipuladores duplicados.",
     "Login unificado em um único fluxo.",
@@ -1412,7 +1474,51 @@ function renderCleanBills(){
   bills.forEach(b=>{const remain=Math.max(0,Number(b.amount)-Number(b.reserved)),pct=b.amount?Math.min(100,b.reserved/b.amount*100):100,days=daysSafe(b.due);const card=document.createElement('article');card.className='v21-bill-card';card.dataset.days=days;card.dataset.ready=String(remain===0);card.innerHTML=`<div class="v21-bill-top"><span class="v21-bill-icon">${billEmoji(b.name)}</span><div><strong>${escapeText(b.name)}</strong><small>${formatDate(b.due)} · ${frequencyLabel(b.frequency)}</small></div><em class="${days<0?'danger':days<=7?'warning':''}">${days<0?`${Math.abs(days)}d atrasada`:days===0?'Hoje':`${days}d`}</em></div><div class="v21-bill-progress"><i style="width:${pct}%"></i></div><div class="v21-bill-bottom"><div><strong>${money(b.reserved)} <span>/ ${money(b.amount)}</span></strong><small>${remain?`${money(remain)} restantes`:'Totalmente reservada'}</small></div><div class="v21-bill-actions"><button data-edit>✎</button><button data-pay>✓</button></div></div>${b.type==='installment'?`<div class="v21-installment"><span>Parcela ${b.currentInstallment}/${b.totalInstallments}</span><i><b style="width:${Math.min(100,b.currentInstallment/b.totalInstallments*100)}%"></b></i></div>`:''}`;q('[data-edit]',card).onclick=()=>openBillCreateDialog(b.id);q('[data-pay]',card).onclick=()=>togglePaid(b.id);list.appendChild(card)});
   renderBillHeader(bills);applyBillFilter();updateWalletSummary();
 }
-function renderBillHeader(bills){const list=$("billList");let summary=$("v22BillSummary");if(!summary){summary=document.createElement('section');summary.id='v22BillSummary';summary.className='v21-bill-summary';list.before(summary)}const total=bills.reduce((s,b)=>s+Number(b.amount),0),reserved=bills.reduce((s,b)=>s+Number(b.reserved),0),pct=total?Math.min(100,reserved/total*100):0;summary.innerHTML=`<div><small>BILLS ATIVAS</small><strong>${bills.length} contas</strong><span>${money(total)} no total</span></div><div class="v21-summary-track"><i style="width:${pct}%"></i></div><b>${pct.toFixed(0)}% reservado</b>`;let filters=$("v22BillFilters");if(!filters){filters=document.createElement('div');filters.id='v22BillFilters';filters.className='v21-filters';filters.innerHTML='<button data-f="all">Todas</button><button data-f="late">Atrasadas</button><button data-f="week">7 dias</button><button data-f="ready">Reservadas</button>';summary.after(filters);filters.onclick=e=>{const btn=e.target.closest('button');if(!btn)return;activeBillFilter=btn.dataset.f;applyBillFilter()}}qa('button',filters).forEach(x=>x.classList.toggle('active',x.dataset.f===activeBillFilter))}
+function renderBillHeader(bills){
+  const list=$("billList");
+  let summary=$("v22BillSummary");
+  if(!summary){
+    summary=document.createElement("section");
+    summary.id="v22BillSummary";
+    summary.className="v21-bill-summary v311-bill-summary";
+    list.before(summary);
+  }
+
+  const total=bills.reduce((s,b)=>s+Number(b.amount||0),0);
+  const reserved=bills.reduce((s,b)=>s+Math.min(Number(b.reserved||0),Number(b.amount||0)),0);
+  const pct=total?Math.min(100,reserved/total*100):0;
+  const cash=Number(state.cash||0);
+  const card=Number(state.card||0);
+  const goal=requiredDailyGoalForBills(bills);
+
+  summary.innerHTML=`
+    <div class="v311-summary-top">
+      <div><small>BILLS ATIVAS</small><strong>${bills.length} contas</strong><span>${money(total)} no total</span></div>
+      <div class="v311-goal-chip"><small>META DIÁRIA</small><strong>${money(goal)}</strong><span>por dia</span></div>
+    </div>
+    <div class="v21-summary-track"><i style="width:${pct}%"></i></div>
+    <div class="v311-summary-bottom">
+      <b>${pct.toFixed(0)}% reservado</b>
+      <span>Envelope <strong>${money(cash)}</strong></span>
+      <span>Cartão <strong>${money(card)}</strong></span>
+    </div>`;
+
+  let filters=$("v22BillFilters");
+  if(!filters){
+    filters=document.createElement("div");
+    filters.id="v22BillFilters";
+    filters.className="v21-filters";
+    filters.innerHTML='<button data-f="all">Todas</button><button data-f="late">Atrasadas</button><button data-f="week">7 dias</button><button data-f="ready">Reservadas</button>';
+    summary.after(filters);
+    filters.onclick=e=>{
+      const btn=e.target.closest("button");
+      if(!btn)return;
+      activeBillFilter=btn.dataset.f;
+      applyBillFilter();
+    };
+  }
+  qa("button",filters).forEach(x=>x.classList.toggle("active",x.dataset.f===activeBillFilter));
+}
 function applyBillFilter(){qa('.v21-bill-card').forEach(card=>{const days=Number(card.dataset.days),ready=card.dataset.ready==='true';let show=true;if(activeBillFilter==='late')show=days<0;if(activeBillFilter==='week')show=days>=0&&days<=7;if(activeBillFilter==='ready')show=ready;card.hidden=!show});const f=$("v22BillFilters");if(f)qa('button',f).forEach(x=>x.classList.toggle('active',x.dataset.f===activeBillFilter))}
 function updateWalletSummary(){if($("quickCashTotal"))$("quickCashTotal").textContent=money(state.cash||0);if($("quickCardTotal"))$("quickCardTotal").textContent=money(state.card||0);if($("quickSavedTotal"))$("quickSavedTotal").textContent=money(Number(state.cash||0)+Number(state.card||0))}
 
@@ -1503,101 +1609,62 @@ function closeDiagnostic310(){
 
 async function runDiagnostic310(){
   diagnosticLines310.length=0;
+  const started=performance.now();
   diagnosticAdd310("================================");
-  diagnosticAdd310("NOSSO CONTROLE 3.1.0");
+  diagnosticAdd310("NOSSO CONTROLE 3.1.1");
   diagnosticAdd310("================================");
   diagnosticAdd310("Online",navigator.onLine?"SIM":"NÃO");
   diagnosticAdd310("URL",location.href);
+  diagnosticAdd310("User agent",navigator.userAgent);
 
-  if(typeof sb==="undefined"||!sb){
-    diagnosticAdd310("❌ Cliente Supabase não inicializado");
-    return;
-  }
+  if(typeof sb==="undefined"||!sb){diagnosticAdd310("❌ Cliente Supabase não inicializado");return;}
   diagnosticAdd310("✅ Cliente Supabase inicializado");
 
+  const swRegistration=await navigator.serviceWorker?.getRegistration?.();
+  diagnosticAdd310("Service Worker",swRegistration?"ATIVO":"NÃO REGISTRADO");
+  const cacheNames=await caches.keys().catch(()=>[]);
+  diagnosticAdd310("Caches locais",cacheNames.length);
+
   let sessionResponse;
-  try{
-    sessionResponse=await sb.auth.getSession();
-  }catch(error){
-    diagnosticError310("Consultar sessão",error);
-    return;
-  }
-
-  if(sessionResponse.error){
-    diagnosticError310("Sessão",sessionResponse.error);
-    return;
-  }
-
+  try{sessionResponse=await sb.auth.getSession()}catch(error){diagnosticError310("Consultar sessão",error);return;}
+  if(sessionResponse.error){diagnosticError310("Sessão",sessionResponse.error);return;}
   const session=sessionResponse.data?.session;
-  if(!session?.user){
-    diagnosticAdd310("❌ Nenhuma sessão ativa");
-    return;
-  }
+  if(!session?.user){diagnosticAdd310("❌ Nenhuma sessão ativa");return;}
 
   diagnosticAdd310("✅ Login ativo");
   diagnosticAdd310("User ID",session.user.id);
   diagnosticAdd310("E-mail",session.user.email||"—");
+  diagnosticAdd310("Expiração da sessão",session.expires_at?new Date(session.expires_at*1000).toLocaleString("pt-BR"):"—");
 
-  let member;
-  try{
-    member=await sb
-      .from("household_members")
-      .select("household_id")
-      .eq("user_id",session.user.id)
-      .maybeSingle();
-  }catch(error){
-    diagnosticError310("household_members",error);
-    return;
-  }
-
-  if(member.error){
-    diagnosticError310("household_members",member.error);
-    return;
-  }
-  if(!member.data?.household_id){
-    diagnosticAdd310("❌ Nenhum vínculo de casa encontrado");
-    return;
-  }
-
+  const queryStart=performance.now();
+  const member=await sb.from("household_members").select("household_id").eq("user_id",session.user.id).maybeSingle();
+  if(member.error){diagnosticError310("household_members",member.error);return;}
+  if(!member.data?.household_id){diagnosticAdd310("❌ Nenhum vínculo de casa encontrado");return;}
   const houseId=member.data.household_id;
   diagnosticAdd310("✅ Household ID",houseId);
 
-  const house=await sb
-    .from("households")
-    .select("code")
-    .eq("id",houseId)
-    .maybeSingle();
+  const house=await sb.from("households").select("code").eq("id",houseId).maybeSingle();
+  if(house.error)diagnosticError310("households",house.error);
+  else diagnosticAdd310("✅ Código da casa",house.data?.code||"SEM CÓDIGO");
 
-  if(house.error){
-    diagnosticError310("households",house.error);
-  }else{
-    diagnosticAdd310("✅ Código da casa",house.data?.code||"SEM CÓDIGO");
-  }
-
-  const finance=await sb
-    .from("finance_state")
-    .select("data")
-    .eq("household_id",houseId)
-    .maybeSingle();
-
-  if(finance.error){
-    diagnosticError310("finance_state",finance.error);
-    return;
-  }
-  if(!finance.data?.data){
-    diagnosticAdd310("❌ finance_state sem dados");
-    return;
-  }
+  const finance=await sb.from("finance_state").select("data,updated_at").eq("household_id",houseId).maybeSingle();
+  if(finance.error){diagnosticError310("finance_state",finance.error);return;}
+  if(!finance.data?.data){diagnosticAdd310("❌ finance_state sem dados");return;}
 
   const data=finance.data.data;
   diagnosticAdd310("✅ finance_state carregado");
+  diagnosticAdd310("Tempo das consultas",`${Math.round(performance.now()-queryStart)} ms`);
+  diagnosticAdd310("Última sincronização",finance.data.updated_at?new Date(finance.data.updated_at).toLocaleString("pt-BR"):data.updatedAt||"—");
   diagnosticAdd310("Bills",Array.isArray(data.bills)?data.bills.length:"campo inválido");
   diagnosticAdd310("Receitas",Array.isArray(data.incomes)?data.incomes.length:"campo inválido");
   diagnosticAdd310("Gastos",Array.isArray(data.expenses)?data.expenses.length:"campo inválido");
   diagnosticAdd310("Cofre",Array.isArray(data.vaultEntries)?data.vaultEntries.length:"campo inválido");
-  diagnosticAdd310("✅ Diagnóstico concluído");
+  diagnosticAdd310("Envelope",money(Number(data.cash||0)));
+  diagnosticAdd310("Cartão",money(Number(data.card||0)));
+  diagnosticAdd310("Meta diária calculada",money(requiredDailyGoalForBills(data.bills||[])));
+  diagnosticAdd310("Tempo total",`${Math.round(performance.now()-started)} ms`);
+  diagnosticAdd310("🟢 SISTEMA SAUDÁVEL");
 }
-
 async function copyDiagnostic310(){
   const text=diagnosticLines310.join("\n")||$("diagnosticLog")?.textContent||"Sem log";
   try{
