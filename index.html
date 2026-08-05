@@ -4,13 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
   <meta name="theme-color" content="#080914">
-  <meta name="application-name" content="Nosso Controle 3.1.2">
+  <meta name="application-name" content="Nosso Controle 3.1.3">
   <meta name="apple-mobile-web-app-title" content="Nosso Controle">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="styles.css?v=3.1.2">
-  <title>Nosso Controle 3.1.2</title>
+  <link rel="stylesheet" href="styles.css?v=3.1.3">
+  <title>Nosso Controle 3.1.3</title>
 </head>
 <body>
   <section id="authView" class="auth-screen">
@@ -28,16 +28,16 @@
     Use o mesmo e-mail da conta original. O Username não é necessário para entrar.
   </div>
 
-      
-      <section id="inlineDiagnosticBox" class="inline-diagnostic-box hidden">
-        <div class="inline-diagnostic-head">
-          <b>Detalhes técnicos</b>
-          <button id="copyInlineDiagnosticBtn" type="button">Copiar</button>
+      <div id="authMsg" class="feedback"></div>
+
+      <section id="fatalLoginDiagnostic" class="fatal-login-diagnostic" style="display:none">
+        <div class="fatal-login-head">
+          <b>Detalhes técnicos do erro</b>
+          <button id="copyFatalLoginDiagnostic" type="button">Copiar</button>
         </div>
-        <pre id="inlineDiagnosticLog"></pre>
+        <pre id="fatalLoginDiagnosticText"></pre>
       </section>
 
-      <div id="authMsg" class="feedback"></div>
     </div>
   </section>
 
@@ -690,10 +690,10 @@
       </div>
 
 
-      <section id="billGoalPreview" class="bill-goal-preview">
+      <section id="billGoalPreview313" class="bill-goal-preview">
         <span>NOVA META DIÁRIA ESTIMADA</span>
-        <strong id="billGoalPreviewValue">£0,00 por dia</strong>
-        <small>Valor necessário para cobrir as Bills dentro dos vencimentos.</small>
+        <strong id="billGoalPreviewValue313">£0,00 por dia</strong>
+        <small>Calculada considerando valores restantes e vencimentos.</small>
       </section>
 
       <button id="saveNewBill" value="cancel" class="primary-button">Salvar Bill</button>
@@ -850,12 +850,12 @@
   <div id="toast" class="toast"></div>
   <canvas id="confetti"></canvas>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=3.1.2"></script>
+  <script src="app.js?v=3.1.3"></script>
   <script>
     if("serviceWorker" in navigator){
       window.addEventListener("load",async()=>{
         try{
-          const reg=await navigator.serviceWorker.register("./sw.js?v=3.1.2",{updateViaCache:"none"});
+          const reg=await navigator.serviceWorker.register("./sw.js?v=3.1.3",{updateViaCache:"none"});
           reg.update();
         }catch(error){console.warn("Service Worker:",error);}
       });

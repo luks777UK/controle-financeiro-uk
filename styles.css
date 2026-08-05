@@ -1123,72 +1123,23 @@ body.settings-open-310{
   gap:9px;
 }
 
-
-/* Nosso Controle 3.1.2 */
-.inline-diagnostic-box{
+.fatal-login-diagnostic{
   margin-top:12px;
-  padding:11px;
-  border-radius:14px;
-  background:#090b13;
-  border:1px solid rgba(255,112,132,.22);
-}
-.inline-diagnostic-head{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:10px;
-  margin-bottom:8px;
-}
-.inline-diagnostic-head b{font-size:9px;color:#ff8fa0}
-.inline-diagnostic-head button{
-  border:0;
-  padding:5px 8px;
-  border-radius:8px;
-  background:rgba(139,92,246,.15);
-  color:#b89cff;
-  font-size:8px;
-  font-weight:800;
-}
-#inlineDiagnosticLog{
-  margin:0;
-  max-height:220px;
-  overflow:auto;
-  white-space:pre-wrap;
-  word-break:break-word;
-  color:#d7dae7;
-  font:10px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace;
-}
-.bill-goal-preview{
-  margin:2px 0 12px;
-  padding:11px 12px;
+  padding:12px;
   border-radius:15px;
-  background:rgba(63,230,162,.07);
-  border:1px solid rgba(63,230,162,.14);
+  background:#080a12;
+  border:1px solid rgba(255,107,128,.28);
 }
+.fatal-login-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+.fatal-login-head b{font-size:9px;color:#ff8497}
+.fatal-login-head button{border:0;border-radius:8px;padding:5px 9px;background:rgba(139,92,246,.16);color:#b99cff;font-size:8px;font-weight:800}
+#fatalLoginDiagnosticText{margin:0;max-height:260px;overflow:auto;white-space:pre-wrap;word-break:break-word;color:#d9dce8;font:10px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace}
+.bill-goal-preview{margin:3px 0 12px;padding:11px 12px;border-radius:15px;background:rgba(63,230,162,.07);border:1px solid rgba(63,230,162,.14)}
 .bill-goal-preview span,.bill-goal-preview strong,.bill-goal-preview small{display:block}
 .bill-goal-preview span{font-size:7px;font-weight:900;letter-spacing:1px;color:#42e5a4}
 .bill-goal-preview strong{margin-top:5px;font-size:17px}
 .bill-goal-preview small{margin-top:4px;font-size:7.5px;line-height:1.4;color:#969aac}
-.v312-bill-extra{
-  display:flex;
-  gap:7px;
-  flex-wrap:wrap;
-  margin-top:9px;
-}
-.v312-bill-extra span{
-  padding:6px 8px;
-  border-radius:10px;
-  background:#10121c;
-  color:#9296a8;
-  font-size:7px;
-}
-.v312-bill-extra strong{
-  margin-left:3px;
-  color:#f3f5ff;
-  font-size:8px;
-}
-.v312-bill-extra .goal{
-  border:1px solid rgba(63,230,162,.13);
-  background:rgba(63,230,162,.06);
-  color:#42e5a4;
-}
+.bill-funds-313{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}
+.bill-funds-313 span{padding:6px 8px;border-radius:10px;background:#10121c;color:#9296a8;font-size:7px}
+.bill-funds-313 strong{margin-left:3px;color:#f3f5ff;font-size:8px}
+.bill-funds-313 .goal{background:rgba(63,230,162,.06);border:1px solid rgba(63,230,162,.13);color:#42e5a4}

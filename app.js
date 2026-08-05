@@ -34,6 +34,38 @@ function formatDate(s){return new Date(s+"T00:00:00").toLocaleDateString("pt-BR"
 function daysUntil(s){const n=new Date();n.setHours(0,0,0,0);return Math.ceil((new Date(s+"T00:00:00")-n)/86400000)}
 function show(id){["authView","householdView","appView"].forEach(x=>$(x).classList.add("hidden"));$(id).classList.remove("hidden");if(id==="appView")closeKeyboardAndResetViewport(true);if(id==="authView")setTimeout(restoreUsernameField,0)}
 function feedback(id,t){$(id).textContent=t||""}
+
+function fatalDiagnostic313(step,error,extra={}){
+  try{
+    const box=document.getElementById("fatalLoginDiagnostic");
+    const text=document.getElementById("fatalLoginDiagnosticText");
+    const lines=[
+      `VERSÃO: 3.1.3`,
+      `ETAPA: ${step}`,
+      `MENSAGEM: ${error?.message||String(error||"Erro desconhecido")}`
+    ];
+    if(error?.code)lines.push(`CÓDIGO: ${error.code}`);
+    if(error?.details)lines.push(`DETALHES: ${error.details}`);
+    if(error?.hint)lines.push(`SUGESTÃO: ${error.hint}`);
+    if(error?.stack)lines.push(`STACK: ${error.stack}`);
+    Object.entries(extra||{}).forEach(([k,v])=>lines.push(`${k.toUpperCase()}: ${v??"—"}`));
+    if(text)text.textContent=lines.join("\n");
+    if(box){
+      box.style.setProperty("display","block","important");
+      box.classList.remove("hidden");
+    }
+    console.error("[Nosso Controle 3.1.3]",step,error,extra);
+  }catch(diagError){
+    console.error("Falha ao mostrar diagnóstico",diagError,error);
+  }
+}
+function clearFatalDiagnostic313(){
+  const box=document.getElementById("fatalLoginDiagnostic");
+  const text=document.getElementById("fatalLoginDiagnosticText");
+  if(box)box.style.setProperty("display","none","important");
+  if(text)text.textContent="";
+}
+
 function toast(t){$("toast").textContent=t;$("toast").classList.add("show");setTimeout(()=>$("toast").classList.remove("show"),2100)}
 function makeCode(){return Math.random().toString(36).slice(2,10).toUpperCase()}
 
@@ -88,7 +120,7 @@ async function loadMembership(){
     .maybeSingle();
 
   if(memberResult.error){
-    console.error("household_members:",memberResult.error);
+    console.error("household_members:",memberResult.error);fatalDiagnostic313("household_members",memberResult.error,{user_id:user?.id||"—"});
     feedback("authMsg","Login realizado, mas não foi possível carregar a casa financeira.");
     show("authView");
     return;
@@ -108,7 +140,7 @@ async function loadMembership(){
     .maybeSingle();
 
   if(householdResult.error){
-    console.warn("households:",householdResult.error);
+    console.warn("households:",householdResult.error);fatalDiagnostic313("households",householdResult.error,{household_id:householdId||"—"});
     householdCode="";
   }else{
     householdCode=householdResult.data?.code||"";
@@ -134,7 +166,7 @@ async function loadState(){
     .maybeSingle();
 
   if(result.error){
-    console.error("finance_state:",result.error);
+    console.error("finance_state:",result.error);fatalDiagnostic313("finance_state",result.error,{household_id:householdId||"—"});
     toast("Erro ao carregar os dados financeiros");
     return false;
   }
@@ -150,7 +182,7 @@ async function loadState(){
       },{onConflict:"household_id"});
 
     if(created.error){
-      console.error("Criar finance_state:",created.error);
+      console.error("Criar finance_state:",created.error);fatalDiagnostic313("Criar finance_state",created.error,{household_id:householdId||"—"});
       return false;
     }
   }else{
@@ -228,7 +260,7 @@ function authMessage(error){
 }
 async function handleLogin(){
   feedback("authMsg","");
-  clearInlineDiagnostic312();
+  clearFatalDiagnostic313();
   const email=$("email").value.trim().toLowerCase();
   const password=$("password").value;
 
@@ -277,10 +309,9 @@ async function handleLogin(){
     await loadMembership();
   }catch(error){
     console.error("Falha após login:",error);
-    showInlineDiagnostic312("Abrir dados após login",error,{
+    fatalDiagnostic313("Abrir dados após login",error,{
       user_id:user?.id||"—",
-      household_id:householdId||"—",
-      version:APP_VERSION
+      household_id:householdId||"—"
     });
     feedback("authMsg","Login realizado, mas ocorreu um erro ao abrir seus dados.");
     show("authView");
@@ -994,119 +1025,62 @@ $("saveIncome").onclick=async e=>{
 
 
 
-let inlineDiagnosticLines312=[];
-
-function clearInlineDiagnostic312(){
-  inlineDiagnosticLines312=[];
-  const box=$("inlineDiagnosticBox");
-  const log=$("inlineDiagnosticLog");
-  if(box)box.classList.add("hidden");
-  if(log)log.textContent="";
-}
-
-function showInlineDiagnostic312(step,error,extra={}){
-  const lines=[`ETAPA: ${step}`];
-  if(error){
-    lines.push(`MENSAGEM: ${error.message||String(error)}`);
-    if(error.code)lines.push(`CÓDIGO: ${error.code}`);
-    if(error.details)lines.push(`DETALHES: ${error.details}`);
-    if(error.hint)lines.push(`SUGESTÃO: ${error.hint}`);
-    if(error.stack)lines.push(`STACK: ${error.stack}`);
-  }
-  Object.entries(extra||{}).forEach(([key,value])=>lines.push(`${key.toUpperCase()}: ${value??"—"}`));
-  inlineDiagnosticLines312=lines;
-  const box=$("inlineDiagnosticBox");
-  const log=$("inlineDiagnosticLog");
-  if(log)log.textContent=lines.join("\n");
-  if(box)box.classList.remove("hidden");
-  console.error("[Nosso Controle]",step,error,extra);
-}
-
-function requiredDailyGoal312(bills){
-  const today=new Date(`${currentLocalDate()}T12:00:00`);
-  const active=(Array.isArray(bills)?bills:[])
-    .filter(b=>!b.completed&&!b.paid)
-    .map(b=>{
-      const amount=Number(b.amount||0);
-      const reserved=Number(b.reserved||0);
-      const due=new Date(`${b.due}T12:00:00`);
-      return {...b,remaining:Math.max(0,amount-reserved),dueDate:due};
-    })
-    .filter(b=>b.remaining>0 && !Number.isNaN(b.dueDate.getTime()))
-    .sort((a,b)=>a.dueDate-b.dueDate);
-
-  let cumulative=0;
-  let required=0;
-  for(const bill of active){
-    cumulative+=bill.remaining;
-    const days=Math.max(1,Math.ceil((bill.dueDate-today)/86400000)+1);
-    required=Math.max(required,cumulative/days);
-  }
-  return Math.ceil(required*100)/100;
-}
-
-function draftBills312(){
-  const bills=(state?.bills||[]).map(b=>({...b}));
-  const amount=Number($("newBillAmount")?.value)||0;
-  const due=$("newBillDue")?.value||"";
-  if(amount<=0||!due)return bills;
-
-  const editId=$("billCreateEditId")?.value||"";
-  const existing=bills.find(b=>b.id===editId);
-  const draft={
-    id:editId||"preview",
-    amount,
-    due,
-    reserved:Number(existing?.reserved||0),
-    paid:false,
-    completed:false
-  };
-  const index=bills.findIndex(b=>b.id===editId);
-  if(index>=0)bills[index]={...bills[index],...draft};
-  else bills.push(draft);
-  return bills;
-}
-
-function updateBillGoalPreview312(){
+function dailyGoal313(bills){
   try{
-    const value=$("billGoalPreviewValue");
-    if(value)value.textContent=`${money(requiredDailyGoal312(draftBills312()))} por dia`;
-  }catch(error){
-    showInlineDiagnostic312("Prévia da meta diária",error);
-  }
-}
-
-function applyBillsEnhancements312(){
-  try{
-    if(!state)return;
-
-    const bills=(state.bills||[]).filter(b=>!b.completed);
-    const goal=requiredDailyGoal312(bills);
-    const summary=$("v22BillSummary");
-    if(summary){
-      let extra=$("v312BillExtra");
-      if(!extra){
-        extra=document.createElement("div");
-        extra.id="v312BillExtra";
-        extra.className="v312-bill-extra";
-        summary.appendChild(extra);
-      }
-      extra.innerHTML=`
-        <span>Envelope <strong>${money(Number(state.cash||0))}</strong></span>
-        <span>Cartão <strong>${money(Number(state.card||0))}</strong></span>
-        <span class="goal">Meta diária <strong>${money(goal)}</strong></span>`;
+    const today=new Date(`${currentLocalDate()}T12:00:00`);
+    const active=(Array.isArray(bills)?bills:[])
+      .filter(b=>!b.completed&&!b.paid)
+      .map(b=>({
+        remaining:Math.max(0,Number(b.amount||0)-Number(b.reserved||0)),
+        due:new Date(`${b.due}T12:00:00`)
+      }))
+      .filter(b=>b.remaining>0&&!Number.isNaN(b.due.getTime()))
+      .sort((a,b)=>a.due-b.due);
+    let cumulative=0,goal=0;
+    for(const bill of active){
+      cumulative+=bill.remaining;
+      const days=Math.max(1,Math.ceil((bill.due-today)/86400000)+1);
+      goal=Math.max(goal,cumulative/days);
     }
+    return Math.ceil(goal*100)/100;
   }catch(error){
-    showInlineDiagnostic312("Melhorias visuais das Bills",error,{
-      version:APP_VERSION,
-      household_id:householdId||"—"
-    });
+    fatalDiagnostic313("Calcular meta diária",error);
+    return Number(state?.dailyGoal||0);
+  }
+}
+function updateGoalPreview313(){
+  try{
+    const bills=(state?.bills||[]).map(b=>({...b}));
+    const amount=Number($("newBillAmount")?.value)||0;
+    const due=$("newBillDue")?.value||"";
+    if(amount>0&&due)bills.push({amount,due,reserved:0,completed:false,paid:false});
+    const target=$("billGoalPreviewValue313");
+    if(target)target.textContent=`${money(dailyGoal313(bills))} por dia`;
+  }catch(error){fatalDiagnostic313("Prévia da meta",error)}
+}
+function enhanceBills313(){
+  try{
+    const summary=$("v22BillSummary");
+    if(!summary||!state)return;
+    let row=$("billFunds313");
+    if(!row){
+      row=document.createElement("div");
+      row.id="billFunds313";
+      row.className="bill-funds-313";
+      summary.appendChild(row);
+    }
+    row.innerHTML=`
+      <span>Envelope <strong>${money(Number(state.cash||0))}</strong></span>
+      <span>Cartão <strong>${money(Number(state.card||0))}</strong></span>
+      <span class="goal">Meta diária <strong>${money(dailyGoal313(state.bills||[]))}</strong></span>`;
+  }catch(error){
+    fatalDiagnostic313("Exibir Envelope, Cartão e meta nas Bills",error);
   }
 }
 
 $("openNewBill").onclick=()=>openBillCreateDialog();
-$("newBillType").onchange=()=>{$("installmentFields").classList.toggle("hidden",$("newBillType").value!=="installment");updateBillGoalPreview312()};
-["newBillAmount","newBillDue","newBillFrequency","newBillCurrentInstallment","newBillTotalInstallments"].forEach(id=>$(id)?.addEventListener("input",updateBillGoalPreview312));
+$("newBillType").onchange=()=>{$("installmentFields").classList.toggle("hidden",$("newBillType").value!=="installment");updateGoalPreview313()};
+["newBillAmount","newBillDue","newBillFrequency"].forEach(id=>$(id)?.addEventListener("input",updateGoalPreview313));
 $("saveNewBill").onclick=async e=>{
   e.preventDefault();
   const name=$("newBillName").value.trim();
@@ -1138,11 +1112,7 @@ $("saveNewBill").onclick=async e=>{
       ...payload
     });
   }
-  try{
-    state.dailyGoal=requiredDailyGoal312(state.bills);
-  }catch(error){
-    showInlineDiagnostic312("Recalcular meta após salvar Bill",error);
-  }
+  try{state.dailyGoal=dailyGoal313(state.bills||[])}catch(error){fatalDiagnostic313("Salvar nova meta diária",error)}
   $("billCreateDialog").close();
   await persist(editId?"Bill atualizada":"Bill adicionada");
 };
@@ -1287,7 +1257,7 @@ function openBillCreateDialog(id=null){
     $("newBillTotalInstallments").value=bill.totalInstallments||12;
     $("installmentFields").classList.toggle("hidden",bill.type!=="installment");
   }
-  $("billCreateDialog").showModal();setTimeout(updateBillGoalPreview312,0);
+  $("billCreateDialog").showModal();setTimeout(updateGoalPreview313,0);
 }
 function renderCompletedBills(){
   const list=state.completedBills||[];
@@ -1479,15 +1449,8 @@ $("saveVaultDeposit").onclick=async e=>{
 };
 
 
-const APP_VERSION="3.1.2";
+const APP_VERSION="3.1.3";
 const RELEASE_NOTES=[
-  {version:"3.1.2",date:"05/08/2026",title:"Bills protegidas e log no login",changes:[
-    "Meta diária automática isolada do fluxo de login.",
-    "Envelope e Cartão exibidos no resumo das Bills.",
-    "Prévia da nova meta ao criar ou editar uma Bill.",
-    "Erros visuais não impedem mais a abertura do aplicativo.",
-    "Detalhes técnicos aparecem diretamente na tela de login."
-  ]},
   {version:"3.1.0",date:"05/08/2026",title:"Refatoração de estabilidade",changes:[
     "Removidos scripts e manipuladores duplicados.",
     "Login unificado em um único fluxo.",
@@ -1555,12 +1518,12 @@ function prepareSettings(){const sheet=$("settingsSheet");if(!sheet)return;sheet
 
 const baseRender=render;
 render=function(){
-  baseRender();
-  try{renderCleanDashboard()}catch(error){showInlineDiagnostic312("Renderizar dashboard premium",error)}
-  try{renderCleanBills()}catch(error){showInlineDiagnostic312("Renderizar Bills premium",error)}
-  try{renderUpdatesV22()}catch(error){showInlineDiagnostic312("Renderizar atualizações",error)}
-  try{prepareSettings()}catch(error){showInlineDiagnostic312("Preparar configurações",error)}
-  applyBillsEnhancements312();
+  try{baseRender()}catch(error){fatalDiagnostic313("Renderização principal",error);throw error}
+  try{renderCleanDashboard()}catch(error){fatalDiagnostic313("Dashboard premium",error)}
+  try{renderCleanBills()}catch(error){fatalDiagnostic313("Bills premium",error)}
+  try{renderUpdatesV22()}catch(error){fatalDiagnostic313("Atualizações",error)}
+  try{prepareSettings()}catch(error){fatalDiagnostic313("Configurações",error)}
+  setTimeout(enhanceBills313,0);
 };
 window.addEventListener('pageshow',()=>{const d=$("updatesDialog");if(d?.open)safeClose(d)});
 ensureCleaningDialog();prepareSettings();renderUpdatesV22();
@@ -1819,15 +1782,22 @@ window.addEventListener("pageshow",()=>setTimeout(bindStableControls310,50));
 setTimeout(bindStableControls310,250);
 
 
+window.addEventListener("error",event=>{
+  fatalDiagnostic313("Erro JavaScript global",event.error||new Error(event.message),{
+    arquivo:event.filename||"—",
+    linha:event.lineno||"—",
+    coluna:event.colno||"—"
+  });
+});
+window.addEventListener("unhandledrejection",event=>{
+  const reason=event.reason instanceof Error?event.reason:new Error(String(event.reason));
+  fatalDiagnostic313("Promise rejeitada",reason);
+});
 document.addEventListener("DOMContentLoaded",()=>{
-  $("copyInlineDiagnosticBtn")?.addEventListener("click",async()=>{
-    const text=inlineDiagnosticLines312.join("\n")||$("inlineDiagnosticLog")?.textContent||"Sem detalhes";
-    try{
-      await navigator.clipboard.writeText(text);
-      toast("Detalhes copiados");
-    }catch{
-      prompt("Copie os detalhes:",text);
-    }
+  document.getElementById("copyFatalLoginDiagnostic")?.addEventListener("click",async()=>{
+    const value=document.getElementById("fatalLoginDiagnosticText")?.textContent||"Sem detalhes";
+    try{await navigator.clipboard.writeText(value);toast("Detalhes copiados")}
+    catch{prompt("Copie os detalhes:",value)}
   });
 });
 
