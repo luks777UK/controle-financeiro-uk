@@ -1028,3 +1028,40 @@ body,
 .diagnostic-head p{margin:0;color:#9296a8;font-size:9px}
 #diagnosticLog{margin:14px 0;padding:13px;min-height:280px;max-height:50vh;overflow:auto;white-space:pre-wrap;word-break:break-word;border-radius:16px;background:#090b13;border:1px solid rgba(255,255,255,.06);color:#c9f7df;font:12px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace}
 .diagnostic-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+
+
+/* Nosso Controle 3.0.6 — detalhes técnicos no login */
+.inline-diagnostic-box{
+  margin-top:12px;
+  padding:11px;
+  border-radius:14px;
+  background:#090b13;
+  border:1px solid rgba(255,112,132,.2);
+}
+.inline-diagnostic-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:8px;
+}
+.inline-diagnostic-head b{
+  font-size:9px;
+  color:#ff8fa0;
+}
+.inline-diagnostic-head button{
+  border:0;
+  padding:5px 8px;
+  border-radius:8px;
+  background:rgba(139,92,246,.14);
+  color:#b89cff;
+  font-size:8px;
+  font-weight:800;
+}
+#inlineDiagnosticLog{
+  margin:0;
+  white-space:pre-wrap;
+  word-break:break-word;
+  color:#d6d9e6;
+  font:10px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace;
+}

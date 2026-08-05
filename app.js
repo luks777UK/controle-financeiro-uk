@@ -1,4 +1,4 @@
-/* Nosso Controle 3.0.5 — aplicação refatorada */
+/* Nosso Controle 3.0.6 — aplicação refatorada */
 const cfg={
   SUPABASE_URL:"https://lhihsssbsjfliggtlaza.supabase.co",
   SUPABASE_ANON_KEY:"sb_publishable_0bttyUW7ASI8ylAyZjLkPA_NS8eThfO",
@@ -96,6 +96,7 @@ async function loadMembership(){
   }
 
   if(!memberResult.data?.household_id){
+    showInlineDiagnostic("household_members",null,{resultado:"Nenhum vínculo encontrado",user_id:user?.id});
     show("householdView");
     return;
   }
@@ -152,6 +153,7 @@ async function loadState(){
 
     if(created.error){
       console.error("Criar finance_state:",created.error);
+      showInlineDiagnostic("criar finance_state",created.error,{household_id:householdId});
       return false;
     }
   }else{
@@ -229,6 +231,7 @@ function authMessage(error){
 }
 async function handleLogin(){
   feedback("authMsg","");
+  clearInlineDiagnostic();
   const email=$("email").value.trim().toLowerCase();
   const password=$("password").value;
 
@@ -277,6 +280,7 @@ async function handleLogin(){
     await loadMembership();
   }catch(error){
     console.error("Falha após login:",error); addDiagnosticError("Após login",error);
+    showInlineDiagnostic("JavaScript após login",error,{user_id:user?.id});
     feedback("authMsg","Login realizado, mas ocorreu um erro ao abrir seus dados.");
     show("authView");
   }
@@ -1357,9 +1361,9 @@ $("saveVaultDeposit").onclick=async e=>{
 };
 
 
-const APP_VERSION="3.0.5";
+const APP_VERSION="3.0.6";
 const RELEASE_NOTES=[
-  {version:"3.0.5",date:"05/08/2026",title:"Refatoração de estabilidade",changes:[
+  {version:"3.0.6",date:"05/08/2026",title:"Refatoração de estabilidade",changes:[
     "Removidos scripts e manipuladores duplicados.",
     "Login unificado em um único fluxo.",
     "Dashboard, Bills e filtros renderizados uma única vez.",
@@ -1431,7 +1435,7 @@ ensureCleaningDialog();prepareSettings();renderUpdatesV22();
 boot();
 
 
-/* Nosso Controle 3.0.5 — Compartilhar e Diagnóstico */
+/* Nosso Controle 3.0.6 — Compartilhar e Diagnóstico */
 const diagnosticLines=[];
 
 function addDiagnostic(message,detail){
@@ -1452,7 +1456,7 @@ function addDiagnosticError(step,error){
 function resetDiagnostic(){
   diagnosticLines.length=0;
   addDiagnostic("================================");
-  addDiagnostic("NOSSO CONTROLE 3.0.5");
+  addDiagnostic("NOSSO CONTROLE 3.0.6");
   addDiagnostic("================================");
 }
 async function runFullDiagnostic(){
@@ -1520,4 +1524,52 @@ function installTools(){
 }
 document.addEventListener("DOMContentLoaded",installTools);
 window.addEventListener("pageshow",()=>setTimeout(installTools,50));
+
+
+
+/* Nosso Controle 3.0.6 — erro técnico visível no login */
+let inlineDiagnosticLines=[];
+
+function clearInlineDiagnostic(){
+  inlineDiagnosticLines=[];
+  const box=document.getElementById("inlineDiagnosticBox");
+  const log=document.getElementById("inlineDiagnosticLog");
+  if(box)box.classList.add("hidden");
+  if(log)log.textContent="";
+}
+
+function showInlineDiagnostic(step,error,extra={}){
+  const box=document.getElementById("inlineDiagnosticBox");
+  const log=document.getElementById("inlineDiagnosticLog");
+  if(!box||!log)return;
+
+  const lines=[];
+  lines.push(`ETAPA: ${step}`);
+  if(error){
+    lines.push(`MENSAGEM: ${error.message||String(error)}`);
+    if(error.code)lines.push(`CÓDIGO: ${error.code}`);
+    if(error.details)lines.push(`DETALHES: ${error.details}`);
+    if(error.hint)lines.push(`SUGESTÃO: ${error.hint}`);
+    if(error.status)lines.push(`STATUS: ${error.status}`);
+  }
+  for(const [key,value] of Object.entries(extra||{})){
+    lines.push(`${key.toUpperCase()}: ${value??"—"}`);
+  }
+
+  inlineDiagnosticLines=lines;
+  log.textContent=lines.join("\n");
+  box.classList.remove("hidden");
+}
+
+document.addEventListener("DOMContentLoaded",()=>{
+  document.getElementById("copyInlineDiagnosticBtn")?.addEventListener("click",async()=>{
+    const text=inlineDiagnosticLines.join("\n")||document.getElementById("inlineDiagnosticLog")?.textContent||"Sem detalhes";
+    try{
+      await navigator.clipboard.writeText(text);
+      if(typeof toast==="function")toast("Detalhes copiados");
+    }catch{
+      prompt("Copie os detalhes:",text);
+    }
+  });
+});
 
