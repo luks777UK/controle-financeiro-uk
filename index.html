@@ -7,13 +7,13 @@
   <meta http-equiv="Expires" content="0">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
   <meta name="theme-color" content="#080914">
-  <meta name="application-name" content="Nosso Controle 4.0.4">
+  <meta name="application-name" content="Nosso Controle 4.1.0">
   <meta name="apple-mobile-web-app-title" content="Nosso Controle">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="styles.css?v=4.0.4-fresh">
-  <title>Nosso Controle 4.0.4</title>
+  <link rel="stylesheet" href="styles.css?v=4.1.0-fresh">
+  <title>Nosso Controle 4.1.0</title>
 </head>
 <body>
   <section id="authView" class="auth-screen">
@@ -467,7 +467,7 @@
         <button id="resetFinance" class="sheet-action danger">Zerar reservas e depósitos</button>
         
       <div id="buildMarker403" class="build-marker-403">
-        Versão carregada: 4.0.4
+        Versão carregada: 4.1.0
       </div>
 
       <button id="logoutBtn" class="sheet-action">Sair da conta</button>
@@ -500,43 +500,17 @@
 
   <dialog id="calendarDialog" class="calendar-dialog">
     <section class="calendar-panel">
-      <div class="calendar-top">
-        <div>
-          <span class="calendar-overline">ACOMPANHAMENTO DIÁRIO</span>
-          <h2>Calendário de depósitos</h2>
-          <p>O dia fica verde quando vocês atingem a meta diária.</p>
-        </div>
-        <button id="closeCalendar" class="round-button" type="button">×</button>
+      <div class="calendar-top"><div><span class="calendar-overline">ACOMPANHAMENTO DE BILLS</span><h2>Calendário de depósitos</h2><p>Mostra somente depósitos destinados às Bills.</p></div><button id="closeCalendar" class="round-button" type="button">×</button></div>
+      <div class="calendar-summary calendar-summary-v410">
+        <div><span>Depositado no mês</span><strong id="calendarMonthTotal">£0,00</strong></div>
+        <div><span>Meta por dia trabalhado</span><strong id="calendarDailyGoalV410">£0,00</strong></div>
+        <div><span>Dias com depósito</span><strong id="calendarDepositDaysV410">0</strong></div>
+        <div><span>Dias com meta</span><strong id="calendarGoalDays">0</strong></div>
       </div>
-
-      <div class="calendar-summary">
-        <div>
-          <span>Depositado no mês</span>
-          <strong id="calendarMonthTotal">£0,00</strong>
-        </div>
-        <div>
-          <span>Dias com meta</span>
-          <strong id="calendarGoalDays">0</strong>
-        </div>
-      </div>
-
-      <div class="calendar-navigation">
-        <button id="calendarPrev" class="calendar-nav-button" type="button">‹</button>
-        <strong id="calendarMonthLabel">Agosto de 2026</strong>
-        <button id="calendarNext" class="calendar-nav-button" type="button">›</button>
-      </div>
-
-      <div class="calendar-weekdays">
-        <span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span>
-        <span>Qui</span><span>Sex</span><span>Sáb</span>
-      </div>
+      <div class="calendar-navigation"><button id="calendarPrev" class="calendar-nav-button" type="button">‹</button><strong id="calendarMonthLabel">Mês</strong><button id="calendarNext" class="calendar-nav-button" type="button">›</button></div>
+      <div class="calendar-weekdays"><span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span></div>
       <div id="calendarGrid" class="calendar-grid"></div>
-
-      <div class="calendar-legend">
-        <span><i class="legend-dot goal"></i> Meta atingida</span>
-        <span><i class="legend-dot partial"></i> Depósito parcial</span>
-        <span><i class="legend-dot empty"></i> Sem depósito</span>
-      </div>
+      <div class="calendar-legend"><span><i class="legend-dot goal"></i> Meta atingida</span><span><i class="legend-dot partial"></i> Depósito parcial</span><span><i class="legend-dot empty"></i> Sem depósito</span><span><i class="legend-dot weekend-v410"></i> Fim de semana</span></div>
     </section>
   </dialog>
 
@@ -695,12 +669,15 @@
         </button>
       </section>
 
-      <section class="admin-backup-card">
-        <div>
-          <h3>Backup dos dados</h3>
-          <p>Baixe uma cópia completa do controle em formato JSON.</p>
+      <section class="admin-backup-card admin-backup-card-v410">
+        <div><h3>Backup e restauração</h3><p>O backup automático fica no Supabase Storage, fora do site.</p><small id="automaticBackupStatusV410">Verificando backup automático…</small></div>
+        <div class="backup-actions-v410">
+          <button id="exportBackup" class="secondary-button" type="button">Baixar backup JSON</button>
+          <button id="runCloudBackupV410" class="secondary-button" type="button">Salvar backup agora</button>
+          <button id="chooseBackupFileV410" class="secondary-button" type="button">Importar backup</button>
+          <input id="backupFileInputV410" type="file" accept=".json,application/json" hidden>
         </div>
-        <button id="exportBackup" class="secondary-button" type="button">Exportar backup</button>
+        <div class="backup-location-v410"><span>LOCAL EXTERNO</span><code>Supabase / Storage / finance-backups</code></div>
       </section>
 
       <p class="admin-note">
@@ -972,13 +949,36 @@
     </form>
   </dialog>
 
+  <dialog id="statisticsDialogV410" class="statistics-dialog-v410">
+    <section class="statistics-panel-v410">
+      <div class="calendar-top"><div><span class="calendar-overline">ANÁLISE FINANCEIRA</span><h2>Estatísticas</h2><p>Resumo mensal, histórico e relatório em PDF.</p></div><button id="closeStatisticsV410" class="round-button" type="button">×</button></div>
+      <div class="statistics-month-nav-v410"><button id="statsPrevMonthV410" type="button">‹</button><strong id="statsMonthLabelV410">Mês</strong><button id="statsNextMonthV410" type="button">›</button></div>
+      <section class="statistics-grid-v410">
+        <article class="income"><span>Receitas</span><strong id="statsIncomeV410">£0,00</strong></article>
+        <article class="expense"><span>Gastos</span><strong id="statsExpensesV410">£0,00</strong></article>
+        <article class="bills"><span>Bills pagas</span><strong id="statsBillsPaidV410">£0,00</strong></article>
+        <article class="vault"><span>Cofre líquido</span><strong id="statsVaultV410">£0,00</strong></article>
+        <article class="saved"><span>Guardado para Bills</span><strong id="statsDepositsV410">£0,00</strong></article>
+        <article class="balance"><span>Resultado do mês</span><strong id="statsBalanceV410">£0,00</strong></article>
+      </section>
+      <section class="statistics-progress-v410">
+        <div><span>Meta por dia trabalhado</span><strong id="statsDailyGoalV410">£0,00</strong></div>
+        <div><span>Dias com depósito</span><strong id="statsDepositDaysV410">0</strong></div>
+        <div><span>Dias que atingiram a meta</span><strong id="statsGoalDaysV410">0</strong></div>
+      </section>
+      <div class="statistics-actions-v410"><button id="printStatisticsPdfV410" class="primary-button" type="button">Gerar PDF</button><button id="exportStatisticsCsvV410" class="secondary-button" type="button">Exportar histórico CSV</button></div>
+      <div class="section-heading compact-heading"><div><h2>Histórico do mês</h2><p>Movimentações mais recentes primeiro.</p></div></div>
+      <section id="statisticsHistoryV410" class="statistics-history-v410"></section>
+    </section>
+  </dialog>
+
   <div id="toast" class="toast"></div>
   <canvas id="confetti"></canvas>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=4.0.4-fresh"></script>
+  <script src="app.js?v=4.1.0-fresh"></script>
   <script>
     (async()=>{
-      const BUILD="4.0.4";
+      const BUILD="4.1.0";
       try{
         if("serviceWorker" in navigator){
           const registrations=await navigator.serviceWorker.getRegistrations();

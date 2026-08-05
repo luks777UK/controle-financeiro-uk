@@ -40,7 +40,7 @@ function fatalDiagnostic313(step,error,extra={}){
     const box=document.getElementById("fatalLoginDiagnostic");
     const text=document.getElementById("fatalLoginDiagnosticText");
     const lines=[
-      `VERSÃO: 4.0.4`,
+      `VERSÃO: 4.1.0`,
       `ETAPA: ${step}`,
       `MENSAGEM: ${error?.message||String(error||"Erro desconhecido")}`
     ];
@@ -208,6 +208,7 @@ async function loadState(){
   }));
 
   render();
+  setTimeout(()=>uploadAutomaticBackupV410({force:false,silent:true}),500);
   return true;
 }
 
@@ -371,6 +372,47 @@ function updateFixedGoalCards321(bills=state?.bills||[]){
   }
 }
 
+
+const BACKUP_BUCKET_V410="finance-backups";
+let cloudBackupRunningV410=false;
+function fullBackupPayloadV410(){return {schemaVersion:1,app:"Nosso Controle",appVersion:APP_VERSION,exportedAt:new Date().toISOString(),userId:user?.id||null,householdId:householdId||null,householdCode:householdCode||null,data:structuredClone(state)}}
+function backupStoragePathV410(date=currentLocalDate()){return `${user?.id||"unknown-user"}/${householdId||"unknown-household"}/${date}.json`}
+function setBackupStatusV410(message,tone="neutral"){const el=$("automaticBackupStatusV410");if(el){el.textContent=message;el.dataset.tone=tone}}
+async function uploadAutomaticBackupV410({force=false,silent=true}={}){
+  if(cloudBackupRunningV410||!user?.id||!householdId||!state)return false;
+  const today=currentLocalDate(),marker=`nosso-control-backup-${householdId}`;
+  if(!force&&localStorage.getItem(marker)===today){setBackupStatusV410(`Backup automático de hoje já salvo (${today}).`,"success");return true}
+  cloudBackupRunningV410=true;setBackupStatusV410("Salvando backup externo…","working");
+  try{
+    const blob=new Blob([JSON.stringify(fullBackupPayloadV410(),null,2)],{type:"application/json"});
+    const {error}=await sb.storage.from(BACKUP_BUCKET_V410).upload(backupStoragePathV410(today),blob,{upsert:true,contentType:"application/json",cacheControl:"0"});
+    if(error)throw error;
+    localStorage.setItem(marker,today);
+    setBackupStatusV410(`Backup externo salvo hoje às ${new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})}.`,"success");
+    if(!silent)toast("Backup externo salvo");return true;
+  }catch(error){
+    setBackupStatusV410(error?.message?.toLowerCase().includes("bucket")?"Configure o bucket finance-backups no Supabase.":`Backup pendente: ${error?.message||"erro desconhecido"}`,"error");
+    if(!silent)alert(`Não foi possível salvar o backup externo:\n\n${error?.message||String(error)}`);return false;
+  }finally{cloudBackupRunningV410=false}
+}
+function normalizeImportedStateV410(){
+  state.incomes=Array.isArray(state.incomes)?state.incomes:[];state.expenses=Array.isArray(state.expenses)?state.expenses:[];
+  state.vaultEntries=Array.isArray(state.vaultEntries)?state.vaultEntries:[];state.history=Array.isArray(state.history)?state.history:[];
+  state.completedBills=Array.isArray(state.completedBills)?state.completedBills:[];state.bills=Array.isArray(state.bills)?state.bills:[];
+  state.cash=Number(state.cash||0);state.card=Number(state.card||0);state.monthlyWorkdays=Number(state.monthlyWorkdays||20);state.dailyGoal=calculateFixedWorkdayGoal321(state.bills);
+}
+async function importBackupFileV410(file){
+  if(!file)return;let parsed;
+  try{parsed=JSON.parse(await file.text())}catch{return alert("O arquivo escolhido não é um JSON válido.")}
+  if(!parsed?.data||!Array.isArray(parsed.data.bills))return alert("Este arquivo não parece ser um backup válido.");
+  if(!confirm(`Importar o backup de ${parsed.exportedAt?new Date(parsed.exportedAt).toLocaleString("pt-BR"):"data desconhecida"}?\n\nTodos os dados atuais serão substituídos.`))return;
+  const old=structuredClone(state);
+  try{
+    state=structuredClone(parsed.data);normalizeImportedStateV410();state.updatedAt=new Date().toISOString();
+    const {error}=await sb.from("finance_state").update({data:structuredClone(state),updated_at:state.updatedAt}).eq("household_id",householdId);
+    if(error)throw error;render();await uploadAutomaticBackupV410({force:true,silent:true});toast("Backup importado com sucesso");
+  }catch(error){state=old;render();fatalDiagnostic313("Importar backup 4.1.0",error);alert(`Não foi possível importar:\n\n${error?.message||String(error)}`)}
+}
 async function persist(successMessage){
   try{if(state)state.dailyGoal=calculateFixedWorkdayGoal321(state.bills||[])}catch(error){fatalDiagnostic313("Recalcular meta fixa antes de salvar",error)}
   const stableScrollY=window.scrollY;
@@ -384,10 +426,12 @@ async function persist(successMessage){
     toast("Falha ao sincronizar. Tentando novamente…");
     setTimeout(async()=>{
       const retry=await sb.from("finance_state").update({data:payload,updated_at:new Date().toISOString()}).eq("household_id",householdId);
+      if(!retry.error)uploadAutomaticBackupV410({force:true,silent:true}).catch(()=>{});
       toast(retry.error?"Não foi possível sincronizar":"Sincronizado");
     },1200);
-  }else if(successMessage){
-    toast(successMessage);
+  }else{
+    uploadAutomaticBackupV410({force:true,silent:true}).catch(()=>{});
+    if(successMessage)toast(successMessage);
   }
 }
 function subscribe(){
@@ -1508,56 +1552,34 @@ document.querySelectorAll(".nav-item").forEach(x=>x.classList.remove("active"));
   window.scrollTo({top:0,behavior:"smooth"});
 }
 
-function localDateKey(value){
-  const d=new Date(value);
-  const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,"0"),day=String(d.getDate()).padStart(2,"0");
-  return `${y}-${m}-${day}`;
+function localDateKeyV410(value){
+  if(!value)return "";const text=String(value),iso=text.match(/^(\d{4})-(\d{2})-(\d{2})/);if(iso)return `${iso[1]}-${iso[2]}-${iso[3]}`;
+  const d=new Date(value);if(Number.isNaN(d.getTime()))return "";return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
 }
-function depositTotalsByDay(){
-  const totals={};
-  for(const item of (state.history||[])){
-    const amount=(Number(item.cash)||0)+(Number(item.card)||0);
-    if(amount<=0||!item.date)continue;
-    const key=localDateKey(item.date);
-    totals[key]=(totals[key]||0)+amount;
-  }
-  return totals;
-}
+function billDepositEntriesV410(){return (state?.history||[]).filter(item=>{const type=String(item?.type||""),text=String(item?.text||"").toLowerCase(),amount=Number(item?.amount||0)||(Number(item?.cash||0)+Number(item?.card||0));return amount>0&&item?.date&&(type==="bill_deposit"||text.includes("depósito adicionado")||text.includes("depósito editado"))})}
+function depositTotalsByDayV410(){const totals={};for(const item of billDepositEntriesV410()){const key=localDateKeyV410(item.date);if(!key)continue;totals[key]=(totals[key]||0)+(Number(item.amount||0)||(Number(item.cash||0)+Number(item.card||0)))}return totals}
 function renderCalendar(){
-  if(!state)return;
-  const year=calendarDate.getFullYear(),month=calendarDate.getMonth();
-  const first=new Date(year,month,1),last=new Date(year,month+1,0);
-  const totals=depositTotalsByDay(),goal=Number(state.dailyGoal||70);
-  const monthLabel=new Intl.DateTimeFormat("pt-BR",{month:"long",year:"numeric"}).format(first);
-  $("calendarMonthLabel").textContent=monthLabel;
-  let monthTotal=0,goalDays=0;
-  const grid=$("calendarGrid");grid.innerHTML="";
-  for(let i=0;i<first.getDay();i++){
-    const blank=document.createElement("div");blank.className="calendar-day blank";grid.appendChild(blank);
-  }
-  const todayKey=localDateKey(new Date());
+  if(!state)return;const year=calendarDate.getFullYear(),month=calendarDate.getMonth(),first=new Date(year,month,1,12),last=new Date(year,month+1,0,12),totals=depositTotalsByDayV410(),goal=calculateFixedWorkdayGoal321(state.bills||[]);
+  $("calendarMonthLabel").textContent=new Intl.DateTimeFormat("pt-BR",{month:"long",year:"numeric"}).format(first);$("calendarDailyGoalV410").textContent=money(goal);
+  let monthTotal=0,goalDays=0,depositDays=0;const grid=$("calendarGrid");grid.innerHTML="";
+  for(let i=0;i<first.getDay();i++){const blank=document.createElement("div");blank.className="calendar-day blank";grid.appendChild(blank)}
   for(let day=1;day<=last.getDate();day++){
-    const key=`${year}-${String(month+1).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
-    const amount=totals[key]||0;monthTotal+=amount;
-    const met=amount>=goal;if(met)goalDays++;
-    const cell=document.createElement("div");
-    cell.className=`calendar-day${amount>0?(met?" goal":" partial"):""}${key===todayKey?" today":""}`;
-    cell.innerHTML=`<span class="calendar-day-number">${day}</span>
-      ${met?'<span class="calendar-goal-check">✓</span>':""}
-      <span class="calendar-day-amount">${amount>0?money(amount):"--"}</span>`;
-    cell.title=amount>0?`${money(amount)} depositados`:"Nenhum depósito";
-    cell.onclick=()=>showDayDetails(key);
-    grid.appendChild(cell);
+    const key=`${year}-${String(month+1).padStart(2,"0")}-${String(day).padStart(2,"0")}`,date=new Date(year,month,day,12),weekend=[0,6].includes(date.getDay()),amount=totals[key]||0,met=goal>0&&amount>=goal;
+    monthTotal+=amount;if(amount>0)depositDays++;if(met)goalDays++;
+    const cell=document.createElement("button");cell.type="button";cell.className=["calendar-day",amount>0?(met?"goal":"partial"):"",key===currentLocalDate()?"today":"",weekend?"weekend-v410":""].filter(Boolean).join(" ");
+    cell.innerHTML=`<span class="calendar-day-number">${day}</span>${met?'<span class="calendar-goal-check">✓</span>':""}<span class="calendar-day-amount">${amount>0?money(amount):"--"}</span>`;
+    cell.onclick=()=>showDayDetailsV410(key);grid.appendChild(cell);
   }
-  $("calendarMonthTotal").textContent=money(monthTotal);
-  $("calendarGoalDays").textContent=String(goalDays);
+  $("calendarMonthTotal").textContent=money(monthTotal);$("calendarDepositDaysV410").textContent=String(depositDays);$("calendarGoalDays").textContent=String(goalDays);
 }
-function openCalendar(){
-  $("settingsSheet").classList.add("hidden");
-  calendarDate=new Date();
-  renderCalendar();
-  $("calendarDialog").showModal();
+function showDayDetailsV410(key){
+  const entries=billDepositEntriesV410().filter(x=>localDateKeyV410(x.date)===key).sort((a,b)=>new Date(b.updatedAt||b.date)-new Date(a.updatedAt||a.date)),total=entries.reduce((s,x)=>s+(Number(x.amount||0)||(Number(x.cash||0)+Number(x.card||0))),0);
+  $("dayDetailsTitle").textContent=new Intl.DateTimeFormat("pt-BR",{weekday:"long",day:"numeric",month:"long"}).format(new Date(`${key}T12:00:00`));
+  $("dayDetailIncome").textContent=money(0);$("dayDetailExpenses").textContent=money(0);$("dayDetailBills").textContent=money(total);$("dayDetailVault").textContent=money(0);$("dayDetailNet").textContent=money(total);
+  $("dayDetailsList").innerHTML=entries.length?entries.map(x=>`<article class="day-detail-item"><div><b>${escapeText(x.bill||"Depósito para Bills")}</b><small>Envelope ${money(Number(x.cash||0))} · Cartão ${money(Number(x.card||0))}</small></div><strong class="income">+${money(Number(x.amount||0)||(Number(x.cash||0)+Number(x.card||0)))}</strong></article>`).join(""):'<div class="empty-state">Nenhum depósito para Bills neste dia.</div>';
+  $("dayDetailsDialog").showModal();
 }
+function openCalendar(){$("settingsSheet").classList.add("hidden");calendarDate=new Date();renderCalendar();$("calendarDialog").showModal()}
 
 function animateMoney(id,to){
   const el=$(id),from=Number(el.dataset.money||0),start=performance.now(),duration=500;
@@ -2063,8 +2085,9 @@ $("confirmVaultWithdrawV4").onclick=async()=>{
 };
 
 
-const APP_VERSION="4.0.4";
+const APP_VERSION="4.1.0";
 const RELEASE_NOTES=[
+  {version:"4.1.0",date:"05/08/2026",title:"Calendário, estatísticas e backup externo",changes:["Calendário de depósitos reconstruído para mostrar apenas reservas das Bills.","Estatísticas mensais com histórico, CSV e relatório para salvar como PDF.","Backup automático salvo externamente no Supabase Storage.","Importação de backup JSON para restaurar todo o controle.","Backup atualizado após cada sincronização."]},
   {version:"4.0.4",date:"05/08/2026",title:"Editar e excluir depósitos das Bills",changes:["Depósitos agora têm botões de editar e excluir no histórico.","Editar desfaz o depósito antigo antes de aplicar o novo.","Excluir remove os valores do Envelope, Cartão e reservas das Bills.","Novos depósitos salvam o mapa exato de distribuição entre as Bills.","Alterações são bloqueadas quando o dinheiro já foi usado."]},
   {version:"4.0.3",date:"05/08/2026",title:"Atualização forçada no Safari",changes:["Service workers antigos são removidos.","Caches do site são apagados ao abrir.","Pagamento dividido e limpeza do histórico passam a carregar sem versão antiga.","A versão carregada aparece nas Configurações."]},
   {version:"4.0.2",date:"05/08/2026",title:"Pagamento dividido e histórico corrigido",changes:["Ao pagar uma Bill, o app pergunta quanto sai do Envelope e do Cartão.","O pagamento valida os saldos e exige a soma exata da Bill.","Pagamentos aparecem em vermelho no histórico.","Limpar histórico de Bills agora grava diretamente no Supabase."]},
@@ -2119,7 +2142,7 @@ function renderCleanDashboard(){
   <section class="v21-grid"><article class="income"><span>Receitas</span><strong>${money(d.income)}</strong></article><article class="bills"><span>Bills</span><strong>${money(d.reserved)}</strong></article><article class="expense"><span>Gastos</span><strong>${money(d.expense)}</strong></article><article class="vault"><span>Cofre</span><strong>${money(d.vault)}</strong></article></section>
   <section class="v21-actions"><button id="v22Cleaning"><span>＋</span><div><b>Registrar limpeza</b><small>Pagamento diário</small></div></button><button id="v22Income"><span>＋</span><div><b>Adicionar receita</b><small>Outra entrada</small></div></button><button id="v22Stats"><span>⌁</span><div><b>Estatísticas</b><small>Histórico e PDF</small></div></button></section>
   <section class="v21-recent"><header><div><small>ATIVIDADE</small><h3>Receitas recentes</h3></div></header><div>${recent.length?recent.map(x=>`<article><i>↗</i><div><b>${escapeText(x.description||x.client||'Receita')}</b><small>${formatDate(x.date)}</small></div><strong>+${money(x.amount)}</strong></article>`).join(''):'<p class="v21-empty">Nenhuma receita neste mês.</p>'}</div></section>`;
-  $("v22Income").onclick=()=>$("openIncome")?.click();$("v22Stats").onclick=()=>{renderInsights?.();safeOpen($("insightsDialog"))};$("v22Cleaning").onclick=()=>openCleaningDialog();
+  $("v22Income").onclick=()=>$("openIncome")?.click();$("v22Stats").onclick=openStatisticsV410;$("v22Cleaning").onclick=()=>openCleaningDialog();
 }
 function escapeText(value){const div=document.createElement('div');div.textContent=String(value??'');return div.innerHTML}
 
@@ -2922,5 +2945,47 @@ async function clearBillHistoryV403(){
 
 window.addEventListener("pageshow",()=>setTimeout(bindV403Actions,100));
 document.addEventListener("DOMContentLoaded",()=>setTimeout(bindV403Actions,100));
+
+
+let statisticsDateV410=new Date();
+function monthKeyV410(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`}
+function amountFromHistoryV410(x){return Number(x?.amount||0)||(Number(x?.cash||0)+Number(x?.card||0))}
+function monthlyStatisticsV410(date=statisticsDateV410){
+  const key=monthKeyV410(date),inc=(state.incomes||[]).filter(x=>String(x.date||"").slice(0,7)===key),exp=(state.expenses||[]).filter(x=>String(x.date||"").slice(0,7)===key),vault=(state.vaultEntries||[]).filter(x=>String(x.date||"").slice(0,7)===key),hist=(state.history||[]).filter(x=>localDateKeyV410(x.date).slice(0,7)===key),dep=hist.filter(x=>String(x.type||"")==="bill_deposit"),pay=hist.filter(x=>String(x.type||"")==="bill_payment");
+  const incomeTotal=inc.reduce((s,x)=>s+Number(x.amount||0),0),expenseTotal=exp.reduce((s,x)=>s+Number(x.amount||0),0),depositTotal=dep.reduce((s,x)=>s+amountFromHistoryV410(x),0),paymentsTotal=pay.reduce((s,x)=>s+amountFromHistoryV410(x),0),vaultNet=vault.reduce((s,x)=>s+(x.type==="withdrawal"?-Number(x.amount||0):Number(x.amount||0)),0);
+  const days={};dep.forEach(x=>{const k=localDateKeyV410(x.date);days[k]=(days[k]||0)+amountFromHistoryV410(x)});const goal=calculateFixedWorkdayGoal321(state.bills||[]);
+  const events=[...inc.map(x=>({date:x.date,type:"Receita",description:x.description||x.client||"Receita",amount:Number(x.amount||0),tone:"added"})),...exp.map(x=>({date:x.date,type:"Gasto",description:x.description||expenseNames[x.category]||"Gasto",amount:-Number(x.amount||0),tone:"removed"})),...dep.map(x=>({date:x.date,type:"Depósito Bills",description:x.bill||"Distribuição automática",amount:amountFromHistoryV410(x),tone:"added"})),...pay.map(x=>({date:x.date,type:"Bill paga",description:x.bill||x.text||"Bill",amount:-amountFromHistoryV410(x),tone:"removed"})),...vault.map(x=>({date:x.date,type:x.type==="withdrawal"?"Retirada Cofre":"Depósito Cofre",description:x.description||x.note||"Cofre",amount:x.type==="withdrawal"?-Number(x.amount||0):Number(x.amount||0),tone:x.type==="withdrawal"?"removed":"added"}))].sort((a,b)=>new Date(b.date)-new Date(a.date));
+  return {key,incomeTotal,expenseTotal,depositTotal,paymentsTotal,vaultNet,goal,depositDays:Object.keys(days).length,goalDays:Object.values(days).filter(v=>goal>0&&v>=goal).length,events,balance:incomeTotal-expenseTotal-paymentsTotal+vaultNet};
+}
+function renderStatisticsV410(){
+  const d=monthlyStatisticsV410(),label=new Intl.DateTimeFormat("pt-BR",{month:"long",year:"numeric"}).format(statisticsDateV410);
+  $("statsMonthLabelV410").textContent=label;$("statsIncomeV410").textContent=money(d.incomeTotal);$("statsExpensesV410").textContent=money(d.expenseTotal);$("statsBillsPaidV410").textContent=money(d.paymentsTotal);$("statsVaultV410").textContent=money(d.vaultNet);$("statsDepositsV410").textContent=money(d.depositTotal);$("statsBalanceV410").textContent=money(d.balance);$("statsDailyGoalV410").textContent=money(d.goal);$("statsDepositDaysV410").textContent=String(d.depositDays);$("statsGoalDaysV410").textContent=String(d.goalDays);
+  $("statisticsHistoryV410").innerHTML=d.events.length?d.events.map(x=>`<article class="statistics-history-item-v410 ${x.tone}"><div><strong>${escapeText(x.description)}</strong><small>${escapeText(x.type)} · ${new Date(x.date).toLocaleDateString("pt-BR")}</small></div><b>${x.amount>=0?"+":"−"}${money(Math.abs(x.amount))}</b></article>`).join(""):'<div class="empty-state">Nenhuma movimentação neste mês.</div>';
+}
+function openStatisticsV410(){statisticsDateV410=new Date();renderStatisticsV410();$("statisticsDialogV410").showModal()}
+function printStatisticsPdfV410(){
+  const d=monthlyStatisticsV410(),label=new Intl.DateTimeFormat("pt-BR",{month:"long",year:"numeric"}).format(statisticsDateV410),rows=d.events.map(x=>`<tr><td>${new Date(x.date).toLocaleDateString("pt-BR")}</td><td>${escapeText(x.type)}</td><td>${escapeText(x.description)}</td><td>${x.amount>=0?"+":"-"}${money(Math.abs(x.amount))}</td></tr>`).join(""),popup=window.open("","_blank");
+  if(!popup)return alert("Permita pop-ups para gerar o PDF.");
+  popup.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Nosso Controle - ${label}</title><style>body{font-family:Arial,sans-serif;margin:36px;color:#111}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.card{border:1px solid #ddd;border-radius:10px;padding:12px}table{width:100%;border-collapse:collapse;margin-top:22px;font-size:11px}th,td{padding:8px;border-bottom:1px solid #ddd;text-align:left}td:last-child{text-align:right;font-weight:bold}</style></head><body><h1>Nosso Controle</h1><p>Relatório financeiro - ${label}</p><div class="grid"><div class="card">Receitas<br><b>${money(d.incomeTotal)}</b></div><div class="card">Gastos<br><b>${money(d.expenseTotal)}</b></div><div class="card">Bills pagas<br><b>${money(d.paymentsTotal)}</b></div><div class="card">Depósitos Bills<br><b>${money(d.depositTotal)}</b></div><div class="card">Cofre líquido<br><b>${money(d.vaultNet)}</b></div><div class="card">Resultado<br><b>${money(d.balance)}</b></div></div><table><thead><tr><th>Data</th><th>Tipo</th><th>Descrição</th><th>Valor</th></tr></thead><tbody>${rows||'<tr><td colspan="4">Nenhuma movimentação.</td></tr>'}</tbody></table><script>window.onload=()=>setTimeout(()=>window.print(),250)<\/script></body></html>`);popup.document.close();
+}
+function exportStatisticsCsvV410(){const d=monthlyStatisticsV410(),csv=[["Data","Tipo","Descrição","Valor"],...d.events.map(x=>[localDateKeyV410(x.date),x.type,x.description,x.amount.toFixed(2)])].map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(",")).join("\n"),blob=new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=`nosso-controle-historico-${d.key}.csv`;a.click();setTimeout(()=>URL.revokeObjectURL(url),500)}
+
+
+function bindV410Features(){
+  const once=(id,event,fn)=>{const el=$(id);if(el&&!el.dataset[`v410${event}`]){el.dataset[`v410${event}`]="1";el.addEventListener(event,fn)}};
+  once("openCalendar","click",openCalendar);once("closeCalendar","click",()=>$("calendarDialog").close());
+  once("calendarPrev","click",()=>{calendarDate=new Date(calendarDate.getFullYear(),calendarDate.getMonth()-1,1);renderCalendar()});
+  once("calendarNext","click",()=>{calendarDate=new Date(calendarDate.getFullYear(),calendarDate.getMonth()+1,1);renderCalendar()});
+  once("closeDayDetails","click",()=>$("dayDetailsDialog").close());
+  once("closeStatisticsV410","click",()=>$("statisticsDialogV410").close());
+  once("statsPrevMonthV410","click",()=>{statisticsDateV410=new Date(statisticsDateV410.getFullYear(),statisticsDateV410.getMonth()-1,1);renderStatisticsV410()});
+  once("statsNextMonthV410","click",()=>{statisticsDateV410=new Date(statisticsDateV410.getFullYear(),statisticsDateV410.getMonth()+1,1);renderStatisticsV410()});
+  once("printStatisticsPdfV410","click",printStatisticsPdfV410);once("exportStatisticsCsvV410","click",exportStatisticsCsvV410);
+  once("runCloudBackupV410","click",()=>uploadAutomaticBackupV410({force:true,silent:false}));
+  once("chooseBackupFileV410","click",()=>$("backupFileInputV410").click());
+  once("backupFileInputV410","change",e=>{importBackupFileV410(e.target.files?.[0]);e.target.value=""});
+  if($("v22Stats"))$("v22Stats").onclick=openStatisticsV410;
+}
+document.addEventListener("DOMContentLoaded",()=>setTimeout(bindV410Features,100));window.addEventListener("pageshow",()=>setTimeout(bindV410Features,150));
 
 boot();
