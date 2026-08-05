@@ -40,7 +40,7 @@ function fatalDiagnostic313(step,error,extra={}){
     const box=document.getElementById("fatalLoginDiagnostic");
     const text=document.getElementById("fatalLoginDiagnosticText");
     const lines=[
-      `VERSÃO: 4.0.0`,
+      `VERSÃO: 4.0.2`,
       `ETAPA: ${step}`,
       `MENSAGEM: ${error?.message||String(error||"Erro desconhecido")}`
     ];
@@ -1120,6 +1120,7 @@ function normalizeVaultV4(){
     amount:Number(entry.amount||0),
     description:entry.description||entry.note||"",
     date:entry.date||currentLocalDate(),
+    createdAt:entry.createdAt||entry.timestamp||null,
     ...entry
   }));
 }
@@ -1154,7 +1155,19 @@ function renderVault(){
   $("vaultMonthRemovedV4").textContent=money(removed);
 
   const list=$("vaultList");
-  const entries=state.vaultEntries.slice().sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const entries=state.vaultEntries
+    .map((item,index)=>({...item,__index:index}))
+    .sort((a,b)=>{
+      const aTime=a.createdAt
+        ? new Date(a.createdAt).getTime()
+        : new Date(`${a.date}T12:00:00`).getTime();
+      const bTime=b.createdAt
+        ? new Date(b.createdAt).getTime()
+        : new Date(`${b.date}T12:00:00`).getTime();
+
+      if(bTime!==aTime)return bTime-aTime;
+      return b.__index-a.__index;
+    });
   if(!entries.length){
     list.innerHTML='<div class="vault-empty-v4">O Cofre ainda está vazio.</div>';
     return;
@@ -1166,7 +1179,9 @@ function renderVault(){
       <div class="vault-entry-sign-v4">${removed?"−":"+"}</div>
       <div class="vault-entry-info-v4">
         <strong>${escapeText(item.description||(removed?"Retirada do Cofre":"Valor adicionado"))}</strong>
-        <small>${new Date(`${item.date}T12:00:00`).toLocaleDateString("pt-BR")} · ${item.location==="card"?"Cartão":"Envelope"}</small>
+        <small>${item.createdAt
+          ? new Date(item.createdAt).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"})
+          : new Date(`${item.date}T12:00:00`).toLocaleDateString("pt-BR")} · ${item.location==="card"?"Cartão":"Envelope"}</small>
       </div>
       <div class="vault-entry-value-v4">
         <strong>${removed?"−":"+"}${money(item.amount)}</strong>
@@ -1782,7 +1797,8 @@ $("saveVaultDeposit").onclick=async event=>{
     amount,
     description,
     location,
-    date
+    date,
+    createdAt:new Date().toISOString()
   });
 
   state.history=Array.isArray(state.history)?state.history:[];
@@ -1827,7 +1843,8 @@ $("confirmVaultWithdrawV4").onclick=async()=>{
     amount,
     description,
     location,
-    date
+    date,
+    createdAt:new Date().toISOString()
   });
 
   state.history=Array.isArray(state.history)?state.history:[];
@@ -1844,8 +1861,10 @@ $("confirmVaultWithdrawV4").onclick=async()=>{
 };
 
 
-const APP_VERSION="4.0.0";
+const APP_VERSION="4.0.2";
 const RELEASE_NOTES=[
+  {version:"4.0.2",date:"05/08/2026",title:"Pagamento dividido e histórico corrigido",changes:["Ao pagar uma Bill, o app pergunta quanto sai do Envelope e do Cartão.","O pagamento valida os saldos e exige a soma exata da Bill.","Pagamentos aparecem em vermelho no histórico.","Limpar histórico de Bills agora grava diretamente no Supabase."]},
+  {version:"4.0.1",date:"05/08/2026",title:"Histórico do Cofre em ordem correta",changes:["Movimentações mais recentes aparecem no topo.","Movimentações do mesmo dia respeitam a ordem em que foram adicionadas.","Novas entradas e retiradas salvam o horário exato."]},
   {version:"4.0.0",date:"05/08/2026",title:"Reconstrução limpa das Bills e do Cofre",changes:["Cofre redesenhado com Envelope e Cartão separados.","Movimentações verdes para entradas e vermelhas para retiradas.","Cards de Bills reconstruídos com editar, excluir e pagar integrados.","Histórico de Bills usa verde para adições e vermelho para pagamentos.","Funções antigas duplicadas dessas telas foram substituídas."]},
   {version:"3.2.1",date:"05/08/2026",title:"Meta fixa por dia trabalhado",changes:["Meta principal agora é o total das Bills dividido por 20 dias trabalhados.","Depósitos não diminuem mais a meta diária.","O retângulo mostra Meta por dia e Já guardado.","Adicionar, remover ou editar Bills recalcula a meta.","Adicionada opção para limpar somente o histórico de atividades das Bills."]},
   {version:"3.2.0",date:"05/08/2026",title:"Motor único da meta e reset",changes:["Todas as rotas usam um cálculo autônomo.","Removida dependência de funções inacessíveis no Safari.","Reset grava diretamente no Supabase.","Prévia, topo e persistência usam o mesmo resultado."]},
@@ -1972,7 +1991,7 @@ function renderCleanBills(){
 
     card.querySelector(".edit").onclick=()=>openBillCreateDialog(bill.id);
     card.querySelector(".delete").onclick=()=>deleteBillV4(bill.id);
-    card.querySelector(".paid").onclick=()=>togglePaid(bill.id);
+    card.querySelector(".paid").onclick=()=>openBillPaymentV4(bill.id);
     list.appendChild(card);
   }
 
@@ -2036,6 +2055,135 @@ function renderBillActivityV4(){
     </article>`;
   }).join("");
 }
+
+
+function openBillPaymentV4(id){
+  const bill=(state.bills||[]).find(item=>String(item.id)===String(id));
+  if(!bill)return;
+
+  const amount=Math.max(0,Number(bill.amount||0));
+  const envelope=Math.max(0,Number(state.cash||0));
+  const card=Math.max(0,Number(state.card||0));
+
+  $("billPaymentIdV4").value=String(id);
+  $("billPaymentSubtitleV4").textContent=bill.name;
+  $("billPaymentTotalV4").textContent=money(amount);
+  $("billPaymentEnvelopeAvailableV4").textContent=`Disponível: ${money(envelope)}`;
+  $("billPaymentCardAvailableV4").textContent=`Disponível: ${money(card)}`;
+
+  const suggestedEnvelope=Math.min(envelope,amount);
+  const suggestedCard=Math.max(0,amount-suggestedEnvelope);
+
+  $("billPaymentEnvelopeV4").value=suggestedEnvelope?suggestedEnvelope.toFixed(2):"";
+  $("billPaymentCardV4").value=suggestedCard?suggestedCard.toFixed(2):"";
+  feedback("billPaymentFeedbackV4","");
+  updateBillPaymentPreviewV4();
+
+  try{$("billPaymentDialogV4").showModal()}
+  catch{$("billPaymentDialogV4").setAttribute("open","")}
+}
+
+function updateBillPaymentPreviewV4(){
+  const id=$("billPaymentIdV4").value;
+  const bill=(state.bills||[]).find(item=>String(item.id)===String(id));
+  if(!bill)return;
+
+  const total=Math.max(0,Number(bill.amount||0));
+  const envelope=Math.max(0,Number($("billPaymentEnvelopeV4").value||0));
+  const card=Math.max(0,Number($("billPaymentCardV4").value||0));
+  const entered=envelope+card;
+  const remaining=Math.max(0,total-entered);
+  const excess=Math.max(0,entered-total);
+
+  $("billPaymentEnteredV4").textContent=money(entered);
+
+  const status=$("billPaymentRemainingV4");
+  if(excess>0){
+    status.textContent=`Excede em ${money(excess)}`;
+    status.className="excess";
+  }else if(remaining>0){
+    status.textContent=`Faltam ${money(remaining)}`;
+    status.className="missing";
+  }else{
+    status.textContent="Valor completo";
+    status.className="complete";
+  }
+}
+
+async function confirmBillPaymentV4(){
+  feedback("billPaymentFeedbackV4","");
+
+  const id=$("billPaymentIdV4").value;
+  const bill=(state.bills||[]).find(item=>String(item.id)===String(id));
+  if(!bill)return;
+
+  const total=Math.max(0,Number(bill.amount||0));
+  const envelope=Math.max(0,Number($("billPaymentEnvelopeV4").value||0));
+  const card=Math.max(0,Number($("billPaymentCardV4").value||0));
+  const entered=Math.round((envelope+card)*100)/100;
+  const expected=Math.round(total*100)/100;
+
+  if(envelope>Number(state.cash||0)){
+    feedback("billPaymentFeedbackV4",`Envelope insuficiente. Disponível: ${money(Number(state.cash||0))}`);
+    return;
+  }
+
+  if(card>Number(state.card||0)){
+    feedback("billPaymentFeedbackV4",`Cartão insuficiente. Disponível: ${money(Number(state.card||0))}`);
+    return;
+  }
+
+  if(entered!==expected){
+    feedback("billPaymentFeedbackV4",`A soma deve ser exatamente ${money(total)}.`);
+    return;
+  }
+
+  const backup=structuredClone(state);
+  const button=$("confirmBillPaymentV4");
+  button.disabled=true;
+  button.textContent="Pagando…";
+
+  try{
+    state.cash=Math.max(0,Number(state.cash||0)-envelope);
+    state.card=Math.max(0,Number(state.card||0)-card);
+
+    const target=(state.bills||[]).find(item=>String(item.id)===String(id));
+    target.reserved=0;
+    target.paid=true;
+    target.completed=true;
+    target.paidAt=new Date().toISOString();
+    target.paidFrom={envelope,card};
+
+    state.history=Array.isArray(state.history)?state.history:[];
+    state.history.push({
+      id:crypto.randomUUID?.()||String(Date.now()),
+      type:"bill_payment",
+      text:`Bill paga · ${target.name}`,
+      bill:target.name,
+      amount:total,
+      cash:envelope,
+      card,
+      date:new Date().toISOString()
+    });
+
+    state.dailyGoal=calculateFixedWorkdayGoal321(state.bills);
+
+    try{$("billPaymentDialogV4").close()}catch{}
+    await persist("Bill paga com sucesso");
+  }catch(error){
+    state=backup;
+    render();
+    fatalDiagnostic313("Pagamento de Bill 4.0.2",error,{bill_id:id});
+    feedback("billPaymentFeedbackV4","Não foi possível concluir o pagamento.");
+  }finally{
+    button.disabled=false;
+    button.textContent="Confirmar pagamento";
+  }
+}
+
+$("billPaymentEnvelopeV4")?.addEventListener("input",updateBillPaymentPreviewV4);
+$("billPaymentCardV4")?.addEventListener("input",updateBillPaymentPreviewV4);
+$("confirmBillPaymentV4")?.addEventListener("click",confirmBillPaymentV4);
 
 function renderBillHeader(bills){const list=$("billList");let summary=$("v22BillSummary");if(!summary){summary=document.createElement('section');summary.id='v22BillSummary';summary.className='v21-bill-summary';list.before(summary)}const total=bills.reduce((s,b)=>s+Number(b.amount),0),reserved=bills.reduce((s,b)=>s+Number(b.reserved),0),pct=total?Math.min(100,reserved/total*100):0;summary.innerHTML=`<div><small>BILLS ATIVAS</small><strong>${bills.length} contas</strong><span>${money(total)} no total</span></div><div class="v21-summary-track"><i style="width:${pct}%"></i></div><b>${pct.toFixed(0)}% reservado</b>`;let filters=$("v22BillFilters");if(!filters){filters=document.createElement('div');filters.id='v22BillFilters';filters.className='v21-filters';filters.innerHTML='<button data-f="all">Todas</button><button data-f="late">Atrasadas</button><button data-f="week">7 dias</button><button data-f="ready">Reservadas</button>';summary.after(filters);filters.onclick=e=>{const btn=e.target.closest('button');if(!btn)return;activeBillFilter=btn.dataset.f;applyBillFilter()}}qa('button',filters).forEach(x=>x.classList.toggle('active',x.dataset.f===activeBillFilter))}
 function applyBillFilter(){qa('.bill-card-v4').forEach(card=>{const days=Number(card.dataset.days),ready=card.dataset.ready==='true';let show=true;if(activeBillFilter==='late')show=days<0;if(activeBillFilter==='week')show=days>=0&&days<=7;if(activeBillFilter==='ready')show=ready;card.hidden=!show});const f=$("v22BillFilters");if(f)qa('button',f).forEach(x=>x.classList.toggle('active',x.dataset.f===activeBillFilter))}
@@ -2393,21 +2541,38 @@ $("resetFinance").onclick=async()=>{
 
 $("clearBillHistoryBtn").onclick=async()=>{
   const history=Array.isArray(state?.history)?state.history:[];
-  const billEntries=history.filter(item=>
-    item?.type==="bill_payment" ||
-    Boolean(item?.bill) ||
-    item?.text==="Depósito adicionado"
-  );
+  const billTypes=new Set([
+    "bill_payment",
+    "bill_deleted",
+    "bill_deposit",
+    "bill_reserved",
+    "bill_created",
+    "bill_updated"
+  ]);
 
-  if(!billEntries.length){
+  const isBillHistory=item=>{
+    const type=String(item?.type||"");
+    const text=String(item?.text||"").toLowerCase();
+
+    return billTypes.has(type) ||
+      Boolean(item?.bill) ||
+      text.includes("bill") ||
+      text.includes("conta paga") ||
+      text.includes("reservado para") ||
+      text.includes("depósito adicionado");
+  };
+
+  const count=history.filter(isBillHistory).length;
+  if(!count){
     toast("O histórico de Bills já está vazio");
     return;
   }
 
-  if(!confirm(`Limpar ${billEntries.length} registros do histórico de Bills?\n\nAs Bills, reservas e saldos não serão alterados.`)){
+  if(!confirm(`Limpar ${count} atividades de Bills?\n\nAs Bills, reservas e saldos não serão alterados.`)){
     return;
   }
 
+  const backup=structuredClone(history);
   const button=$("clearBillHistoryBtn");
   const original=button?.textContent||"Limpar histórico";
 
@@ -2417,16 +2582,29 @@ $("clearBillHistoryBtn").onclick=async()=>{
       button.textContent="Limpando…";
     }
 
-    state.history=history.filter(item=>!(
-      item?.type==="bill_payment" ||
-      Boolean(item?.bill) ||
-      item?.text==="Depósito adicionado"
-    ));
+    state.history=history.filter(item=>!isBillHistory(item));
+    state.updatedAt=new Date().toISOString();
 
-    await persist("Histórico de Bills limpo");
+    const payload=structuredClone(state);
+    const {error}=await sb
+      .from("finance_state")
+      .update({
+        data:payload,
+        updated_at:payload.updatedAt
+      })
+      .eq("household_id",householdId);
+
+    if(error)throw error;
+
+    render();
+    toast("Histórico de Bills limpo");
   }catch(error){
-    fatalDiagnostic313("Limpar histórico de Bills",error);
-    toast("Não foi possível limpar o histórico");
+    state.history=backup;
+    render();
+    fatalDiagnostic313("Limpar histórico de Bills 4.0.2",error,{
+      household_id:householdId||"—"
+    });
+    alert(`Erro ao limpar histórico:\n\n${error?.message||error?.code||String(error)}`);
   }finally{
     if(button){
       button.disabled=false;

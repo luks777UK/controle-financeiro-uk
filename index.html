@@ -4,13 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
   <meta name="theme-color" content="#080914">
-  <meta name="application-name" content="Nosso Controle 4.0.0">
+  <meta name="application-name" content="Nosso Controle 4.0.2">
   <meta name="apple-mobile-web-app-title" content="Nosso Controle">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="styles.css?v=4.0.0">
-  <title>Nosso Controle 4.0.0</title>
+  <link rel="stylesheet" href="styles.css?v=4.0.2">
+  <title>Nosso Controle 4.0.2</title>
 </head>
 <body>
   <section id="authView" class="auth-screen">
@@ -920,15 +920,58 @@
     </form>
   </dialog>
 
+
+  <dialog id="billPaymentDialogV4">
+    <form method="dialog" class="dialog-card bill-payment-dialog-v4">
+      <div class="dialog-heading">
+        <div>
+          <h2>Pagar Bill</h2>
+          <p id="billPaymentSubtitleV4">Informe de onde sairá o dinheiro.</p>
+        </div>
+        <button value="cancel" class="round-button">×</button>
+      </div>
+
+      <input id="billPaymentIdV4" type="hidden">
+
+      <section class="bill-payment-total-v4">
+        <span>VALOR DA BILL</span>
+        <strong id="billPaymentTotalV4">£0,00</strong>
+      </section>
+
+      <div class="bill-payment-sources-v4">
+        <label>
+          <span>Envelope</span>
+          <small id="billPaymentEnvelopeAvailableV4">Disponível: £0,00</small>
+          <input id="billPaymentEnvelopeV4" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00">
+        </label>
+
+        <label>
+          <span>Cartão</span>
+          <small id="billPaymentCardAvailableV4">Disponível: £0,00</small>
+          <input id="billPaymentCardV4" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00">
+        </label>
+      </div>
+
+      <section class="bill-payment-check-v4">
+        <span>Total informado</span>
+        <strong id="billPaymentEnteredV4">£0,00</strong>
+        <small id="billPaymentRemainingV4">Faltam £0,00</small>
+      </section>
+
+      <div id="billPaymentFeedbackV4" class="feedback"></div>
+      <button id="confirmBillPaymentV4" class="primary-button" type="button">Confirmar pagamento</button>
+    </form>
+  </dialog>
+
   <div id="toast" class="toast"></div>
   <canvas id="confetti"></canvas>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=4.0.0"></script>
+  <script src="app.js?v=4.0.2"></script>
   <script>
     if("serviceWorker" in navigator){
       window.addEventListener("load",async()=>{
         try{
-          const reg=await navigator.serviceWorker.register("./sw.js?v=4.0.0",{updateViaCache:"none"});
+          const reg=await navigator.serviceWorker.register("./sw.js?v=4.0.2",{updateViaCache:"none"});
           reg.update();
         }catch(error){console.warn("Service Worker:",error);}
       });
