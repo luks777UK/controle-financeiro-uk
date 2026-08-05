@@ -40,7 +40,7 @@ function fatalDiagnostic313(step,error,extra={}){
     const box=document.getElementById("fatalLoginDiagnostic");
     const text=document.getElementById("fatalLoginDiagnosticText");
     const lines=[
-      `VERSÃO: 4.1.0`,
+      `VERSÃO: 4.1.1`,
       `ETAPA: ${step}`,
       `MENSAGEM: ${error?.message||String(error||"Erro desconhecido")}`
     ];
@@ -1556,6 +1556,11 @@ function localDateKeyV410(value){
   if(!value)return "";const text=String(value),iso=text.match(/^(\d{4})-(\d{2})-(\d{2})/);if(iso)return `${iso[1]}-${iso[2]}-${iso[3]}`;
   const d=new Date(value);if(Number.isNaN(d.getTime()))return "";return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
 }
+
+function localDateKey(value){
+  return localDateKeyV410(value);
+}
+
 function billDepositEntriesV410(){return (state?.history||[]).filter(item=>{const type=String(item?.type||""),text=String(item?.text||"").toLowerCase(),amount=Number(item?.amount||0)||(Number(item?.cash||0)+Number(item?.card||0));return amount>0&&item?.date&&(type==="bill_deposit"||text.includes("depósito adicionado")||text.includes("depósito editado"))})}
 function depositTotalsByDayV410(){const totals={};for(const item of billDepositEntriesV410()){const key=localDateKeyV410(item.date);if(!key)continue;totals[key]=(totals[key]||0)+(Number(item.amount||0)||(Number(item.cash||0)+Number(item.card||0)))}return totals}
 function renderCalendar(){
@@ -2085,8 +2090,9 @@ $("confirmVaultWithdrawV4").onclick=async()=>{
 };
 
 
-const APP_VERSION="4.1.0";
+const APP_VERSION="4.1.1";
 const RELEASE_NOTES=[
+  {version:"4.1.1",date:"05/08/2026",title:"Compatibilidade do calendário corrigida",changes:["Restaurada a função localDateKey usada pela Visão Geral.","Calendário e Estatísticas mantêm a nova lógica sem quebrar telas antigas.","Login e carregamento dos dados voltam a funcionar normalmente."]},
   {version:"4.1.0",date:"05/08/2026",title:"Calendário, estatísticas e backup externo",changes:["Calendário de depósitos reconstruído para mostrar apenas reservas das Bills.","Estatísticas mensais com histórico, CSV e relatório para salvar como PDF.","Backup automático salvo externamente no Supabase Storage.","Importação de backup JSON para restaurar todo o controle.","Backup atualizado após cada sincronização."]},
   {version:"4.0.4",date:"05/08/2026",title:"Editar e excluir depósitos das Bills",changes:["Depósitos agora têm botões de editar e excluir no histórico.","Editar desfaz o depósito antigo antes de aplicar o novo.","Excluir remove os valores do Envelope, Cartão e reservas das Bills.","Novos depósitos salvam o mapa exato de distribuição entre as Bills.","Alterações são bloqueadas quando o dinheiro já foi usado."]},
   {version:"4.0.3",date:"05/08/2026",title:"Atualização forçada no Safari",changes:["Service workers antigos são removidos.","Caches do site são apagados ao abrir.","Pagamento dividido e limpeza do histórico passam a carregar sem versão antiga.","A versão carregada aparece nas Configurações."]},
