@@ -4,13 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
   <meta name="theme-color" content="#080914">
-  <meta name="application-name" content="Nosso Controle 3.0.8">
+  <meta name="application-name" content="Nosso Controle 3.1.0">
   <meta name="apple-mobile-web-app-title" content="Nosso Controle">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="styles.css?v=3.0.8">
-  <title>Nosso Controle 3.0.8</title>
+  <link rel="stylesheet" href="styles.css?v=3.1.0">
+  <title>Nosso Controle 3.1.0</title>
 </head>
 <body>
   <section id="authView" class="auth-screen">
@@ -27,15 +27,6 @@
   <div class="email-login-note-v302">
     Use o mesmo e-mail da conta original. O Username não é necessário para entrar.
   </div>
-
-      
-      <section id="inlineDiagnosticBox" class="inline-diagnostic-box hidden">
-        <div class="inline-diagnostic-head">
-          <b>Detalhes técnicos</b>
-          <button id="copyInlineDiagnosticBtn" type="button">Copiar</button>
-        </div>
-        <pre id="inlineDiagnosticLog"></pre>
-      </section>
 
       <div id="authMsg" class="feedback"></div>
     </div>
@@ -307,31 +298,15 @@
         <span class="deposit-plus">＋</span>
         <span><b>Novo depósito</b><small>Envelope ou cartão</small></span>
       </button>
-      <article class="wallet-split-card" aria-label="Resumo do dinheiro guardado">
-        <div class="wallet-split-head">
-          <span class="wallet-split-icon">£</span>
-          <div>
-            <b>Dinheiro guardado</b>
-            <small>Total entre envelope e cartão</small>
-          </div>
-          <strong id="quickSavedTotal">£0,00</strong>
-        </div>
-        <div class="wallet-split-values">
-          <span>
-            <small>Envelope</small>
-            <b id="quickCashTotal">£0,00</b>
-          </span>
-          <span>
-            <small>Cartão</small>
-            <b id="quickCardTotal">£0,00</b>
-          </span>
-        </div>
-      </article>
-    
-      <button id="copyCode" class="share-button">
+      
+      <button id="copyCode" class="share-button" type="button">
         <span class="share-icon">↗</span>
-        <span><b>Compartilhar</b><small id="groupCodeText">Código</small></span>
-      </button></section>
+        <span>
+          <b>Compartilhar</b>
+          <small id="groupCodeText">Código da casa</small>
+        </span>
+      </button>
+    </section>
 
     <div class="section-heading">
       <div><h2>Próximos vencimentos</h2><p>Quanto já está reservado e quanto ainda falta.</p></div>
@@ -408,7 +383,7 @@
 
     <div id="settingsSheet" class="sheet-backdrop hidden">
       <section class="settings-sheet">
-        <div class="sheet-title"><h2>Configurações</h2><button id="closeSettingsBtn" class="round-button">×</button></div>
+        <div class="sheet-title"><h2>Configurações</h2><button id="closeSettings" class="round-button">×</button></div>
         <button id="openUpdatesPanel" class="sheet-action updates-action">
           <span class="sheet-action-icon">↻</span>
           <span><b>Atualizações</b><small>Versão instalada e novidades</small></span>
@@ -426,13 +401,13 @@
           <span class="sheet-action-icon">▦</span>
           <span><b>Calendário de depósitos</b><small>Veja a meta atingida em cada dia</small></span>
         </button>
-        <button id="resetFinance" class="sheet-action danger">Zerar reservas e depósitos</button>
         
-    <button id="openDiagnosticBtn" class="sheet-action">
-      <span class="action-icon">🛠️</span>
-      <span><b>Diagnóstico</b><small>Rastrear login, casa e dados</small></span>
-    </button>
-    <button id="logoutBtn" class="sheet-action">Sair da conta</button>
+        <button id="openDiagnosticBtn" class="sheet-action diagnostic-action" type="button">
+          <span class="sheet-action-icon">🛠</span>
+          <span><b>Diagnóstico</b><small>Verificar login, casa e dados</small></span>
+        </button>
+        <button id="resetFinance" class="sheet-action danger">Zerar reservas e depósitos</button>
+        <button id="logoutBtn" class="sheet-action">Sair da conta</button>
       </section>
     </div>
   </main>
@@ -839,10 +814,16 @@
   <dialog id="diagnosticDialog" class="diagnostic-dialog">
     <section class="diagnostic-card">
       <div class="diagnostic-head">
-        <div><span>FERRAMENTA TEMPORÁRIA</span><h2>Diagnóstico</h2><p>Rastreia login, casa e dados.</p></div>
+        <div>
+          <span>FERRAMENTA DE VERIFICAÇÃO</span>
+          <h2>Diagnóstico</h2>
+          <p>Rastreia a sessão, a casa e o estado financeiro.</p>
+        </div>
         <button id="closeDiagnosticBtn" class="round-button" type="button">×</button>
       </div>
-      <pre id="diagnosticLog">Aguardando teste…</pre>
+
+      <pre id="diagnosticLog">Toque em “Executar diagnóstico”.</pre>
+
       <div class="diagnostic-actions">
         <button id="runDiagnosticBtn" class="primary-button" type="button">Executar diagnóstico</button>
         <button id="copyDiagnosticBtn" class="secondary-button" type="button">Copiar log</button>
@@ -853,12 +834,12 @@
   <div id="toast" class="toast"></div>
   <canvas id="confetti"></canvas>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=3.0.8"></script>
+  <script src="app.js?v=3.1.0"></script>
   <script>
     if("serviceWorker" in navigator){
       window.addEventListener("load",async()=>{
         try{
-          const reg=await navigator.serviceWorker.register("./sw.js?v=3.0.8",{updateViaCache:"none"});
+          const reg=await navigator.serviceWorker.register("./sw.js?v=3.1.0",{updateViaCache:"none"});
           reg.update();
         }catch(error){console.warn("Service Worker:",error);}
       });

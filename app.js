@@ -1,4 +1,4 @@
-/* Nosso Controle 3.0.8 — aplicação refatorada */
+/* Nosso Controle 3.1.0 — aplicação refatorada */
 const cfg={
   SUPABASE_URL:"https://lhihsssbsjfliggtlaza.supabase.co",
   SUPABASE_ANON_KEY:"sb_publishable_0bttyUW7ASI8ylAyZjLkPA_NS8eThfO",
@@ -76,7 +76,6 @@ async function boot(){
   }
 }
 async function loadMembership(){
-  addDiagnostic("▶ loadMembership");
   if(!user?.id){
     show("authView");
     return;
@@ -89,19 +88,18 @@ async function loadMembership(){
     .maybeSingle();
 
   if(memberResult.error){
-    console.error("household_members:",memberResult.error); addDiagnosticError("household_members",memberResult.error);
+    console.error("household_members:",memberResult.error);
     feedback("authMsg","Login realizado, mas não foi possível carregar a casa financeira.");
     show("authView");
     return;
   }
 
   if(!memberResult.data?.household_id){
-    showInlineDiagnostic("household_members",null,{resultado:"Nenhum vínculo encontrado",user_id:user?.id});
     show("householdView");
     return;
   }
 
-  householdId=memberResult.data.household_id; addDiagnostic("✅ household_id",householdId);
+  householdId=memberResult.data.household_id;
 
   const householdResult=await sb
     .from("households")
@@ -110,10 +108,11 @@ async function loadMembership(){
     .maybeSingle();
 
   if(householdResult.error){
-    console.warn("households:",householdResult.error); addDiagnosticError("households",householdResult.error);
+    console.warn("households:",householdResult.error);
     householdCode="";
   }else{
-    householdCode=householdResult.data?.code||""; addDiagnostic("✅ household code",householdCode||"SEM CÓDIGO"); updateShareCard();
+    householdCode=householdResult.data?.code||"";
+    updateShareCard310();
   }
 
   const loaded=await loadState();
@@ -128,7 +127,6 @@ async function loadMembership(){
 }
 
 async function loadState(){
-  addDiagnostic("▶ loadState");
   const result=await sb
     .from("finance_state")
     .select("data")
@@ -136,7 +134,7 @@ async function loadState(){
     .maybeSingle();
 
   if(result.error){
-    console.error("finance_state:",result.error); addDiagnosticError("finance_state",result.error);
+    console.error("finance_state:",result.error);
     toast("Erro ao carregar os dados financeiros");
     return false;
   }
@@ -153,7 +151,6 @@ async function loadState(){
 
     if(created.error){
       console.error("Criar finance_state:",created.error);
-      showInlineDiagnostic("criar finance_state",created.error,{household_id:householdId});
       return false;
     }
   }else{
@@ -231,7 +228,6 @@ function authMessage(error){
 }
 async function handleLogin(){
   feedback("authMsg","");
-  clearInlineDiagnostic();
   const email=$("email").value.trim().toLowerCase();
   const password=$("password").value;
 
@@ -279,8 +275,7 @@ async function handleLogin(){
   try{
     await loadMembership();
   }catch(error){
-    console.error("Falha após login:",error); addDiagnosticError("Após login",error);
-    showInlineDiagnostic("JavaScript após login",error,{user_id:user?.id});
+    console.error("Falha após login:",error);
     feedback("authMsg","Login realizado, mas ocorreu um erro ao abrir seus dados.");
     show("authView");
   }
@@ -1361,9 +1356,9 @@ $("saveVaultDeposit").onclick=async e=>{
 };
 
 
-const APP_VERSION="3.0.8";
+const APP_VERSION="3.1.0";
 const RELEASE_NOTES=[
-  {version:"3.0.8",date:"05/08/2026",title:"Refatoração de estabilidade",changes:[
+  {version:"3.1.0",date:"05/08/2026",title:"Refatoração de estabilidade",changes:[
     "Removidos scripts e manipuladores duplicados.",
     "Login unificado em um único fluxo.",
     "Dashboard, Bills e filtros renderizados uma única vez.",
@@ -1432,238 +1427,258 @@ const baseRender=render;
 render=function(){baseRender();renderCleanDashboard();renderCleanBills();renderUpdatesV22();prepareSettings()};
 window.addEventListener('pageshow',()=>{const d=$("updatesDialog");if(d?.open)safeClose(d)});
 ensureCleaningDialog();prepareSettings();renderUpdatesV22();
-boot();
 
 
-/* Nosso Controle 3.0.8 — Compartilhar e Diagnóstico */
-const diagnosticLines=[];
+/* Nosso Controle 3.1.0 — menu, compartilhamento e diagnóstico reconstruídos */
+const diagnosticLines310=[];
 
-function addDiagnostic(message,detail){
-  const time=new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
-  const line=detail===undefined?`[${time}] ${message}`:`[${time}] ${message}: ${typeof detail==="string"?detail:JSON.stringify(detail,null,2)}`;
-  diagnosticLines.push(line);
-  const out=document.getElementById("diagnosticLog");
-  if(out)out.textContent=diagnosticLines.join("\n");
-  console.log("[DIAGNÓSTICO]",message,detail??"");
+function diagnosticAdd310(label,value){
+  const time=new Date().toLocaleTimeString("pt-BR",{
+    hour:"2-digit",minute:"2-digit",second:"2-digit"
+  });
+  const text=value===undefined
+    ? `[${time}] ${label}`
+    : `[${time}] ${label}: ${typeof value==="string" ? value : JSON.stringify(value,null,2)}`;
+  diagnosticLines310.push(text);
+  const log=$("diagnosticLog");
+  if(log)log.textContent=diagnosticLines310.join("\n");
+  console.log("[Nosso Controle diagnóstico]",label,value??"");
 }
-function addDiagnosticError(step,error){
-  addDiagnostic(`❌ ${step}`,error?.message||String(error||"Erro desconhecido"));
-  if(error?.code)addDiagnostic("Código",error.code);
-  if(error?.details)addDiagnostic("Detalhes",error.details);
-  if(error?.hint)addDiagnostic("Sugestão",error.hint);
-  console.error(`[DIAGNÓSTICO] ${step}`,error);
+
+function diagnosticError310(step,error){
+  diagnosticAdd310(`❌ ${step}`,error?.message||String(error||"Erro desconhecido"));
+  if(error?.code)diagnosticAdd310("Código",error.code);
+  if(error?.details)diagnosticAdd310("Detalhes",error.details);
+  if(error?.hint)diagnosticAdd310("Sugestão",error.hint);
+  console.error(`[Diagnóstico] ${step}`,error);
 }
-function resetDiagnostic(){
-  diagnosticLines.length=0;
-  addDiagnostic("================================");
-  addDiagnostic("NOSSO CONTROLE 3.0.8");
-  addDiagnostic("================================");
+
+function openSettings310(){
+  const sheet=$("settingsSheet");
+  if(!sheet)return;
+  sheet.classList.remove("hidden");
+  sheet.setAttribute("aria-hidden","false");
+  document.body.classList.add("settings-open-310");
 }
-async function runFullDiagnostic(){
-  resetDiagnostic();
-  addDiagnostic("URL",location.href);
-  addDiagnostic("Online",navigator.onLine?"SIM":"NÃO");
-  if(typeof sb==="undefined"||!sb){addDiagnostic("❌ Cliente Supabase ausente");return;}
-  addDiagnostic("✅ Cliente Supabase iniciado");
 
-  let sessionResult;
-  try{sessionResult=await sb.auth.getSession()}catch(error){addDiagnosticError("Sessão",error);return;}
-  if(sessionResult?.error){addDiagnosticError("Sessão",sessionResult.error);return;}
-  const session=sessionResult?.data?.session;
-  if(!session?.user){addDiagnostic("❌ Nenhuma sessão ativa");return;}
-  addDiagnostic("✅ Login ativo");
-  addDiagnostic("User ID",session.user.id);
-  addDiagnostic("E-mail",session.user.email||"—");
+function closeSettings310(){
+  const sheet=$("settingsSheet");
+  if(!sheet)return;
+  sheet.classList.add("hidden");
+  sheet.setAttribute("aria-hidden","true");
+  document.body.classList.remove("settings-open-310");
+}
 
-  const member=await sb.from("household_members").select("household_id").eq("user_id",session.user.id).maybeSingle();
-  if(member.error){addDiagnosticError("household_members",member.error);return;}
-  if(!member.data?.household_id){addDiagnostic("❌ Usuário sem household_id");return;}
-  const hid=member.data.household_id;
-  addDiagnostic("✅ Household ID",hid);
+function updateShareCard310(){
+  const text=$("groupCodeText");
+  if(text)text.textContent=householdCode||"Código indisponível";
+}
 
-  const house=await sb.from("households").select("code").eq("id",hid).maybeSingle();
-  if(house.error){addDiagnosticError("households",house.error)}else addDiagnostic("✅ Código da casa",house.data?.code||"SEM CÓDIGO");
+async function copyHouseCode310(){
+  const code=householdCode||"";
+  if(!code){
+    toast("Código da casa indisponível");
+    return;
+  }
+  try{
+    await navigator.clipboard.writeText(code);
+    toast("Código da casa copiado");
+  }catch{
+    prompt("Copie o código da casa:",code);
+  }
+}
 
-  const finance=await sb.from("finance_state").select("data").eq("household_id",hid).maybeSingle();
-  if(finance.error){addDiagnosticError("finance_state",finance.error);return;}
-  if(!finance.data?.data){addDiagnostic("❌ finance_state não encontrado");return;}
+function openDiagnostic310(){
+  closeSettings310();
+  const dialog=$("diagnosticDialog");
+  if(!dialog)return;
+  try{dialog.showModal()}catch{dialog.setAttribute("open","")}
+}
+
+function closeDiagnostic310(){
+  const dialog=$("diagnosticDialog");
+  if(!dialog)return;
+  try{dialog.close()}catch{dialog.removeAttribute("open")}
+}
+
+async function runDiagnostic310(){
+  diagnosticLines310.length=0;
+  diagnosticAdd310("================================");
+  diagnosticAdd310("NOSSO CONTROLE 3.1.0");
+  diagnosticAdd310("================================");
+  diagnosticAdd310("Online",navigator.onLine?"SIM":"NÃO");
+  diagnosticAdd310("URL",location.href);
+
+  if(typeof sb==="undefined"||!sb){
+    diagnosticAdd310("❌ Cliente Supabase não inicializado");
+    return;
+  }
+  diagnosticAdd310("✅ Cliente Supabase inicializado");
+
+  let sessionResponse;
+  try{
+    sessionResponse=await sb.auth.getSession();
+  }catch(error){
+    diagnosticError310("Consultar sessão",error);
+    return;
+  }
+
+  if(sessionResponse.error){
+    diagnosticError310("Sessão",sessionResponse.error);
+    return;
+  }
+
+  const session=sessionResponse.data?.session;
+  if(!session?.user){
+    diagnosticAdd310("❌ Nenhuma sessão ativa");
+    return;
+  }
+
+  diagnosticAdd310("✅ Login ativo");
+  diagnosticAdd310("User ID",session.user.id);
+  diagnosticAdd310("E-mail",session.user.email||"—");
+
+  let member;
+  try{
+    member=await sb
+      .from("household_members")
+      .select("household_id")
+      .eq("user_id",session.user.id)
+      .maybeSingle();
+  }catch(error){
+    diagnosticError310("household_members",error);
+    return;
+  }
+
+  if(member.error){
+    diagnosticError310("household_members",member.error);
+    return;
+  }
+  if(!member.data?.household_id){
+    diagnosticAdd310("❌ Nenhum vínculo de casa encontrado");
+    return;
+  }
+
+  const houseId=member.data.household_id;
+  diagnosticAdd310("✅ Household ID",houseId);
+
+  const house=await sb
+    .from("households")
+    .select("code")
+    .eq("id",houseId)
+    .maybeSingle();
+
+  if(house.error){
+    diagnosticError310("households",house.error);
+  }else{
+    diagnosticAdd310("✅ Código da casa",house.data?.code||"SEM CÓDIGO");
+  }
+
+  const finance=await sb
+    .from("finance_state")
+    .select("data")
+    .eq("household_id",houseId)
+    .maybeSingle();
+
+  if(finance.error){
+    diagnosticError310("finance_state",finance.error);
+    return;
+  }
+  if(!finance.data?.data){
+    diagnosticAdd310("❌ finance_state sem dados");
+    return;
+  }
 
   const data=finance.data.data;
-  addDiagnostic("✅ finance_state carregado");
-  addDiagnostic("Bills",Array.isArray(data.bills)?data.bills.length:"inválido");
-  addDiagnostic("Receitas",Array.isArray(data.incomes)?data.incomes.length:"inválido");
-  addDiagnostic("Gastos",Array.isArray(data.expenses)?data.expenses.length:"inválido");
-  addDiagnostic("Cofre",Array.isArray(data.vaultEntries)?data.vaultEntries.length:"inválido");
-  addDiagnostic("✅ DIAGNÓSTICO CONCLUÍDO");
-}
-function updateShareCard(){
-  const el=document.getElementById("groupCodeText");
-  if(el)el.textContent=householdCode||"Sem código";
-}
-function installTools(){
-  document.getElementById("openDiagnosticBtn")?.addEventListener("click",()=>{
-    document.getElementById("settingsSheet")?.classList.add("hidden");
-    const d=document.getElementById("diagnosticDialog");
-    try{d.showModal()}catch{d.setAttribute("open","")}
-  });
-  document.getElementById("closeDiagnosticBtn")?.addEventListener("click",()=>{
-    const d=document.getElementById("diagnosticDialog");
-    try{d.close()}catch{d.removeAttribute("open")}
-  });
-  document.getElementById("runDiagnosticBtn")?.addEventListener("click",runFullDiagnostic);
-  document.getElementById("copyDiagnosticBtn")?.addEventListener("click",async()=>{
-    const text=diagnosticLines.join("\n")||"Sem log";
-    try{await navigator.clipboard.writeText(text);toast("Log copiado")}catch{prompt("Copie o log:",text)}
-  });
-  document.getElementById("copyCode")?.addEventListener("click",async()=>{
-    const code=householdCode||"";
-    if(!code)return toast("Código da casa indisponível");
-    try{await navigator.clipboard.writeText(code);toast("Código copiado")}catch{prompt("Copie o código:",code)}
-  });
-  updateShareCard();
-}
-document.addEventListener("DOMContentLoaded",installTools);
-window.addEventListener("pageshow",()=>setTimeout(installTools,50));
-
-
-
-/* Nosso Controle 3.0.8 — erro técnico visível no login */
-let inlineDiagnosticLines=[];
-
-function clearInlineDiagnostic(){
-  inlineDiagnosticLines=[];
-  const box=document.getElementById("inlineDiagnosticBox");
-  const log=document.getElementById("inlineDiagnosticLog");
-  if(box)box.classList.add("hidden");
-  if(log)log.textContent="";
+  diagnosticAdd310("✅ finance_state carregado");
+  diagnosticAdd310("Bills",Array.isArray(data.bills)?data.bills.length:"campo inválido");
+  diagnosticAdd310("Receitas",Array.isArray(data.incomes)?data.incomes.length:"campo inválido");
+  diagnosticAdd310("Gastos",Array.isArray(data.expenses)?data.expenses.length:"campo inválido");
+  diagnosticAdd310("Cofre",Array.isArray(data.vaultEntries)?data.vaultEntries.length:"campo inválido");
+  diagnosticAdd310("✅ Diagnóstico concluído");
 }
 
-function showInlineDiagnostic(step,error,extra={}){
-  const box=document.getElementById("inlineDiagnosticBox");
-  const log=document.getElementById("inlineDiagnosticLog");
-  if(!box||!log)return;
-
-  const lines=[];
-  lines.push(`ETAPA: ${step}`);
-  if(error){
-    lines.push(`MENSAGEM: ${error.message||String(error)}`);
-    if(error.code)lines.push(`CÓDIGO: ${error.code}`);
-    if(error.details)lines.push(`DETALHES: ${error.details}`);
-    if(error.hint)lines.push(`SUGESTÃO: ${error.hint}`);
-    if(error.status)lines.push(`STATUS: ${error.status}`);
+async function copyDiagnostic310(){
+  const text=diagnosticLines310.join("\n")||$("diagnosticLog")?.textContent||"Sem log";
+  try{
+    await navigator.clipboard.writeText(text);
+    toast("Log copiado");
+  }catch{
+    prompt("Copie o log:",text);
   }
-  for(const [key,value] of Object.entries(extra||{})){
-    lines.push(`${key.toUpperCase()}: ${value??"—"}`);
-  }
-
-  inlineDiagnosticLines=lines;
-  log.textContent=lines.join("\n");
-  box.classList.remove("hidden");
 }
 
-document.addEventListener("DOMContentLoaded",()=>{
-  document.getElementById("copyInlineDiagnosticBtn")?.addEventListener("click",async()=>{
-    const text=inlineDiagnosticLines.join("\n")||document.getElementById("inlineDiagnosticLog")?.textContent||"Sem detalhes";
-    try{
-      await navigator.clipboard.writeText(text);
-      if(typeof toast==="function")toast("Detalhes copiados");
-    }catch{
-      prompt("Copie os detalhes:",text);
-    }
-  });
-});
-
-
-
-/* Nosso Controle 3.0.8 — menu dos três pontos */
-(function installStableSettingsMenu307(){
-  function getMenuButton(){
-    return document.getElementById("menuButton")
-      || document.querySelector('[data-action="settings"]')
-      || Array.from(document.querySelectorAll("button")).find(btn=>{
-        const text=(btn.textContent||"").replace(/\s/g,"");
-        return text==="•••" || text==="..." || text==="⋯";
-      });
+function bindStableControls310(){
+  const menu=$("menuButton");
+  if(menu && !menu.dataset.bound310){
+    menu.dataset.bound310="1";
+    menu.onclick=(event)=>{
+      event.preventDefault();
+      openSettings310();
+    };
   }
 
-  function getSettingsPanel(){
-    return document.getElementById("settingsSheet")
-      || document.querySelector("dialog.settings-sheet")
-      || document.querySelector(".settings-sheet")
-      || document.querySelector(".settings-modal")
-      || document.querySelector('[data-panel="settings"]');
+  const close=$("closeSettings");
+  if(close && !close.dataset.bound310){
+    close.dataset.bound310="1";
+    close.onclick=(event)=>{
+      event.preventDefault();
+      closeSettings310();
+    };
   }
 
-  function openSettings(){
-    const panel=getSettingsPanel();
-    if(!panel){
-      console.error("Menu: painel de configurações não encontrado.");
-      if(typeof toast==="function")toast("Menu de configurações não encontrado");
-      return;
-    }
-
-    panel.classList.remove("hidden");
-    panel.removeAttribute("hidden");
-    panel.setAttribute("aria-hidden","false");
-
-    if(panel.tagName==="DIALOG"){
-      try{
-        if(!panel.open)panel.showModal();
-      }catch{
-        panel.setAttribute("open","");
-      }
-    }else{
-      panel.classList.add("open");
-      document.body.classList.add("settings-open");
-    }
+  const sheet=$("settingsSheet");
+  if(sheet && !sheet.dataset.bound310){
+    sheet.dataset.bound310="1";
+    sheet.onclick=(event)=>{
+      if(event.target===sheet)closeSettings310();
+    };
   }
 
-  function closeSettings(){
-    const panel=getSettingsPanel();
-    if(!panel)return;
-
-    if(panel.tagName==="DIALOG"){
-      try{panel.close()}catch{panel.removeAttribute("open")}
-    }else{
-      panel.classList.remove("open");
-      panel.classList.add("hidden");
-      panel.setAttribute("aria-hidden","true");
-      document.body.classList.remove("settings-open");
-    }
+  const share=$("copyCode");
+  if(share && !share.dataset.bound310){
+    share.dataset.bound310="1";
+    share.onclick=(event)=>{
+      event.preventDefault();
+      copyHouseCode310();
+    };
   }
 
-  function bind(){
-    const menu=getMenuButton();
-    if(menu && !menu.dataset.settingsBound307){
-      menu.dataset.settingsBound307="1";
-      menu.addEventListener("click",event=>{
-        event.preventDefault();
-        event.stopPropagation();
-        openSettings();
-      });
-    }
-
-    const close=document.getElementById("closeSettingsBtn")
-      || getSettingsPanel()?.querySelector('button[aria-label*="Fechar"],button.close-button,.round-button');
-    if(close && !close.dataset.settingsCloseBound307){
-      close.dataset.settingsCloseBound307="1";
-      close.addEventListener("click",event=>{
-        event.preventDefault();
-        closeSettings();
-      });
-    }
-
-    const panel=getSettingsPanel();
-    if(panel && !panel.dataset.settingsBackdropBound307){
-      panel.dataset.settingsBackdropBound307="1";
-      panel.addEventListener("click",event=>{
-        if(event.target===panel && panel.tagName==="DIALOG")closeSettings();
-      });
-    }
+  const openDiagnostic=$("openDiagnosticBtn");
+  if(openDiagnostic && !openDiagnostic.dataset.bound310){
+    openDiagnostic.dataset.bound310="1";
+    openDiagnostic.onclick=(event)=>{
+      event.preventDefault();
+      openDiagnostic310();
+    };
   }
 
-  document.addEventListener("DOMContentLoaded",bind);
-  window.addEventListener("pageshow",()=>setTimeout(bind,50));
-  setTimeout(bind,300);
-})();
+  const closeDiagnostic=$("closeDiagnosticBtn");
+  if(closeDiagnostic && !closeDiagnostic.dataset.bound310){
+    closeDiagnostic.dataset.bound310="1";
+    closeDiagnostic.onclick=(event)=>{
+      event.preventDefault();
+      closeDiagnostic310();
+    };
+  }
 
+  const runDiagnostic=$("runDiagnosticBtn");
+  if(runDiagnostic && !runDiagnostic.dataset.bound310){
+    runDiagnostic.dataset.bound310="1";
+    runDiagnostic.onclick=runDiagnostic310;
+  }
+
+  const copyDiagnostic=$("copyDiagnosticBtn");
+  if(copyDiagnostic && !copyDiagnostic.dataset.bound310){
+    copyDiagnostic.dataset.bound310="1";
+    copyDiagnostic.onclick=copyDiagnostic310;
+  }
+
+  updateShareCard310();
+}
+
+document.addEventListener("DOMContentLoaded",bindStableControls310);
+window.addEventListener("pageshow",()=>setTimeout(bindStableControls310,50));
+setTimeout(bindStableControls310,250);
+
+boot();
