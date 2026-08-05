@@ -1017,3 +1017,14 @@ body,
   white-space:normal;
   line-height:1.35;
 }
+
+/* 3.0.5 */
+.diagnostic-dialog{width:min(94vw,720px);max-height:90vh;padding:0;border:0;background:transparent}
+.diagnostic-dialog::backdrop{background:rgba(2,3,10,.82);backdrop-filter:blur(8px)}
+.diagnostic-card{max-height:88vh;overflow:auto;padding:16px;border-radius:24px;background:#10121e;color:#f5f6ff;border:1px solid rgba(255,255,255,.08)}
+.diagnostic-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.diagnostic-head span{color:#aa8cff;font-size:8px;font-weight:900;letter-spacing:1px}
+.diagnostic-head h2{margin:5px 0 3px;font-size:22px}
+.diagnostic-head p{margin:0;color:#9296a8;font-size:9px}
+#diagnosticLog{margin:14px 0;padding:13px;min-height:280px;max-height:50vh;overflow:auto;white-space:pre-wrap;word-break:break-word;border-radius:16px;background:#090b13;border:1px solid rgba(255,255,255,.06);color:#c9f7df;font:12px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace}
+.diagnostic-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px}

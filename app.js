@@ -1,4 +1,4 @@
-/* Nosso Controle 3.0.4 — aplicação refatorada */
+/* Nosso Controle 3.0.5 — aplicação refatorada */
 const cfg={
   SUPABASE_URL:"https://lhihsssbsjfliggtlaza.supabase.co",
   SUPABASE_ANON_KEY:"sb_publishable_0bttyUW7ASI8ylAyZjLkPA_NS8eThfO",
@@ -76,6 +76,7 @@ async function boot(){
   }
 }
 async function loadMembership(){
+  addDiagnostic("▶ loadMembership");
   if(!user?.id){
     show("authView");
     return;
@@ -88,7 +89,7 @@ async function loadMembership(){
     .maybeSingle();
 
   if(memberResult.error){
-    console.error("household_members:",memberResult.error);
+    console.error("household_members:",memberResult.error); addDiagnosticError("household_members",memberResult.error);
     feedback("authMsg","Login realizado, mas não foi possível carregar a casa financeira.");
     show("authView");
     return;
@@ -99,7 +100,7 @@ async function loadMembership(){
     return;
   }
 
-  householdId=memberResult.data.household_id;
+  householdId=memberResult.data.household_id; addDiagnostic("✅ household_id",householdId);
 
   const householdResult=await sb
     .from("households")
@@ -108,10 +109,10 @@ async function loadMembership(){
     .maybeSingle();
 
   if(householdResult.error){
-    console.warn("households:",householdResult.error);
+    console.warn("households:",householdResult.error); addDiagnosticError("households",householdResult.error);
     householdCode="";
   }else{
-    householdCode=householdResult.data?.code||"";
+    householdCode=householdResult.data?.code||""; addDiagnostic("✅ household code",householdCode||"SEM CÓDIGO"); updateShareCard();
   }
 
   const loaded=await loadState();
@@ -126,6 +127,7 @@ async function loadMembership(){
 }
 
 async function loadState(){
+  addDiagnostic("▶ loadState");
   const result=await sb
     .from("finance_state")
     .select("data")
@@ -133,7 +135,7 @@ async function loadState(){
     .maybeSingle();
 
   if(result.error){
-    console.error("finance_state:",result.error);
+    console.error("finance_state:",result.error); addDiagnosticError("finance_state",result.error);
     toast("Erro ao carregar os dados financeiros");
     return false;
   }
@@ -274,7 +276,7 @@ async function handleLogin(){
   try{
     await loadMembership();
   }catch(error){
-    console.error("Falha após login:",error);
+    console.error("Falha após login:",error); addDiagnosticError("Após login",error);
     feedback("authMsg","Login realizado, mas ocorreu um erro ao abrir seus dados.");
     show("authView");
   }
@@ -1355,9 +1357,9 @@ $("saveVaultDeposit").onclick=async e=>{
 };
 
 
-const APP_VERSION="3.0.4";
+const APP_VERSION="3.0.5";
 const RELEASE_NOTES=[
-  {version:"3.0.4",date:"05/08/2026",title:"Refatoração de estabilidade",changes:[
+  {version:"3.0.5",date:"05/08/2026",title:"Refatoração de estabilidade",changes:[
     "Removidos scripts e manipuladores duplicados.",
     "Login unificado em um único fluxo.",
     "Dashboard, Bills e filtros renderizados uma única vez.",
@@ -1427,3 +1429,95 @@ render=function(){baseRender();renderCleanDashboard();renderCleanBills();renderU
 window.addEventListener('pageshow',()=>{const d=$("updatesDialog");if(d?.open)safeClose(d)});
 ensureCleaningDialog();prepareSettings();renderUpdatesV22();
 boot();
+
+
+/* Nosso Controle 3.0.5 — Compartilhar e Diagnóstico */
+const diagnosticLines=[];
+
+function addDiagnostic(message,detail){
+  const time=new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
+  const line=detail===undefined?`[${time}] ${message}`:`[${time}] ${message}: ${typeof detail==="string"?detail:JSON.stringify(detail,null,2)}`;
+  diagnosticLines.push(line);
+  const out=document.getElementById("diagnosticLog");
+  if(out)out.textContent=diagnosticLines.join("\n");
+  console.log("[DIAGNÓSTICO]",message,detail??"");
+}
+function addDiagnosticError(step,error){
+  addDiagnostic(`❌ ${step}`,error?.message||String(error||"Erro desconhecido"));
+  if(error?.code)addDiagnostic("Código",error.code);
+  if(error?.details)addDiagnostic("Detalhes",error.details);
+  if(error?.hint)addDiagnostic("Sugestão",error.hint);
+  console.error(`[DIAGNÓSTICO] ${step}`,error);
+}
+function resetDiagnostic(){
+  diagnosticLines.length=0;
+  addDiagnostic("================================");
+  addDiagnostic("NOSSO CONTROLE 3.0.5");
+  addDiagnostic("================================");
+}
+async function runFullDiagnostic(){
+  resetDiagnostic();
+  addDiagnostic("URL",location.href);
+  addDiagnostic("Online",navigator.onLine?"SIM":"NÃO");
+  if(typeof sb==="undefined"||!sb){addDiagnostic("❌ Cliente Supabase ausente");return;}
+  addDiagnostic("✅ Cliente Supabase iniciado");
+
+  let sessionResult;
+  try{sessionResult=await sb.auth.getSession()}catch(error){addDiagnosticError("Sessão",error);return;}
+  if(sessionResult?.error){addDiagnosticError("Sessão",sessionResult.error);return;}
+  const session=sessionResult?.data?.session;
+  if(!session?.user){addDiagnostic("❌ Nenhuma sessão ativa");return;}
+  addDiagnostic("✅ Login ativo");
+  addDiagnostic("User ID",session.user.id);
+  addDiagnostic("E-mail",session.user.email||"—");
+
+  const member=await sb.from("household_members").select("household_id").eq("user_id",session.user.id).maybeSingle();
+  if(member.error){addDiagnosticError("household_members",member.error);return;}
+  if(!member.data?.household_id){addDiagnostic("❌ Usuário sem household_id");return;}
+  const hid=member.data.household_id;
+  addDiagnostic("✅ Household ID",hid);
+
+  const house=await sb.from("households").select("code").eq("id",hid).maybeSingle();
+  if(house.error){addDiagnosticError("households",house.error)}else addDiagnostic("✅ Código da casa",house.data?.code||"SEM CÓDIGO");
+
+  const finance=await sb.from("finance_state").select("data").eq("household_id",hid).maybeSingle();
+  if(finance.error){addDiagnosticError("finance_state",finance.error);return;}
+  if(!finance.data?.data){addDiagnostic("❌ finance_state não encontrado");return;}
+
+  const data=finance.data.data;
+  addDiagnostic("✅ finance_state carregado");
+  addDiagnostic("Bills",Array.isArray(data.bills)?data.bills.length:"inválido");
+  addDiagnostic("Receitas",Array.isArray(data.incomes)?data.incomes.length:"inválido");
+  addDiagnostic("Gastos",Array.isArray(data.expenses)?data.expenses.length:"inválido");
+  addDiagnostic("Cofre",Array.isArray(data.vaultEntries)?data.vaultEntries.length:"inválido");
+  addDiagnostic("✅ DIAGNÓSTICO CONCLUÍDO");
+}
+function updateShareCard(){
+  const el=document.getElementById("groupCodeText");
+  if(el)el.textContent=householdCode||"Sem código";
+}
+function installTools(){
+  document.getElementById("openDiagnosticBtn")?.addEventListener("click",()=>{
+    document.getElementById("settingsSheet")?.classList.add("hidden");
+    const d=document.getElementById("diagnosticDialog");
+    try{d.showModal()}catch{d.setAttribute("open","")}
+  });
+  document.getElementById("closeDiagnosticBtn")?.addEventListener("click",()=>{
+    const d=document.getElementById("diagnosticDialog");
+    try{d.close()}catch{d.removeAttribute("open")}
+  });
+  document.getElementById("runDiagnosticBtn")?.addEventListener("click",runFullDiagnostic);
+  document.getElementById("copyDiagnosticBtn")?.addEventListener("click",async()=>{
+    const text=diagnosticLines.join("\n")||"Sem log";
+    try{await navigator.clipboard.writeText(text);toast("Log copiado")}catch{prompt("Copie o log:",text)}
+  });
+  document.getElementById("copyCode")?.addEventListener("click",async()=>{
+    const code=householdCode||"";
+    if(!code)return toast("Código da casa indisponível");
+    try{await navigator.clipboard.writeText(code);toast("Código copiado")}catch{prompt("Copie o código:",code)}
+  });
+  updateShareCard();
+}
+document.addEventListener("DOMContentLoaded",installTools);
+window.addEventListener("pageshow",()=>setTimeout(installTools,50));
+
