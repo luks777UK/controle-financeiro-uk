@@ -1065,3 +1065,17 @@ body,
   color:#d6d9e6;
   font:10px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace;
 }
+
+
+/* Nosso Controle 3.0.7 — fallback do menu */
+body.settings-open{
+  overflow:hidden;
+}
+#settingsSheet.open,
+.settings-sheet.open,
+.settings-modal.open{
+  display:block !important;
+  visibility:visible !important;
+  opacity:1 !important;
+  pointer-events:auto !important;
+}

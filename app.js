@@ -1,4 +1,4 @@
-/* Nosso Controle 3.0.6 — aplicação refatorada */
+/* Nosso Controle 3.0.7 — aplicação refatorada */
 const cfg={
   SUPABASE_URL:"https://lhihsssbsjfliggtlaza.supabase.co",
   SUPABASE_ANON_KEY:"sb_publishable_0bttyUW7ASI8ylAyZjLkPA_NS8eThfO",
@@ -1361,9 +1361,9 @@ $("saveVaultDeposit").onclick=async e=>{
 };
 
 
-const APP_VERSION="3.0.6";
+const APP_VERSION="3.0.7";
 const RELEASE_NOTES=[
-  {version:"3.0.6",date:"05/08/2026",title:"Refatoração de estabilidade",changes:[
+  {version:"3.0.7",date:"05/08/2026",title:"Refatoração de estabilidade",changes:[
     "Removidos scripts e manipuladores duplicados.",
     "Login unificado em um único fluxo.",
     "Dashboard, Bills e filtros renderizados uma única vez.",
@@ -1435,7 +1435,7 @@ ensureCleaningDialog();prepareSettings();renderUpdatesV22();
 boot();
 
 
-/* Nosso Controle 3.0.6 — Compartilhar e Diagnóstico */
+/* Nosso Controle 3.0.7 — Compartilhar e Diagnóstico */
 const diagnosticLines=[];
 
 function addDiagnostic(message,detail){
@@ -1456,7 +1456,7 @@ function addDiagnosticError(step,error){
 function resetDiagnostic(){
   diagnosticLines.length=0;
   addDiagnostic("================================");
-  addDiagnostic("NOSSO CONTROLE 3.0.6");
+  addDiagnostic("NOSSO CONTROLE 3.0.7");
   addDiagnostic("================================");
 }
 async function runFullDiagnostic(){
@@ -1527,7 +1527,7 @@ window.addEventListener("pageshow",()=>setTimeout(installTools,50));
 
 
 
-/* Nosso Controle 3.0.6 — erro técnico visível no login */
+/* Nosso Controle 3.0.7 — erro técnico visível no login */
 let inlineDiagnosticLines=[];
 
 function clearInlineDiagnostic(){
@@ -1572,4 +1572,98 @@ document.addEventListener("DOMContentLoaded",()=>{
     }
   });
 });
+
+
+
+/* Nosso Controle 3.0.7 — menu dos três pontos */
+(function installStableSettingsMenu307(){
+  function getMenuButton(){
+    return document.getElementById("menuBtn")
+      || document.querySelector('[data-action="settings"]')
+      || Array.from(document.querySelectorAll("button")).find(btn=>{
+        const text=(btn.textContent||"").replace(/\s/g,"");
+        return text==="•••" || text==="..." || text==="⋯";
+      });
+  }
+
+  function getSettingsPanel(){
+    return document.getElementById("settingsSheet")
+      || document.querySelector("dialog.settings-sheet")
+      || document.querySelector(".settings-sheet")
+      || document.querySelector(".settings-modal")
+      || document.querySelector('[data-panel="settings"]');
+  }
+
+  function openSettings(){
+    const panel=getSettingsPanel();
+    if(!panel){
+      console.error("Menu: painel de configurações não encontrado.");
+      if(typeof toast==="function")toast("Menu de configurações não encontrado");
+      return;
+    }
+
+    panel.classList.remove("hidden");
+    panel.removeAttribute("hidden");
+    panel.setAttribute("aria-hidden","false");
+
+    if(panel.tagName==="DIALOG"){
+      try{
+        if(!panel.open)panel.showModal();
+      }catch{
+        panel.setAttribute("open","");
+      }
+    }else{
+      panel.classList.add("open");
+      document.body.classList.add("settings-open");
+    }
+  }
+
+  function closeSettings(){
+    const panel=getSettingsPanel();
+    if(!panel)return;
+
+    if(panel.tagName==="DIALOG"){
+      try{panel.close()}catch{panel.removeAttribute("open")}
+    }else{
+      panel.classList.remove("open");
+      panel.classList.add("hidden");
+      panel.setAttribute("aria-hidden","true");
+      document.body.classList.remove("settings-open");
+    }
+  }
+
+  function bind(){
+    const menu=getMenuButton();
+    if(menu && !menu.dataset.settingsBound307){
+      menu.dataset.settingsBound307="1";
+      menu.addEventListener("click",event=>{
+        event.preventDefault();
+        event.stopPropagation();
+        openSettings();
+      });
+    }
+
+    const close=document.getElementById("closeSettingsBtn")
+      || getSettingsPanel()?.querySelector('button[aria-label*="Fechar"],button.close-button,.round-button');
+    if(close && !close.dataset.settingsCloseBound307){
+      close.dataset.settingsCloseBound307="1";
+      close.addEventListener("click",event=>{
+        event.preventDefault();
+        closeSettings();
+      });
+    }
+
+    const panel=getSettingsPanel();
+    if(panel && !panel.dataset.settingsBackdropBound307){
+      panel.dataset.settingsBackdropBound307="1";
+      panel.addEventListener("click",event=>{
+        if(event.target===panel && panel.tagName==="DIALOG")closeSettings();
+      });
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded",bind);
+  window.addEventListener("pageshow",()=>setTimeout(bind,50));
+  setTimeout(bind,300);
+})();
 
