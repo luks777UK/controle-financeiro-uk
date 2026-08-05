@@ -40,7 +40,7 @@ function fatalDiagnostic313(step,error,extra={}){
     const box=document.getElementById("fatalLoginDiagnostic");
     const text=document.getElementById("fatalLoginDiagnosticText");
     const lines=[
-      `VERSÃO: 4.0.3`,
+      `VERSÃO: 4.0.4`,
       `ETAPA: ${step}`,
       `MENSAGEM: ${error?.message||String(error||"Erro desconhecido")}`
     ];
@@ -1564,23 +1564,225 @@ function animateMoney(id,to){
   function frame(now){const p=Math.min(1,(now-start)/duration),v=from+(to-from)*(1-Math.pow(1-p,3));el.textContent=money(v);if(p<1)requestAnimationFrame(frame);else el.dataset.money=to}
   requestAnimationFrame(frame);
 }
-function allocate(value,id){
-  let left=value;
-  const list=id==="auto"?state.bills.filter(b=>!b.paid).sort((a,b)=>new Date(a.due)-new Date(b.due)):[state.bills.find(b=>b.id===id)];
-  for(const b of list){if(!b||left<=0)break;const use=Math.min(left,Math.max(0,b.amount-b.reserved));b.reserved+=use;left-=use}
+function allocateDepositV404(value,id){
+  let left=Math.max(0,Number(value||0));
+  const allocations=[];
+
+  const targets=id==="auto"
+    ? (state.bills||[])
+        .filter(b=>!b.paid&&!b.completed)
+        .slice()
+        .sort((a,b)=>new Date(a.due)-new Date(b.due))
+    : [(state.bills||[]).find(b=>String(b.id)===String(id))];
+
+  for(const bill of targets){
+    if(!bill||left<=0)break;
+    const room=Math.max(0,Number(bill.amount||0)-Number(bill.reserved||0));
+    const used=Math.min(left,room);
+    if(used<=0)continue;
+
+    bill.reserved=Number(bill.reserved||0)+used;
+    allocations.push({billId:String(bill.id),amount:used});
+    left-=used;
+  }
+
+  return allocations;
 }
-$("openDeposit").onclick=()=>$("depositDialog").showModal();
-$("saveDeposit").onclick=async e=>{
-  e.preventDefault();
-  const cash=Number($("cashInput").value)||0,card=Number($("cardInput").value)||0;
-  if(cash+card<=0)return toast("Digite um valor.");
-  state.cash+=cash;state.card+=card;
-  const id=$("billSelect").value;allocate(cash+card,id);
-  const bill=id==="auto"?"Distribuição automática":state.bills.find(b=>b.id===id)?.name;
-  state.history=state.history||[];
-  state.history.push({date:new Date().toISOString(),text:"Depósito adicionado",cash,card,bill});
-  $("cashInput").value="";$("cardInput").value="";$("depositDialog").close();
-  await persist("Depósito salvo e sincronizado");
+
+function reverseDepositAllocationsV404(entry){
+  const total=Math.max(0,Number(entry.cash||0)+Number(entry.card||0));
+  const exact=Array.isArray(entry.allocations)&&entry.allocations.length
+    ? entry.allocations
+    : null;
+
+  if(exact){
+    for(const allocation of exact){
+      const bill=(state.bills||[]).find(b=>String(b.id)===String(allocation.billId));
+      if(!bill)continue;
+      bill.reserved=Math.max(0,Number(bill.reserved||0)-Number(allocation.amount||0));
+    }
+    return;
+  }
+
+  // Compatibilidade com depósitos antigos que não guardavam o mapa de distribuição.
+  if(entry.bill&&entry.bill!=="Distribuição automática"){
+    const bill=(state.bills||[]).find(b=>b.name===entry.bill);
+    if(bill){
+      bill.reserved=Math.max(0,Number(bill.reserved||0)-total);
+    }
+    return;
+  }
+
+  let left=total;
+  const bills=(state.bills||[])
+    .filter(b=>Number(b.reserved||0)>0)
+    .slice()
+    .sort((a,b)=>new Date(b.due)-new Date(a.due));
+
+  for(const bill of bills){
+    if(left<=0)break;
+    const remove=Math.min(left,Number(bill.reserved||0));
+    bill.reserved=Math.max(0,Number(bill.reserved||0)-remove);
+    left-=remove;
+  }
+}
+
+function resetDepositDialogV404(){
+  $("depositEditIdV4").value="";
+  $("depositDialogTitleV4").textContent="Novo depósito";
+  $("depositDialogSubtitleV4").textContent="Informe onde o dinheiro foi guardado.";
+  $("saveDeposit").textContent="Salvar depósito";
+  $("cashInput").value="";
+  $("cardInput").value="";
+  $("billSelect").value="auto";
+  feedback("depositFeedbackV4","");
+}
+
+function openDepositV404(){
+  resetDepositDialogV404();
+  $("depositDialog").showModal();
+}
+
+function editDepositV404(id){
+  const entry=(state.history||[]).find(item=>String(item.id)===String(id));
+  if(!entry)return;
+
+  $("depositEditIdV4").value=String(id);
+  $("depositDialogTitleV4").textContent="Editar depósito";
+  $("depositDialogSubtitleV4").textContent="Altere o valor ou a Bill de destino.";
+  $("saveDeposit").textContent="Salvar alterações";
+  $("cashInput").value=Number(entry.cash||0)?Number(entry.cash).toFixed(2):"";
+  $("cardInput").value=Number(entry.card||0)?Number(entry.card).toFixed(2):"";
+
+  const requested=entry.billId ||
+    ((state.bills||[]).find(b=>b.name===entry.bill)?.id) ||
+    "auto";
+  $("billSelect").value=String(requested);
+  feedback("depositFeedbackV4","");
+
+  $("depositDialog").showModal();
+}
+
+async function deleteDepositV404(id){
+  const entry=(state.history||[]).find(item=>String(item.id)===String(id));
+  if(!entry)return;
+
+  const cash=Number(entry.cash||0);
+  const card=Number(entry.card||0);
+
+  if(Number(state.cash||0)<cash||Number(state.card||0)<card){
+    alert("Este depósito já foi usado em pagamentos. Não é possível excluí-lo porque o saldo ficaria negativo.");
+    return;
+  }
+
+  if(!confirm(`Excluir este depósito de ${money(cash+card)}?\n\nO valor será removido do Envelope/Cartão e das reservas das Bills.`)){
+    return;
+  }
+
+  const backup=structuredClone(state);
+
+  try{
+    state.cash=Math.max(0,Number(state.cash||0)-cash);
+    state.card=Math.max(0,Number(state.card||0)-card);
+    reverseDepositAllocationsV404(entry);
+    state.history=(state.history||[]).filter(item=>String(item.id)!==String(id));
+    state.dailyGoal=calculateFixedWorkdayGoal321(state.bills||[]);
+    await persist("Depósito excluído");
+  }catch(error){
+    state=backup;
+    render();
+    fatalDiagnostic313("Excluir depósito de Bills 4.0.4",error,{deposit_id:id});
+    alert(`Erro ao excluir depósito:\n\n${error?.message||String(error)}`);
+  }
+}
+
+$("openDeposit").onclick=openDepositV404;
+
+$("saveDeposit").onclick=async event=>{
+  event.preventDefault();
+  feedback("depositFeedbackV4","");
+
+  const cash=Math.max(0,Number($("cashInput").value)||0);
+  const card=Math.max(0,Number($("cardInput").value)||0);
+  const total=cash+card;
+  const billId=$("billSelect").value;
+  const editId=$("depositEditIdV4").value;
+
+  if(total<=0){
+    feedback("depositFeedbackV4","Digite um valor.");
+    return;
+  }
+
+  const backup=structuredClone(state);
+  const button=$("saveDeposit");
+  button.disabled=true;
+  button.textContent=editId?"Salvando…":"Adicionando…";
+
+  try{
+    let existing=null;
+
+    if(editId){
+      existing=(state.history||[]).find(item=>String(item.id)===String(editId));
+      if(!existing)throw new Error("Depósito original não encontrado.");
+
+      const oldCash=Number(existing.cash||0);
+      const oldCard=Number(existing.card||0);
+
+      const resultingCash=Number(state.cash||0)-oldCash+cash;
+      const resultingCard=Number(state.card||0)-oldCard+card;
+
+      if(resultingCash<0||resultingCard<0){
+        throw new Error("Esse dinheiro já foi utilizado. A alteração deixaria o Envelope ou Cartão negativo.");
+      }
+
+      state.cash=resultingCash;
+      state.card=resultingCard;
+      reverseDepositAllocationsV404(existing);
+    }else{
+      state.cash=Number(state.cash||0)+cash;
+      state.card=Number(state.card||0)+card;
+    }
+
+    const allocations=allocateDepositV404(total,billId);
+    const billName=billId==="auto"
+      ? "Distribuição automática"
+      : (state.bills||[]).find(b=>String(b.id)===String(billId))?.name||"Bill";
+
+    const record={
+      id:editId || crypto.randomUUID?.() || String(Date.now()),
+      type:"bill_deposit",
+      date:existing?.date||new Date().toISOString(),
+      updatedAt:new Date().toISOString(),
+      text:editId?"Depósito editado":"Depósito adicionado",
+      cash,
+      card,
+      amount:total,
+      bill:billName,
+      billId,
+      allocations
+    };
+
+    if(editId){
+      const index=(state.history||[]).findIndex(item=>String(item.id)===String(editId));
+      state.history[index]=record;
+    }else{
+      state.history=Array.isArray(state.history)?state.history:[];
+      state.history.push(record);
+    }
+
+    state.dailyGoal=calculateFixedWorkdayGoal321(state.bills||[]);
+    $("depositDialog").close();
+    resetDepositDialogV404();
+    await persist(editId?"Depósito atualizado":"Depósito salvo e sincronizado");
+  }catch(error){
+    state=backup;
+    render();
+    feedback("depositFeedbackV4",error?.message||"Não foi possível salvar o depósito.");
+    fatalDiagnostic313("Salvar depósito de Bills 4.0.4",error,{deposit_id:editId||"novo"});
+  }finally{
+    button.disabled=false;
+    button.textContent=editId?"Salvar alterações":"Salvar depósito";
+  }
 };
 
 function resetBillForm(){
@@ -1861,8 +2063,9 @@ $("confirmVaultWithdrawV4").onclick=async()=>{
 };
 
 
-const APP_VERSION="4.0.3";
+const APP_VERSION="4.0.4";
 const RELEASE_NOTES=[
+  {version:"4.0.4",date:"05/08/2026",title:"Editar e excluir depósitos das Bills",changes:["Depósitos agora têm botões de editar e excluir no histórico.","Editar desfaz o depósito antigo antes de aplicar o novo.","Excluir remove os valores do Envelope, Cartão e reservas das Bills.","Novos depósitos salvam o mapa exato de distribuição entre as Bills.","Alterações são bloqueadas quando o dinheiro já foi usado."]},
   {version:"4.0.3",date:"05/08/2026",title:"Atualização forçada no Safari",changes:["Service workers antigos são removidos.","Caches do site são apagados ao abrir.","Pagamento dividido e limpeza do histórico passam a carregar sem versão antiga.","A versão carregada aparece nas Configurações."]},
   {version:"4.0.2",date:"05/08/2026",title:"Pagamento dividido e histórico corrigido",changes:["Ao pagar uma Bill, o app pergunta quanto sai do Envelope e do Cartão.","O pagamento valida os saldos e exige a soma exata da Bill.","Pagamentos aparecem em vermelho no histórico.","Limpar histórico de Bills agora grava diretamente no Supabase."]},
   {version:"4.0.1",date:"05/08/2026",title:"Histórico do Cofre em ordem correta",changes:["Movimentações mais recentes aparecem no topo.","Movimentações do mesmo dia respeitam a ordem em que foram adicionadas.","Novas entradas e retiradas salvam o horário exato."]},
@@ -2030,10 +2233,37 @@ async function deleteBillV4(id){
   }
 }
 
+function normalizeBillDepositsV404(){
+  if(!Array.isArray(state?.history))return;
+  state.history=state.history.map((item,index)=>{
+    const text=String(item?.text||"").toLowerCase();
+    const looksLikeDeposit=
+      item?.type==="bill_deposit" ||
+      (text.includes("depósito")&&((Number(item?.cash)||0)+(Number(item?.card)||0)>0));
+
+    if(!looksLikeDeposit)return item;
+
+    return {
+      id:item.id||`legacy-deposit-${index}-${String(item.date||"").replace(/\D/g,"")}`,
+      type:"bill_deposit",
+      amount:Number(item.amount||0)||Number(item.cash||0)+Number(item.card||0),
+      ...item
+    };
+  });
+}
+
 function renderBillActivityV4(){
   const container=$("historyList");
   if(!container)return;
-  const items=(Array.isArray(state.history)?state.history:[]).slice().reverse().slice(0,30);
+
+  const items=(Array.isArray(state.history)?state.history:[])
+    .map((item,index)=>({...item,__index:index}))
+    .sort((a,b)=>{
+      const aTime=new Date(a.updatedAt||a.date||0).getTime();
+      const bTime=new Date(b.updatedAt||b.date||0).getTime();
+      return bTime!==aTime?bTime-aTime:b.__index-a.__index;
+    })
+    .slice(0,30);
 
   if(!items.length){
     container.innerHTML='<div class="history-empty-v4">Nenhuma atividade registrada.</div>';
@@ -2044,19 +2274,40 @@ function renderBillActivityV4(){
     const text=String(item.text||item.label||"Atividade");
     const lower=text.toLowerCase();
     const type=String(item.type||"");
-    const added=type.includes("deposit")||lower.includes("adicionado")||lower.includes("depósito");
+    const isDeposit=type==="bill_deposit" ||
+      lower.includes("depósito adicionado") ||
+      lower.includes("depósito editado");
+    const added=isDeposit||type.includes("deposit")||lower.includes("adicionado");
     const removed=type==="bill_payment"||type==="bill_deleted"||lower.includes("paga")||lower.includes("excluída")||lower.includes("retirada");
     const tone=removed?"removed":added?"added":"neutral";
     const amount=Number(item.amount||0)||(Number(item.cash||0)+Number(item.card||0));
 
     return `<article class="history-item-v4 ${tone}">
       <span class="history-dot-v4"></span>
-      <div><strong>${escapeText(text)}</strong><small>${new Date(item.date).toLocaleString("pt-BR")}${item.bill?` · ${escapeText(item.bill)}`:""}</small></div>
-      <b>${amount?`${removed?"−":"+"}${money(amount)}`:""}</b>
+      <div class="history-content-v404">
+        <strong>${escapeText(text)}</strong>
+        <small>${new Date(item.date).toLocaleString("pt-BR")}${item.bill?` · ${escapeText(item.bill)}`:""}</small>
+        ${isDeposit?`<span class="deposit-breakdown-v404">Envelope ${money(Number(item.cash||0))} · Cartão ${money(Number(item.card||0))}</span>`:""}
+      </div>
+      <div class="history-right-v404">
+        <b>${amount?`${removed?"−":"+"}${money(amount)}`:""}</b>
+        ${isDeposit?`
+          <div class="deposit-actions-v404">
+            <button type="button" data-edit-deposit-v404="${item.id}" aria-label="Editar depósito">✎</button>
+            <button type="button" data-delete-deposit-v404="${item.id}" aria-label="Excluir depósito">🗑</button>
+          </div>`:""}
+      </div>
     </article>`;
   }).join("");
-}
 
+  container.querySelectorAll("[data-edit-deposit-v404]").forEach(button=>{
+    button.onclick=()=>editDepositV404(button.dataset.editDepositV404);
+  });
+
+  container.querySelectorAll("[data-delete-deposit-v404]").forEach(button=>{
+    button.onclick=()=>deleteDepositV404(button.dataset.deleteDepositV404);
+  });
+}
 
 function openBillPaymentV4(id){
   const bill=(state.bills||[]).find(item=>String(item.id)===String(id));
@@ -2199,7 +2450,7 @@ function prepareSettings(){const sheet=$("settingsSheet");if(!sheet)return;sheet
 
 const baseRender=render;
 render=function(){
-  try{baseRender()}catch(error){fatalDiagnostic313("Renderização principal",error);throw error}
+  try{normalizeBillDepositsV404();baseRender()}catch(error){fatalDiagnostic313("Renderização principal",error);throw error}
   try{renderCleanDashboard()}catch(error){fatalDiagnostic313("Dashboard premium",error)}
   try{renderCleanBills()}catch(error){fatalDiagnostic313("Bills premium",error)}
   try{renderUpdatesV22()}catch(error){fatalDiagnostic313("Atualizações",error)}
