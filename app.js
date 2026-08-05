@@ -40,7 +40,7 @@ function fatalDiagnostic313(step,error,extra={}){
     const box=document.getElementById("fatalLoginDiagnostic");
     const text=document.getElementById("fatalLoginDiagnosticText");
     const lines=[
-      `VERSÃO: 3.1.9`,
+      `VERSÃO: 3.2.0`,
       `ETAPA: ${step}`,
       `MENSAGEM: ${error?.message||String(error||"Erro desconhecido")}`
     ];
@@ -211,8 +211,92 @@ async function loadState(){
   return true;
 }
 
+
+function calculateBillsGoal320(bills){
+  const readAmount=value=>{
+    if(typeof value==="number")return Number.isFinite(value)?value:0;
+    let text=String(value??"").trim().replace(/[£\s]/g,"");
+    if(text.includes(",")&&text.includes(".")){
+      text=text.lastIndexOf(",")>text.lastIndexOf(".")
+        ? text.replace(/\./g,"").replace(",",".")
+        : text.replace(/,/g,"");
+    }else if(text.includes(",")){
+      text=text.replace(",",".");
+    }
+    const parsed=Number(text.replace(/[^\d.-]/g,""));
+    return Number.isFinite(parsed)?parsed:0;
+  };
+
+  const readDate=(value,bill={})=>{
+    const text=String(value??"").trim();
+
+    let match=text.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+    if(match)return new Date(+match[1],+match[2]-1,+match[3],12,0,0,0);
+
+    match=text.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})$/);
+    if(match)return new Date(+match[3],+match[2]-1,+match[1],12,0,0,0);
+
+    const dueDay=Number(bill.dueDay||bill.day||bill.due_day||0);
+    if(dueDay>=1&&dueDay<=31){
+      const now=new Date();
+      const today=new Date(now.getFullYear(),now.getMonth(),now.getDate(),12);
+      let due=new Date(now.getFullYear(),now.getMonth(),dueDay,12);
+      if(due<today)due=new Date(now.getFullYear(),now.getMonth()+1,dueDay,12);
+      return due;
+    }
+
+    return null;
+  };
+
+  const now=new Date();
+  const today=new Date(now.getFullYear(),now.getMonth(),now.getDate(),12);
+
+  const active=(Array.isArray(bills)?bills:[])
+    .filter(b=>!b.completed&&!b.paid)
+    .map(b=>{
+      const amount=readAmount(b?.amount??b?.total??b?.value??b?.price);
+      const reserved=readAmount(b?.reserved??b?.saved??b?.allocated??b?.paidAmount);
+      return {
+        due:readDate(b?.due??b?.dueDate??b?.date,b),
+        remaining:Math.max(0,amount-reserved)
+      };
+    })
+    .filter(item=>item.remaining>0)
+    .sort((a,b)=>{
+      if(!a.due&&!b.due)return 0;
+      if(!a.due)return 1;
+      if(!b.due)return -1;
+      return a.due-b.due;
+    });
+
+  if(!active.length)return 0;
+
+  let cumulative=0;
+  let undated=0;
+  let goal=0;
+
+  for(const item of active){
+    if(!item.due){
+      undated+=item.remaining;
+      continue;
+    }
+
+    cumulative+=item.remaining;
+    const days=Math.max(1,Math.ceil((item.due-today)/86400000)+1);
+    goal=Math.max(goal,cumulative/days);
+  }
+
+  if(undated>0){
+    const monthEnd=new Date(today.getFullYear(),today.getMonth()+1,0,12);
+    const days=Math.max(1,Math.ceil((monthEnd-today)/86400000)+1);
+    goal=Math.max(goal,(cumulative+undated)/days);
+  }
+
+  return Math.ceil(goal*100)/100;
+}
+
 async function persist(successMessage){
-  try{if(state)state.dailyGoal=calculateGoalFromRenderedBills319((state.bills||[]).filter(b=>!b.completed))}catch(error){fatalDiagnostic313("Recalcular meta antes de salvar",error)}
+  try{if(state)state.dailyGoal=calculateBillsGoal320(state.bills||[])}catch(error){fatalDiagnostic313("Recalcular meta antes de salvar",error)}
   const stableScrollY=window.scrollY;
   closeKeyboardAndResetViewport(false);
   state.updatedAt=new Date().toISOString();
@@ -1170,55 +1254,45 @@ function updateGoalPreview313(){
     const editId=$("billCreateEditId")?.value||"";
 
     if(amount>0&&due){
-      const current=bills.find(b=>b.id===editId);
+      const old=bills.find(b=>b.id===editId);
       const draft={
-        ...(current||{}),
-        id:editId||"preview_bill",
+        ...(old||{}),
+        id:editId||"preview",
         amount,
         due,
-        reserved:Number(current?.reserved||0),
+        reserved:Number(old?.reserved||0),
         completed:false,
         paid:false
       };
-      const idx=bills.findIndex(b=>b.id===editId);
-      if(idx>=0)bills[idx]=draft;
+      const index=bills.findIndex(b=>b.id===editId);
+      if(index>=0)bills[index]=draft;
       else bills.push(draft);
     }
 
     const target=$("billGoalPreviewValue313");
-    if(target)target.textContent=`${money(calculateDynamicDailyGoal316(bills))} por dia`;
+    if(target)target.textContent=`${money(calculateBillsGoal320(bills))} por dia`;
   }catch(error){
-    fatalDiagnostic313("Prévia da meta diária",error);
+    fatalDiagnostic313("Prévia da meta 3.2.0",error);
   }
 }
 function enhanceBills313(){
   try{
     if(!state)return;
 
-    const envelope=$("billEnvelopeBalance");
-    const card=$("billCardBalance");
-    const goal=$("billDailyGoalTop");
-    const goalCard=document.querySelector(".bill-daily-goal-card small");
+    const goal=calculateBillsGoal320(state.bills||[]);
+    state.dailyGoal=goal;
 
-    const calculatedGoal=calculateDynamicDailyGoal316(state.bills||[]);
-    state.dailyGoal=calculatedGoal;
-
-    const pending=(state.bills||[])
-      .filter(b=>!b.completed&&!b.paid)
-      .reduce((sum,b)=>sum+Math.max(0,billAmount317(b)-billReserved317(b)),0);
-
-    if(envelope)envelope.textContent=money(Number(state.cash||0));
-    if(card)card.textContent=money(Number(state.card||0));
-    if(goal)goal.textContent=`${money(calculatedGoal)} por dia`;
-
-    if(goalCard){
-      const activeCount=(state.bills||[]).filter(b=>!b.completed&&!b.paid&&billAmount317(b)>billReserved317(b)).length;
-      goalCard.textContent=pending>0
-        ? `${money(pending)} pendentes em ${activeCount} Bills ativas.`
-        : "Todas as Bills ativas já estão cobertas.";
+    if($("billEnvelopeBalance")){
+      $("billEnvelopeBalance").textContent=money(Number(state.cash||0));
+    }
+    if($("billCardBalance")){
+      $("billCardBalance").textContent=money(Number(state.card||0));
+    }
+    if($("billDailyGoalTop")){
+      $("billDailyGoalTop").textContent=`${money(goal)} por dia`;
     }
   }catch(error){
-    fatalDiagnostic313("Atualizar meta diária dinâmica",error);
+    fatalDiagnostic313("Meta superior 3.2.0",error);
   }
 }
 
@@ -1593,8 +1667,9 @@ $("saveVaultDeposit").onclick=async e=>{
 };
 
 
-const APP_VERSION="3.1.9";
+const APP_VERSION="3.2.0";
 const RELEASE_NOTES=[
+  {version:"3.2.0",date:"05/08/2026",title:"Motor único da meta e reset",changes:["Todas as rotas usam um cálculo autônomo.","Removida dependência de funções inacessíveis no Safari.","Reset grava diretamente no Supabase.","Prévia, topo e persistência usam o mesmo resultado."]},
   {version:"3.1.9",date:"05/08/2026",title:"Meta e reset substituídos diretamente",changes:["A meta é calculada com as mesmas Bills exibidas na tela.","O valor é atualizado durante a renderização, sem função atrasada.","O reset grava diretamente no Supabase sem usar o fluxo antigo.","Erros do banco passam a ser exibidos integralmente."]},
   {version:"3.1.8",date:"05/08/2026",title:"Correção definitiva da meta e reset",changes:["Substituído integralmente o cálculo defeituoso da meta diária.","Corrigido uso da variável Bill fora do loop.","Reset agora recalcula e atualiza a interface antes de sincronizar.","Histórico antigo é normalizado antes do reset."]},
   {version:"3.1.7",date:"05/08/2026",title:"Meta diária e reset corrigidos",changes:["Leitura de valores aceita formatos com libra e vírgula.","Datas ISO e brasileiras são reconhecidas.","Meta diária deixa de zerar quando existem Bills pendentes.","Zerar reservas e depósitos voltou a funcionar com dupla confirmação."]},
@@ -1648,49 +1723,39 @@ function escapeText(value){const div=document.createElement('div');div.textConte
 
 let activeBillFilter="all";
 function calculateGoalFromRenderedBills319(bills){
-  const now=new Date();
-  const today=new Date(now.getFullYear(),now.getMonth(),now.getDate(),12,0,0,0);
-  const active=(Array.isArray(bills)?bills:[])
-    .map(b=>({
-      due:parseBillDate317(b.due??b.dueDate??b.date,b),
-      remaining:Math.max(0,billAmount317(b)-billReserved317(b))
-    }))
-    .filter(x=>x.remaining>0)
-    .sort((a,b)=>{
-      if(!a.due&&!b.due)return 0;
-      if(!a.due)return 1;
-      if(!b.due)return -1;
-      return a.due-b.due;
-    });
-
-  if(!active.length)return 0;
-  let cumulative=0;
-  let goal=0;
-  let withoutDate=0;
-  for(const item of active){
-    if(!item.due){withoutDate+=item.remaining;continue;}
-    cumulative+=item.remaining;
-    const days=Math.max(1,Math.ceil((item.due-today)/86400000)+1);
-    goal=Math.max(goal,cumulative/days);
-  }
-  if(withoutDate>0){
-    const end=new Date(today.getFullYear(),today.getMonth()+1,0,12,0,0,0);
-    const days=Math.max(1,Math.ceil((end-today)/86400000)+1);
-    goal=Math.max(goal,(cumulative+withoutDate)/days);
-  }
-  return Math.ceil(goal*100)/100;
+  return calculateBillsGoal320(bills);
 }
+
 function updateBillTopCards319(bills){
-  const goal=calculateGoalFromRenderedBills319(bills);
-  const pending=(Array.isArray(bills)?bills:[]).reduce((sum,b)=>sum+Math.max(0,billAmount317(b)-billReserved317(b)),0);
+  const goal=calculateBillsGoal320(bills);
+
+  const read=value=>{
+    if(typeof value==="number")return Number.isFinite(value)?value:0;
+    let text=String(value??"").replace(/[£\s]/g,"");
+    if(text.includes(","))text=text.replace(",",".");
+    const parsed=Number(text.replace(/[^\d.-]/g,""));
+    return Number.isFinite(parsed)?parsed:0;
+  };
+
+  const pending=(Array.isArray(bills)?bills:[]).reduce((sum,b)=>{
+    const amount=read(b?.amount??b?.total??b?.value);
+    const reserved=read(b?.reserved??b?.saved??b?.allocated);
+    return sum+Math.max(0,amount-reserved);
+  },0);
+
   const envelope=$("billEnvelopeBalance");
   const card=$("billCardBalance");
-  const goalEl=$("billDailyGoalTop");
-  const note=document.querySelector('.bill-daily-goal-card small');
+  const goalElement=$("billDailyGoalTop");
+  const note=document.querySelector(".bill-daily-goal-card small");
+
   if(envelope)envelope.textContent=money(Number(state?.cash||0));
   if(card)card.textContent=money(Number(state?.card||0));
-  if(goalEl)goalEl.textContent=`${money(goal)} por dia`;
-  if(note)note.textContent=pending>0?`${money(pending)} ainda faltam nas Bills mostradas.`:'Todas as Bills mostradas estão cobertas.';
+  if(goalElement)goalElement.textContent=`${money(goal)} por dia`;
+  if(note){
+    note.textContent=pending>0
+      ? `${money(pending)} ainda faltam nas Bills ativas.`
+      : "Todas as Bills ativas estão cobertas.";
+  }
   if(state)state.dailyGoal=goal;
 }
 function renderCleanBills(){
@@ -2003,35 +2068,53 @@ $("resetFinance").onclick=async()=>{
 
   const button=$("resetFinance");
   const originalText=button?.textContent||"Zerar reservas e depósitos";
-  if(button){button.disabled=true;button.textContent="Zerando…"}
+  if(button){
+    button.disabled=true;
+    button.textContent="Zerando…";
+  }
+
+  const backup=structuredClone(state);
 
   try{
     state.cash=0;
     state.card=0;
-    state.bills=(Array.isArray(state.bills)?state.bills:[]).map(b=>({...b,reserved:0}));
-    state.dailyGoal=calculateGoalFromRenderedBills319(state.bills.filter(b=>!b.completed));
+    state.bills=(Array.isArray(state.bills)?state.bills:[]).map(b=>({
+      ...b,
+      reserved:0,
+      saved:0,
+      allocated:0,
+      paidAmount:0
+    }));
+    state.dailyGoal=calculateBillsGoal320(state.bills);
     state.updatedAt=new Date().toISOString();
+
+    const payload=structuredClone(state);
+    const {error}=await sb
+      .from("finance_state")
+      .update({
+        data:payload,
+        updated_at:payload.updatedAt
+      })
+      .eq("household_id",householdId);
+
+    if(error)throw error;
 
     render();
     $("settingsSheet")?.classList.add("hidden");
-
-    const payload=structuredClone(state);
-    const result=await sb
-      .from("finance_state")
-      .update({data:payload,updated_at:payload.updatedAt})
-      .eq("household_id",householdId);
-
-    if(result.error){
-      fatalDiagnostic313("Salvar reset no Supabase",result.error,{household_id:householdId||"—"});
-      alert(`Os valores foram zerados na tela, mas o Supabase retornou:\n\n${result.error.message||result.error.code||"Erro desconhecido"}`);
-      return;
-    }
     toast("Reservas e depósitos zerados");
   }catch(error){
-    fatalDiagnostic313("Executar reset direto",error,{household_id:householdId||"—"});
-    alert(`Erro ao zerar:\n\n${error?.message||String(error)}`);
+    state=backup;
+    render();
+
+    fatalDiagnostic313("Reset 3.2.0",error,{
+      household_id:householdId||"—"
+    });
+    alert(`Erro ao zerar:\n\n${error?.message||error?.code||String(error)}`);
   }finally{
-    if(button){button.disabled=false;button.textContent=originalText}
+    if(button){
+      button.disabled=false;
+      button.textContent=originalText;
+    }
   }
 };
 
