@@ -40,7 +40,7 @@ function fatalDiagnostic313(step,error,extra={}){
     const box=document.getElementById("fatalLoginDiagnostic");
     const text=document.getElementById("fatalLoginDiagnosticText");
     const lines=[
-      `VERSÃO: 3.1.8`,
+      `VERSÃO: 3.1.9`,
       `ETAPA: ${step}`,
       `MENSAGEM: ${error?.message||String(error||"Erro desconhecido")}`
     ];
@@ -212,7 +212,7 @@ async function loadState(){
 }
 
 async function persist(successMessage){
-  try{if(state)state.dailyGoal=calculateDynamicDailyGoal316(state.bills||[])}catch(error){fatalDiagnostic313("Recalcular meta antes de salvar",error)}
+  try{if(state)state.dailyGoal=calculateGoalFromRenderedBills319((state.bills||[]).filter(b=>!b.completed))}catch(error){fatalDiagnostic313("Recalcular meta antes de salvar",error)}
   const stableScrollY=window.scrollY;
   closeKeyboardAndResetViewport(false);
   state.updatedAt=new Date().toISOString();
@@ -1593,8 +1593,9 @@ $("saveVaultDeposit").onclick=async e=>{
 };
 
 
-const APP_VERSION="3.1.8";
+const APP_VERSION="3.1.9";
 const RELEASE_NOTES=[
+  {version:"3.1.9",date:"05/08/2026",title:"Meta e reset substituídos diretamente",changes:["A meta é calculada com as mesmas Bills exibidas na tela.","O valor é atualizado durante a renderização, sem função atrasada.","O reset grava diretamente no Supabase sem usar o fluxo antigo.","Erros do banco passam a ser exibidos integralmente."]},
   {version:"3.1.8",date:"05/08/2026",title:"Correção definitiva da meta e reset",changes:["Substituído integralmente o cálculo defeituoso da meta diária.","Corrigido uso da variável Bill fora do loop.","Reset agora recalcula e atualiza a interface antes de sincronizar.","Histórico antigo é normalizado antes do reset."]},
   {version:"3.1.7",date:"05/08/2026",title:"Meta diária e reset corrigidos",changes:["Leitura de valores aceita formatos com libra e vírgula.","Datas ISO e brasileiras são reconhecidas.","Meta diária deixa de zerar quando existem Bills pendentes.","Zerar reservas e depósitos voltou a funcionar com dupla confirmação."]},
   {version:"3.1.6",date:"05/08/2026",title:"Meta diária realmente dinâmica",changes:["A meta agora considera todas as Bills ativas e seus vencimentos.","Adicionar, editar, remover, concluir ou reservar uma Bill recalcula a meta.","O cartão informa quanto ainda falta cobrir.","A prévia do formulário mostra a meta antes de salvar."]},
@@ -1646,12 +1647,58 @@ function renderCleanDashboard(){
 function escapeText(value){const div=document.createElement('div');div.textContent=String(value??'');return div.innerHTML}
 
 let activeBillFilter="all";
+function calculateGoalFromRenderedBills319(bills){
+  const now=new Date();
+  const today=new Date(now.getFullYear(),now.getMonth(),now.getDate(),12,0,0,0);
+  const active=(Array.isArray(bills)?bills:[])
+    .map(b=>({
+      due:parseBillDate317(b.due??b.dueDate??b.date,b),
+      remaining:Math.max(0,billAmount317(b)-billReserved317(b))
+    }))
+    .filter(x=>x.remaining>0)
+    .sort((a,b)=>{
+      if(!a.due&&!b.due)return 0;
+      if(!a.due)return 1;
+      if(!b.due)return -1;
+      return a.due-b.due;
+    });
+
+  if(!active.length)return 0;
+  let cumulative=0;
+  let goal=0;
+  let withoutDate=0;
+  for(const item of active){
+    if(!item.due){withoutDate+=item.remaining;continue;}
+    cumulative+=item.remaining;
+    const days=Math.max(1,Math.ceil((item.due-today)/86400000)+1);
+    goal=Math.max(goal,cumulative/days);
+  }
+  if(withoutDate>0){
+    const end=new Date(today.getFullYear(),today.getMonth()+1,0,12,0,0,0);
+    const days=Math.max(1,Math.ceil((end-today)/86400000)+1);
+    goal=Math.max(goal,(cumulative+withoutDate)/days);
+  }
+  return Math.ceil(goal*100)/100;
+}
+function updateBillTopCards319(bills){
+  const goal=calculateGoalFromRenderedBills319(bills);
+  const pending=(Array.isArray(bills)?bills:[]).reduce((sum,b)=>sum+Math.max(0,billAmount317(b)-billReserved317(b)),0);
+  const envelope=$("billEnvelopeBalance");
+  const card=$("billCardBalance");
+  const goalEl=$("billDailyGoalTop");
+  const note=document.querySelector('.bill-daily-goal-card small');
+  if(envelope)envelope.textContent=money(Number(state?.cash||0));
+  if(card)card.textContent=money(Number(state?.card||0));
+  if(goalEl)goalEl.textContent=`${money(goal)} por dia`;
+  if(note)note.textContent=pending>0?`${money(pending)} ainda faltam nas Bills mostradas.`:'Todas as Bills mostradas estão cobertas.';
+  if(state)state.dailyGoal=goal;
+}
 function renderCleanBills(){
   const list=$("billList");if(!list||!state)return;
   const bills=(state.bills||[]).filter(x=>!x.completed).slice().sort((a,b)=>new Date(a.due)-new Date(b.due));
   list.innerHTML="";
   bills.forEach(b=>{const remain=Math.max(0,Number(b.amount)-Number(b.reserved)),pct=b.amount?Math.min(100,b.reserved/b.amount*100):100,days=daysSafe(b.due);const card=document.createElement('article');card.className='v21-bill-card';card.dataset.days=days;card.dataset.ready=String(remain===0);card.innerHTML=`<div class="v21-bill-top"><span class="v21-bill-icon">${billEmoji(b.name)}</span><div><strong>${escapeText(b.name)}</strong><small>${formatDate(b.due)} · ${frequencyLabel(b.frequency)}</small></div><em class="${days<0?'danger':days<=7?'warning':''}">${days<0?`${Math.abs(days)}d atrasada`:days===0?'Hoje':`${days}d`}</em></div><div class="v21-bill-progress"><i style="width:${pct}%"></i></div><div class="v21-bill-bottom"><div><strong>${money(b.reserved)} <span>/ ${money(b.amount)}</span></strong><small>${remain?`${money(remain)} restantes`:'Totalmente reservada'}</small></div><div class="v21-bill-actions"><button data-edit>✎</button><button data-pay>✓</button></div></div>${b.type==='installment'?`<div class="v21-installment"><span>Parcela ${b.currentInstallment}/${b.totalInstallments}</span><i><b style="width:${Math.min(100,b.currentInstallment/b.totalInstallments*100)}%"></b></i></div>`:''}`;q('[data-edit]',card).onclick=()=>openBillCreateDialog(b.id);q('[data-pay]',card).onclick=()=>togglePaid(b.id);list.appendChild(card)});
-  renderBillHeader(bills);applyBillFilter();updateWalletSummary();
+  renderBillHeader(bills);applyBillFilter();updateWalletSummary();updateBillTopCards319(bills);
 }
 function renderBillHeader(bills){const list=$("billList");let summary=$("v22BillSummary");if(!summary){summary=document.createElement('section');summary.id='v22BillSummary';summary.className='v21-bill-summary';list.before(summary)}const total=bills.reduce((s,b)=>s+Number(b.amount),0),reserved=bills.reduce((s,b)=>s+Number(b.reserved),0),pct=total?Math.min(100,reserved/total*100):0;summary.innerHTML=`<div><small>BILLS ATIVAS</small><strong>${bills.length} contas</strong><span>${money(total)} no total</span></div><div class="v21-summary-track"><i style="width:${pct}%"></i></div><b>${pct.toFixed(0)}% reservado</b>`;let filters=$("v22BillFilters");if(!filters){filters=document.createElement('div');filters.id='v22BillFilters';filters.className='v21-filters';filters.innerHTML='<button data-f="all">Todas</button><button data-f="late">Atrasadas</button><button data-f="week">7 dias</button><button data-f="ready">Reservadas</button>';summary.after(filters);filters.onclick=e=>{const btn=e.target.closest('button');if(!btn)return;activeBillFilter=btn.dataset.f;applyBillFilter()}}qa('button',filters).forEach(x=>x.classList.toggle('active',x.dataset.f===activeBillFilter))}
 function applyBillFilter(){qa('.v21-bill-card').forEach(card=>{const days=Number(card.dataset.days),ready=card.dataset.ready==='true';let show=true;if(activeBillFilter==='late')show=days<0;if(activeBillFilter==='week')show=days>=0&&days<=7;if(activeBillFilter==='ready')show=ready;card.hidden=!show});const f=$("v22BillFilters");if(f)qa('button',f).forEach(x=>x.classList.toggle('active',x.dataset.f===activeBillFilter))}
@@ -1671,7 +1718,7 @@ render=function(){
   try{renderCleanBills()}catch(error){fatalDiagnostic313("Bills premium",error)}
   try{renderUpdatesV22()}catch(error){fatalDiagnostic313("Atualizações",error)}
   try{prepareSettings()}catch(error){fatalDiagnostic313("Configurações",error)}
-  if(typeof enhanceBills313==="function")setTimeout(()=>{document.getElementById("billFunds313")?.remove();enhanceBills313()},0);
+  document.getElementById("billFunds313")?.remove();
 };
 window.addEventListener('pageshow',()=>{const d=$("updatesDialog");if(d?.open)safeClose(d)});
 ensureCleaningDialog();prepareSettings();renderUpdatesV22();
@@ -1951,32 +1998,40 @@ document.addEventListener("DOMContentLoaded",()=>{
 
 
 $("resetFinance").onclick=async()=>{
-  const first=confirm(
-    "Zerar Envelope, Cartão e todas as reservas das Bills?\n\nAs Bills continuarão cadastradas."
-  );
-  if(!first)return;
+  if(!confirm("Zerar Envelope, Cartão e todas as reservas das Bills?\n\nAs contas continuarão cadastradas."))return;
+  if(!confirm("Confirme novamente: os valores reservados serão zerados."))return;
 
-  const second=confirm(
-    "Confirme novamente: todo o progresso reservado será zerado."
-  );
-  if(!second)return;
+  const button=$("resetFinance");
+  const originalText=button?.textContent||"Zerar reservas e depósitos";
+  if(button){button.disabled=true;button.textContent="Zerando…"}
 
   try{
     state.cash=0;
     state.card=0;
-    state.bills=(state.bills||[]).map(b=>({...b,reserved:0}));
-    if(!Array.isArray(state.history))state.history=[];
-    state.history.push({
-      date:new Date().toISOString(),
-      text:"Reservas e depósitos zerados"
-    });
-    state.dailyGoal=calculateDynamicDailyGoal316(state.bills);
-    enhanceBills313();
-    $("settingsSheet").classList.add("hidden");
-    await persist("Reservas e depósitos zerados");
+    state.bills=(Array.isArray(state.bills)?state.bills:[]).map(b=>({...b,reserved:0}));
+    state.dailyGoal=calculateGoalFromRenderedBills319(state.bills.filter(b=>!b.completed));
+    state.updatedAt=new Date().toISOString();
+
+    render();
+    $("settingsSheet")?.classList.add("hidden");
+
+    const payload=structuredClone(state);
+    const result=await sb
+      .from("finance_state")
+      .update({data:payload,updated_at:payload.updatedAt})
+      .eq("household_id",householdId);
+
+    if(result.error){
+      fatalDiagnostic313("Salvar reset no Supabase",result.error,{household_id:householdId||"—"});
+      alert(`Os valores foram zerados na tela, mas o Supabase retornou:\n\n${result.error.message||result.error.code||"Erro desconhecido"}`);
+      return;
+    }
+    toast("Reservas e depósitos zerados");
   }catch(error){
-    fatalDiagnostic313("Zerar reservas e depósitos",error);
-    toast("Não foi possível zerar os valores");
+    fatalDiagnostic313("Executar reset direto",error,{household_id:householdId||"—"});
+    alert(`Erro ao zerar:\n\n${error?.message||String(error)}`);
+  }finally{
+    if(button){button.disabled=false;button.textContent=originalText}
   }
 };
 

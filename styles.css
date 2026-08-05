@@ -1178,3 +1178,6 @@ body.settings-open-310{
 .bill-daily-goal-card strong{
   min-width:110px;
 }
+
+/* 3.1.9 */
+#resetFinance:disabled{opacity:.6;pointer-events:none}
