@@ -1010,3 +1010,10 @@ body,
   opacity:.7;
   pointer-events:none;
 }
+
+
+/* Nosso Controle 3.0.4 */
+#authMsg{
+  white-space:normal;
+  line-height:1.35;
+}

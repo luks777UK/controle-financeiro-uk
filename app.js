@@ -1,4 +1,4 @@
-/* Nosso Controle 3.0.3 — aplicação refatorada */
+/* Nosso Controle 3.0.4 — aplicação refatorada */
 const cfg={
   SUPABASE_URL:"https://lhihsssbsjfliggtlaza.supabase.co",
   SUPABASE_ANON_KEY:"sb_publishable_0bttyUW7ASI8ylAyZjLkPA_NS8eThfO",
@@ -55,31 +55,116 @@ function restoreUsernameField(){
   if(savedEmail)field.value=savedEmail;
 }
 async function boot(){
+  restoreUsernameField();
   try{
-    const {data:{session},error}=await sb.auth.getSession();
-    if(error)throw error;
-    if(!session){show("authView");return}
-    user=session.user;await loadMembership();
-  }catch(error){console.error("Boot:",error);show("authView");feedback("authMsg","Não foi possível restaurar a sessão. Entre novamente.")}
+    const {data,error}=await sb.auth.getSession();
+    if(error){
+      console.error("getSession:",error);
+      show("authView");
+      return;
+    }
+    const session=data?.session;
+    if(!session){
+      show("authView");
+      return;
+    }
+    user=session.user;
+    await loadMembership();
+  }catch(error){
+    console.error("boot:",error);
+    show("authView");
+  }
 }
 async function loadMembership(){
-  const {data,error}=await sb.from("household_members").select("household_id, households(code)").eq("user_id",user.id).maybeSingle();
-  if(error){toast(error.message);return}
-  if(!data){show("householdView");return}
-  householdId=data.household_id;householdCode=data.households.code;
-  await loadState();subscribe();show("appView");
+  if(!user?.id){
+    show("authView");
+    return;
+  }
+
+  const memberResult=await sb
+    .from("household_members")
+    .select("household_id")
+    .eq("user_id",user.id)
+    .maybeSingle();
+
+  if(memberResult.error){
+    console.error("household_members:",memberResult.error);
+    feedback("authMsg","Login realizado, mas não foi possível carregar a casa financeira.");
+    show("authView");
+    return;
+  }
+
+  if(!memberResult.data?.household_id){
+    show("householdView");
+    return;
+  }
+
+  householdId=memberResult.data.household_id;
+
+  const householdResult=await sb
+    .from("households")
+    .select("code")
+    .eq("id",householdId)
+    .maybeSingle();
+
+  if(householdResult.error){
+    console.warn("households:",householdResult.error);
+    householdCode="";
+  }else{
+    householdCode=householdResult.data?.code||"";
+  }
+
+  const loaded=await loadState();
+  if(!loaded){
+    feedback("authMsg","Login realizado, mas os dados financeiros não puderam ser carregados.");
+    show("authView");
+    return;
+  }
+
+  subscribe();
+  show("appView");
 }
+
 async function loadState(){
-  const {data,error}=await sb.from("finance_state").select("data").eq("household_id",householdId).single();
-  if(error){toast("Erro ao carregar");return}
-  state=data.data;
+  const result=await sb
+    .from("finance_state")
+    .select("data")
+    .eq("household_id",householdId)
+    .maybeSingle();
+
+  if(result.error){
+    console.error("finance_state:",result.error);
+    toast("Erro ao carregar os dados financeiros");
+    return false;
+  }
+
+  if(!result.data?.data){
+    state=structuredClone(initialState);
+    const created=await sb
+      .from("finance_state")
+      .upsert({
+        household_id:householdId,
+        data:state,
+        updated_at:new Date().toISOString()
+      },{onConflict:"household_id"});
+
+    if(created.error){
+      console.error("Criar finance_state:",created.error);
+      return false;
+    }
+  }else{
+    state=result.data.data;
+  }
+
   if(state.dailyGoal==null)state.dailyGoal=70;
   if(!state.displayName)state.displayName="Lucas";
   if(!Array.isArray(state.incomes))state.incomes=[];
   if(!Array.isArray(state.expenses))state.expenses=[];
   if(!Array.isArray(state.vaultEntries))state.vaultEntries=[];
-  state.vaultEntries=state.vaultEntries.map(x=>({...x,location:x.location||"envelope"}));
   if(!Array.isArray(state.completedBills))state.completedBills=[];
+  if(!Array.isArray(state.bills))state.bills=structuredClone(initialState.bills);
+
+  state.vaultEntries=state.vaultEntries.map(x=>({...x,location:x.location||"envelope"}));
   state.bills=state.bills.map(b=>({
     frequency:b.frequency||"monthly",
     type:b.type||"fixed",
@@ -88,29 +173,11 @@ async function loadState(){
     completed:false,
     ...b
   }));
-  if(!state.bills.some(b=>b.id==="car_installment")){
-    const today=new Date();
-    const day=today.getDay();
-    const daysToSaturday=(6-day+7)%7 || 7;
-    const nextSaturday=new Date(today);
-    nextSaturday.setDate(today.getDate()+daysToSaturday);
-    const due=`${nextSaturday.getFullYear()}-${String(nextSaturday.getMonth()+1).padStart(2,"0")}-${String(nextSaturday.getDate()).padStart(2,"0")}`;
-    state.bills.push({
-      id:"car_installment",
-      name:"Parcela do carro",
-      amount:200,
-      due,
-      reserved:0,
-      paid:false,
-      frequency:"weekly",
-      type:"installment",
-      currentInstallment:9,
-      totalInstallments:12,
-      completed:false
-    });
-  }
+
   render();
+  return true;
 }
+
 async function persist(successMessage){
   const stableScrollY=window.scrollY;
   closeKeyboardAndResetViewport(false);
@@ -175,31 +242,44 @@ async function handleLogin(){
   }
 
   setAuthLoading(true);
-  try{
-    const {data,error}=await sb.auth.signInWithPassword({email,password});
-    if(error){
-      console.warn("Login Supabase:",error.message);
-      feedback("authMsg",authMessage(error));
-      return;
-    }
-    if(!data?.session?.user){
-      feedback("authMsg","O Supabase não criou a sessão. Tente novamente.");
-      return;
-    }
 
-    localStorage.setItem("nosso-controle-email",email);
-    user=data.session.user;
-    closeKeyboardAndResetViewport(true);
-    await loadMembership();
+  let authData;
+  try{
+    const response=await sb.auth.signInWithPassword({email,password});
+    if(response.error){
+      console.warn("Supabase Auth:",response.error);
+      feedback("authMsg",authMessage(response.error));
+      return;
+    }
+    authData=response.data;
   }catch(error){
-    console.error("Login:",error);
+    console.error("Falha de rede no Auth:",error);
     feedback("authMsg",navigator.onLine
-      ?"Não foi possível conectar ao Supabase agora. Tente novamente."
+      ?"Não foi possível alcançar o servidor de login agora."
       :"Sem conexão com a internet.");
+    return;
   }finally{
     setAuthLoading(false);
   }
+
+  if(!authData?.session?.user){
+    feedback("authMsg","O login foi aceito, mas a sessão não foi criada.");
+    return;
+  }
+
+  localStorage.setItem("nosso-controle-email",email);
+  user=authData.session.user;
+  closeKeyboardAndResetViewport(true);
+
+  try{
+    await loadMembership();
+  }catch(error){
+    console.error("Falha após login:",error);
+    feedback("authMsg","Login realizado, mas ocorreu um erro ao abrir seus dados.");
+    show("authView");
+  }
 }
+
 $("loginBtn").onclick=event=>{
   event.preventDefault();
   handleLogin();
@@ -1275,9 +1355,9 @@ $("saveVaultDeposit").onclick=async e=>{
 };
 
 
-const APP_VERSION="3.0.3";
+const APP_VERSION="3.0.4";
 const RELEASE_NOTES=[
-  {version:"3.0.3",date:"05/08/2026",title:"Refatoração de estabilidade",changes:[
+  {version:"3.0.4",date:"05/08/2026",title:"Refatoração de estabilidade",changes:[
     "Removidos scripts e manipuladores duplicados.",
     "Login unificado em um único fluxo.",
     "Dashboard, Bills e filtros renderizados uma única vez.",
