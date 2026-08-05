@@ -1181,3 +1181,100 @@ body.settings-open-310{
 
 /* 3.1.9 */
 #resetFinance:disabled{opacity:.6;pointer-events:none}
+
+
+/* Nosso Controle 3.2.1 — meta fixa por dia trabalhado */
+.bill-workday-summary{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 1px minmax(0,1fr);
+  align-items:stretch;
+  gap:12px;
+  padding:13px 15px;
+}
+.bill-workday-metric{
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+.bill-workday-metric.saved{
+  text-align:right;
+  align-items:flex-end;
+}
+.bill-workday-metric span{
+  display:block;
+  color:#ad91ff;
+  font-size:6.5px;
+  font-weight:900;
+  letter-spacing:1px;
+}
+.bill-workday-metric.saved span{
+  color:#42e5a4;
+}
+.bill-workday-metric strong{
+  display:block;
+  margin-top:5px;
+  color:#f5f6ff;
+  font-size:17px;
+  line-height:1.05;
+  font-variant-numeric:tabular-nums;
+}
+.bill-workday-metric small{
+  display:block;
+  max-width:none;
+  margin-top:5px;
+  color:#9296a8;
+  font-size:7px;
+  line-height:1.35;
+  text-align:inherit;
+}
+.bill-workday-divider{
+  width:1px;
+  min-height:52px;
+  background:linear-gradient(
+    180deg,
+    transparent,
+    rgba(255,255,255,.14),
+    transparent
+  );
+}
+.bill-history-toolbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin:2px 0 10px;
+  padding:8px 10px;
+  border-radius:12px;
+  background:rgba(255,255,255,.025);
+  border:1px solid rgba(255,255,255,.05);
+}
+.bill-history-toolbar span{
+  color:#8f94a7;
+  font-size:7px;
+}
+.bill-history-toolbar button{
+  flex:none;
+  padding:6px 9px;
+  border:1px solid rgba(255,112,132,.16);
+  border-radius:9px;
+  background:rgba(255,112,132,.07);
+  color:#ff8497;
+  font-size:7px;
+  font-weight:800;
+}
+.bill-history-toolbar button:disabled{
+  opacity:.55;
+}
+@media(max-width:430px){
+  .bill-workday-summary{
+    gap:10px;
+    padding:12px;
+  }
+  .bill-workday-metric strong{
+    font-size:15px;
+  }
+  .bill-workday-metric small{
+    font-size:6.5px;
+  }
+}

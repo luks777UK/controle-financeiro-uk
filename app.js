@@ -40,7 +40,7 @@ function fatalDiagnostic313(step,error,extra={}){
     const box=document.getElementById("fatalLoginDiagnostic");
     const text=document.getElementById("fatalLoginDiagnosticText");
     const lines=[
-      `VERSÃO: 3.2.0`,
+      `VERSÃO: 3.2.1`,
       `ETAPA: ${step}`,
       `MENSAGEM: ${error?.message||String(error||"Erro desconhecido")}`
     ];
@@ -295,8 +295,84 @@ function calculateBillsGoal320(bills){
   return Math.ceil(goal*100)/100;
 }
 
+
+const DEFAULT_MONTHLY_WORKDAYS_321=20;
+
+function activeBillsTotal321(bills){
+  return (Array.isArray(bills)?bills:[])
+    .filter(b=>!b.completed&&!b.paid)
+    .reduce((total,bill)=>{
+      const raw=bill?.amount??bill?.total??bill?.value??0;
+      let amount=0;
+
+      if(typeof raw==="number"){
+        amount=Number.isFinite(raw)?raw:0;
+      }else{
+        let text=String(raw??"").trim().replace(/[£\s]/g,"");
+        if(text.includes(",")&&text.includes(".")){
+          text=text.lastIndexOf(",")>text.lastIndexOf(".")
+            ? text.replace(/\./g,"").replace(",",".")
+            : text.replace(/,/g,"");
+        }else if(text.includes(",")){
+          text=text.replace(",",".");
+        }
+        const parsed=Number(text.replace(/[^\d.-]/g,""));
+        amount=Number.isFinite(parsed)?parsed:0;
+      }
+
+      return total+Math.max(0,amount);
+    },0);
+}
+
+function monthlyWorkdays321(){
+  const configured=Number(state?.monthlyWorkdays);
+  return Number.isFinite(configured)&&configured>0
+    ? Math.round(configured)
+    : DEFAULT_MONTHLY_WORKDAYS_321;
+}
+
+function calculateFixedWorkdayGoal321(bills){
+  const total=activeBillsTotal321(bills);
+  const workdays=Math.max(1,monthlyWorkdays321());
+  return Math.ceil((total/workdays)*100)/100;
+}
+
+function savedForBills321(){
+  const cash=Math.max(0,Number(state?.cash||0));
+  const card=Math.max(0,Number(state?.card||0));
+  return cash+card;
+}
+
+function updateFixedGoalCards321(bills=state?.bills||[]){
+  if(!state)return;
+
+  const total=activeBillsTotal321(bills);
+  const workdays=monthlyWorkdays321();
+  const goal=calculateFixedWorkdayGoal321(bills);
+  const saved=savedForBills321();
+  const cappedSaved=Math.min(saved,total);
+
+  state.monthlyWorkdays=workdays;
+  state.dailyGoal=goal;
+
+  const goalElement=$("billDailyGoalTop");
+  const savedElement=$("billAlreadySavedTop");
+  const workdaysCaption=$("billWorkdaysCaption");
+  const progressCaption=$("billSavedProgressTop");
+
+  if(goalElement)goalElement.textContent=`${money(goal)} por dia`;
+  if(savedElement)savedElement.textContent=money(saved);
+  if(workdaysCaption){
+    workdaysCaption.textContent=`${money(total)} ÷ ${workdays} dias trabalhados`;
+  }
+  if(progressCaption){
+    const pct=total?Math.min(100,(cappedSaved/total)*100):100;
+    progressCaption.textContent=`${money(saved)} de ${money(total)} · ${pct.toFixed(0)}%`;
+  }
+}
+
 async function persist(successMessage){
-  try{if(state)state.dailyGoal=calculateBillsGoal320(state.bills||[])}catch(error){fatalDiagnostic313("Recalcular meta antes de salvar",error)}
+  try{if(state)state.dailyGoal=calculateFixedWorkdayGoal321(state.bills||[])}catch(error){fatalDiagnostic313("Recalcular meta fixa antes de salvar",error)}
   const stableScrollY=window.scrollY;
   closeKeyboardAndResetViewport(false);
   state.updatedAt=new Date().toISOString();
@@ -1270,17 +1346,16 @@ function updateGoalPreview313(){
     }
 
     const target=$("billGoalPreviewValue313");
-    if(target)target.textContent=`${money(calculateBillsGoal320(bills))} por dia`;
+    if(target){
+      target.textContent=`${money(calculateFixedWorkdayGoal321(bills))} por dia trabalhado`;
+    }
   }catch(error){
-    fatalDiagnostic313("Prévia da meta 3.2.0",error);
+    fatalDiagnostic313("Prévia da meta fixa 3.2.1",error);
   }
 }
 function enhanceBills313(){
   try{
     if(!state)return;
-
-    const goal=calculateBillsGoal320(state.bills||[]);
-    state.dailyGoal=goal;
 
     if($("billEnvelopeBalance")){
       $("billEnvelopeBalance").textContent=money(Number(state.cash||0));
@@ -1288,11 +1363,10 @@ function enhanceBills313(){
     if($("billCardBalance")){
       $("billCardBalance").textContent=money(Number(state.card||0));
     }
-    if($("billDailyGoalTop")){
-      $("billDailyGoalTop").textContent=`${money(goal)} por dia`;
-    }
+
+    updateFixedGoalCards321(state.bills||[]);
   }catch(error){
-    fatalDiagnostic313("Meta superior 3.2.0",error);
+    fatalDiagnostic313("Atualizar meta fixa e valor guardado",error);
   }
 }
 
@@ -1667,8 +1741,9 @@ $("saveVaultDeposit").onclick=async e=>{
 };
 
 
-const APP_VERSION="3.2.0";
+const APP_VERSION="3.2.1";
 const RELEASE_NOTES=[
+  {version:"3.2.1",date:"05/08/2026",title:"Meta fixa por dia trabalhado",changes:["Meta principal agora é o total das Bills dividido por 20 dias trabalhados.","Depósitos não diminuem mais a meta diária.","O retângulo mostra Meta por dia e Já guardado.","Adicionar, remover ou editar Bills recalcula a meta.","Adicionada opção para limpar somente o histórico de atividades das Bills."]},
   {version:"3.2.0",date:"05/08/2026",title:"Motor único da meta e reset",changes:["Todas as rotas usam um cálculo autônomo.","Removida dependência de funções inacessíveis no Safari.","Reset grava diretamente no Supabase.","Prévia, topo e persistência usam o mesmo resultado."]},
   {version:"3.1.9",date:"05/08/2026",title:"Meta e reset substituídos diretamente",changes:["A meta é calculada com as mesmas Bills exibidas na tela.","O valor é atualizado durante a renderização, sem função atrasada.","O reset grava diretamente no Supabase sem usar o fluxo antigo.","Erros do banco passam a ser exibidos integralmente."]},
   {version:"3.1.8",date:"05/08/2026",title:"Correção definitiva da meta e reset",changes:["Substituído integralmente o cálculo defeituoso da meta diária.","Corrigido uso da variável Bill fora do loop.","Reset agora recalcula e atualiza a interface antes de sincronizar.","Histórico antigo é normalizado antes do reset."]},
@@ -1723,40 +1798,17 @@ function escapeText(value){const div=document.createElement('div');div.textConte
 
 let activeBillFilter="all";
 function calculateGoalFromRenderedBills319(bills){
-  return calculateBillsGoal320(bills);
+  return calculateFixedWorkdayGoal321(bills);
 }
 
 function updateBillTopCards319(bills){
-  const goal=calculateBillsGoal320(bills);
-
-  const read=value=>{
-    if(typeof value==="number")return Number.isFinite(value)?value:0;
-    let text=String(value??"").replace(/[£\s]/g,"");
-    if(text.includes(","))text=text.replace(",",".");
-    const parsed=Number(text.replace(/[^\d.-]/g,""));
-    return Number.isFinite(parsed)?parsed:0;
-  };
-
-  const pending=(Array.isArray(bills)?bills:[]).reduce((sum,b)=>{
-    const amount=read(b?.amount??b?.total??b?.value);
-    const reserved=read(b?.reserved??b?.saved??b?.allocated);
-    return sum+Math.max(0,amount-reserved);
-  },0);
+  updateFixedGoalCards321(bills);
 
   const envelope=$("billEnvelopeBalance");
   const card=$("billCardBalance");
-  const goalElement=$("billDailyGoalTop");
-  const note=document.querySelector(".bill-daily-goal-card small");
 
   if(envelope)envelope.textContent=money(Number(state?.cash||0));
   if(card)card.textContent=money(Number(state?.card||0));
-  if(goalElement)goalElement.textContent=`${money(goal)} por dia`;
-  if(note){
-    note.textContent=pending>0
-      ? `${money(pending)} ainda faltam nas Bills ativas.`
-      : "Todas as Bills ativas estão cobertas.";
-  }
-  if(state)state.dailyGoal=goal;
 }
 function renderCleanBills(){
   const list=$("billList");if(!list||!state)return;
@@ -2085,7 +2137,7 @@ $("resetFinance").onclick=async()=>{
       allocated:0,
       paidAmount:0
     }));
-    state.dailyGoal=calculateBillsGoal320(state.bills);
+    state.dailyGoal=calculateFixedWorkdayGoal321(state.bills);
     state.updatedAt=new Date().toISOString();
 
     const payload=structuredClone(state);
@@ -2114,6 +2166,51 @@ $("resetFinance").onclick=async()=>{
     if(button){
       button.disabled=false;
       button.textContent=originalText;
+    }
+  }
+};
+
+
+$("clearBillHistoryBtn").onclick=async()=>{
+  const history=Array.isArray(state?.history)?state.history:[];
+  const billEntries=history.filter(item=>
+    item?.type==="bill_payment" ||
+    Boolean(item?.bill) ||
+    item?.text==="Depósito adicionado"
+  );
+
+  if(!billEntries.length){
+    toast("O histórico de Bills já está vazio");
+    return;
+  }
+
+  if(!confirm(`Limpar ${billEntries.length} registros do histórico de Bills?\n\nAs Bills, reservas e saldos não serão alterados.`)){
+    return;
+  }
+
+  const button=$("clearBillHistoryBtn");
+  const original=button?.textContent||"Limpar histórico";
+
+  try{
+    if(button){
+      button.disabled=true;
+      button.textContent="Limpando…";
+    }
+
+    state.history=history.filter(item=>!(
+      item?.type==="bill_payment" ||
+      Boolean(item?.bill) ||
+      item?.text==="Depósito adicionado"
+    ));
+
+    await persist("Histórico de Bills limpo");
+  }catch(error){
+    fatalDiagnostic313("Limpar histórico de Bills",error);
+    toast("Não foi possível limpar o histórico");
+  }finally{
+    if(button){
+      button.disabled=false;
+      button.textContent=original;
     }
   }
 };

@@ -4,13 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
   <meta name="theme-color" content="#080914">
-  <meta name="application-name" content="Nosso Controle 3.2.0">
+  <meta name="application-name" content="Nosso Controle 3.2.1">
   <meta name="apple-mobile-web-app-title" content="Nosso Controle">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="styles.css?v=3.2.0">
-  <title>Nosso Controle 3.2.0</title>
+  <link rel="stylesheet" href="styles.css?v=3.2.1">
+  <title>Nosso Controle 3.2.1</title>
 </head>
 <body>
   <section id="authView" class="auth-screen">
@@ -319,9 +319,18 @@
       </article>
     </section>
 
-    <section class="bill-daily-goal-card">
-      <div><span>META DIÁRIA ATUAL</span><strong id="billDailyGoalTop">£0,00 por dia</strong></div>
-      <small>Valor necessário para cobrir todas as Bills dentro dos vencimentos.</small>
+    <section class="bill-daily-goal-card bill-workday-summary">
+      <div class="bill-workday-metric">
+        <span>META POR DIA TRABALHADO</span>
+        <strong id="billDailyGoalTop">£0,00</strong>
+        <small id="billWorkdaysCaption">Total das Bills ÷ 20 dias trabalhados</small>
+      </div>
+      <div class="bill-workday-divider" aria-hidden="true"></div>
+      <div class="bill-workday-metric saved">
+        <span>JÁ GUARDADO</span>
+        <strong id="billAlreadySavedTop">£0,00</strong>
+        <small id="billSavedProgressTop">£0,00 de £0,00</small>
+      </div>
     </section>
 
     <div class="section-heading">
@@ -333,6 +342,10 @@
 
     <details class="activity panel">
       <summary>Atividade recente <span>Ver histórico</span></summary>
+      <div class="bill-history-toolbar">
+        <span>Depósitos e pagamentos registrados</span>
+        <button id="clearBillHistoryBtn" type="button">Limpar histórico</button>
+      </div>
       <div id="historyList" class="history-list"></div>
     </details>
 
@@ -864,12 +877,12 @@
   <div id="toast" class="toast"></div>
   <canvas id="confetti"></canvas>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=3.2.0"></script>
+  <script src="app.js?v=3.2.1"></script>
   <script>
     if("serviceWorker" in navigator){
       window.addEventListener("load",async()=>{
         try{
-          const reg=await navigator.serviceWorker.register("./sw.js?v=3.2.0",{updateViaCache:"none"});
+          const reg=await navigator.serviceWorker.register("./sw.js?v=3.2.1",{updateViaCache:"none"});
           reg.update();
         }catch(error){console.warn("Service Worker:",error);}
       });
