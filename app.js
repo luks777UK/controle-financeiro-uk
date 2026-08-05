@@ -40,7 +40,7 @@ function fatalDiagnostic313(step,error,extra={}){
     const box=document.getElementById("fatalLoginDiagnostic");
     const text=document.getElementById("fatalLoginDiagnosticText");
     const lines=[
-      `VERSÃO: 3.1.3`,
+      `VERSÃO: 3.1.4`,
       `ETAPA: ${step}`,
       `MENSAGEM: ${error?.message||String(error||"Erro desconhecido")}`
     ];
@@ -1449,7 +1449,7 @@ $("saveVaultDeposit").onclick=async e=>{
 };
 
 
-const APP_VERSION="3.1.3";
+const APP_VERSION="3.1.4";
 const RELEASE_NOTES=[
   {version:"3.1.0",date:"05/08/2026",title:"Refatoração de estabilidade",changes:[
     "Removidos scripts e manipuladores duplicados.",
@@ -1523,7 +1523,7 @@ render=function(){
   try{renderCleanBills()}catch(error){fatalDiagnostic313("Bills premium",error)}
   try{renderUpdatesV22()}catch(error){fatalDiagnostic313("Atualizações",error)}
   try{prepareSettings()}catch(error){fatalDiagnostic313("Configurações",error)}
-  setTimeout(enhanceBills313,0);
+  if(typeof enhanceBills313==="function")setTimeout(enhanceBills313,0);
 };
 window.addEventListener('pageshow',()=>{const d=$("updatesDialog");if(d?.open)safeClose(d)});
 ensureCleaningDialog();prepareSettings();renderUpdatesV22();
