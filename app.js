@@ -40,7 +40,7 @@ function fatalDiagnostic313(step,error,extra={}){
     const box=document.getElementById("fatalLoginDiagnostic");
     const text=document.getElementById("fatalLoginDiagnosticText");
     const lines=[
-      `VERSÃO: 3.1.6`,
+      `VERSÃO: 3.1.7`,
       `ETAPA: ${step}`,
       `MENSAGEM: ${error?.message||String(error||"Erro desconhecido")}`
     ];
@@ -1026,45 +1026,119 @@ $("saveIncome").onclick=async e=>{
 
 
 
-function parseBillDate316(value){
-  if(!value)return null;
-  const parts=String(value).split("-").map(Number);
-  if(parts.length!==3||parts.some(Number.isNaN))return null;
-  return new Date(parts[0],parts[1]-1,parts[2],12,0,0,0);
+function parseMoney317(value){
+  if(typeof value==="number")return Number.isFinite(value)?value:0;
+  if(value==null)return 0;
+  let text=String(value).trim().replace(/[£\s]/g,"");
+  if(text.includes(",")&&text.includes(".")){
+    if(text.lastIndexOf(",")>text.lastIndexOf(".")){
+      text=text.replace(/\./g,"").replace(",",".");
+    }else{
+      text=text.replace(/,/g,"");
+    }
+  }else if(text.includes(",")){
+    text=text.replace(",",".");
+  }
+  const parsed=Number(text.replace(/[^\d.-]/g,""));
+  return Number.isFinite(parsed)?parsed:0;
+}
+
+function parseBillDate317(value,bill={}){
+  if(value instanceof Date&&!Number.isNaN(value.getTime())){
+    return new Date(value.getFullYear(),value.getMonth(),value.getDate(),12,0,0,0);
+  }
+
+  const text=String(value||"").trim();
+  let match=text.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if(match){
+    return new Date(Number(match[1]),Number(match[2])-1,Number(match[3]),12,0,0,0);
+  }
+
+  match=text.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})$/);
+  if(match){
+    return new Date(Number(match[3]),Number(match[2])-1,Number(match[1]),12,0,0,0);
+  }
+
+  const dueDay=Number(bill.dueDay||bill.day||bill.due_day||0);
+  if(dueDay>0&&dueDay<=31){
+    const now=new Date();
+    let date=new Date(now.getFullYear(),now.getMonth(),dueDay,12,0,0,0);
+    if(date<new Date(now.getFullYear(),now.getMonth(),now.getDate(),12,0,0,0)){
+      date=new Date(now.getFullYear(),now.getMonth()+1,dueDay,12,0,0,0);
+    }
+    return date;
+  }
+
+  const native=new Date(text);
+  if(!Number.isNaN(native.getTime())){
+    return new Date(native.getFullYear(),native.getMonth(),native.getDate(),12,0,0,0);
+  }
+  return null;
+}
+
+function billAmount317(bill){
+  return Math.max(0,parseMoney317(
+    bill?.amount ?? bill?.total ?? bill?.value ?? bill?.price ?? 0
+  ));
+}
+
+function billReserved317(bill){
+  return Math.max(0,parseMoney317(
+    bill?.reserved ?? bill?.saved ?? bill?.allocated ?? bill?.paidAmount ?? 0
+  ));
 }
 
 function calculateDynamicDailyGoal316(bills){
   const now=new Date();
   const today=new Date(now.getFullYear(),now.getMonth(),now.getDate(),12,0,0,0);
+  const source=Array.isArray(bills)?bills:[];
 
-  const active=(Array.isArray(bills)?bills:[])
+  const active=source
     .filter(b=>!b.completed&&!b.paid)
     .map(b=>{
-      const amount=Math.max(0,Number(b.amount||0));
-      const reserved=Math.max(0,Number(b.reserved||0));
+      const amount=billAmount317(b);
+      const reserved=billReserved317(b);
       return {
-        due:parseBillDate316(b.due),
-        remaining:Math.max(0,amount-reserved)
+        due:parseBillDate317(b.due??b.dueDate??b.date,b),
+        remaining:Math.max(0,amount-reserved),
+        name:b.name||"Bill"
       };
     })
-    .filter(b=>b.due&&b.remaining>0)
-    .sort((a,b)=>a.due-b.due);
+    .filter(b=>b.remaining>0)
+    .sort((a,b)=>{
+      if(!a.due&&!b.due)return 0;
+      if(!a.due)return 1;
+      if(!b.due)return -1;
+      return a.due-b.due;
+    });
 
   if(!active.length)return 0;
 
   let cumulativeRemaining=0;
   let requiredPerDay=0;
+  let undatedRemaining=0;
 
   for(const bill of active){
+    if(!bill.due){
+      undatedRemaining+=bill.remaining;
+      continue;
+    }
     cumulativeRemaining+=bill.remaining;
-    const milliseconds=bill.due-today;
-    const daysAvailable=Math.max(1,Math.ceil(milliseconds/86400000)+1);
+    const daysAvailable=Math.max(1,Math.ceil((bill.due-today)/86400000)+1);
     requiredPerDay=Math.max(requiredPerDay,cumulativeRemaining/daysAvailable);
+  }
+
+  if(undatedRemaining>0){
+    const lastDay=new Date(today.getFullYear(),today.getMonth()+1,0,12,0,0,0);
+    const daysLeft=Math.max(1,Math.ceil((lastDay-today)/86400000)+1);
+    requiredPerDay=Math.max(
+      requiredPerDay,
+      (cumulativeRemaining+undatedRemaining)/daysLeft
+    );
   }
 
   return Math.ceil(requiredPerDay*100)/100;
 }
-
 function dailyGoal313(bills){
   try{
     return calculateDynamicDailyGoal316(bills);
@@ -1116,15 +1190,16 @@ function enhanceBills313(){
 
     const pending=(state.bills||[])
       .filter(b=>!b.completed&&!b.paid)
-      .reduce((sum,b)=>sum+Math.max(0,Number(b.amount||0)-Number(b.reserved||0)),0);
+      .reduce((sum,b)=>sum+Math.max(0,billAmount317(b)-billReserved317(b)),0);
 
     if(envelope)envelope.textContent=money(Number(state.cash||0));
     if(card)card.textContent=money(Number(state.card||0));
     if(goal)goal.textContent=`${money(calculatedGoal)} por dia`;
 
     if(goalCard){
+      const activeCount=(state.bills||[]).filter(b=>!b.completed&&!b.paid&&billAmount317(b)>billReserved317(b)).length;
       goalCard.textContent=pending>0
-        ? `${money(pending)} ainda precisam ser cobertos nas Bills ativas.`
+        ? `${money(pending)} pendentes em ${activeCount} Bills ativas.`
         : "Todas as Bills ativas já estão cobertas.";
     }
   }catch(error){
@@ -1503,8 +1578,9 @@ $("saveVaultDeposit").onclick=async e=>{
 };
 
 
-const APP_VERSION="3.1.6";
+const APP_VERSION="3.1.7";
 const RELEASE_NOTES=[
+  {version:"3.1.7",date:"05/08/2026",title:"Meta diária e reset corrigidos",changes:["Leitura de valores aceita formatos com libra e vírgula.","Datas ISO e brasileiras são reconhecidas.","Meta diária deixa de zerar quando existem Bills pendentes.","Zerar reservas e depósitos voltou a funcionar com dupla confirmação."]},
   {version:"3.1.6",date:"05/08/2026",title:"Meta diária realmente dinâmica",changes:["A meta agora considera todas as Bills ativas e seus vencimentos.","Adicionar, editar, remover, concluir ou reservar uma Bill recalcula a meta.","O cartão informa quanto ainda falta cobrir.","A prévia do formulário mostra a meta antes de salvar."]},
   {version:"3.1.5",date:"05/08/2026",title:"Bills mais limpa e organizada",changes:["Envelope e Cartão voltaram em cartões próprios.","Meta diária ganhou um retângulo compacto no topo.","Compartilhar foi movido para o final da tela Bills.","Resumo principal ficou menos poluído."]},
   {version:"3.1.0",date:"05/08/2026",title:"Refatoração de estabilidade",changes:[
@@ -1856,5 +1932,35 @@ document.addEventListener("DOMContentLoaded",()=>{
     catch{prompt("Copie os detalhes:",value)}
   });
 });
+
+
+$("resetFinance").onclick=async()=>{
+  const first=confirm(
+    "Zerar Envelope, Cartão e todas as reservas das Bills?\n\nAs Bills continuarão cadastradas."
+  );
+  if(!first)return;
+
+  const second=confirm(
+    "Confirme novamente: todo o progresso reservado será zerado."
+  );
+  if(!second)return;
+
+  try{
+    state.cash=0;
+    state.card=0;
+    state.bills=(state.bills||[]).map(b=>({...b,reserved:0}));
+    state.history=state.history||[];
+    state.history.push({
+      date:new Date().toISOString(),
+      text:"Reservas e depósitos zerados"
+    });
+    state.dailyGoal=calculateDynamicDailyGoal316(state.bills);
+    $("settingsSheet").classList.add("hidden");
+    await persist("Reservas e depósitos zerados");
+  }catch(error){
+    fatalDiagnostic313("Zerar reservas e depósitos",error);
+    toast("Não foi possível zerar os valores");
+  }
+};
 
 boot();

@@ -1172,3 +1172,9 @@ body.settings-open-310{
 .bill-daily-goal-card small{
   transition:opacity .18s ease;
 }
+
+
+/* Nosso Controle 3.1.7 */
+.bill-daily-goal-card strong{
+  min-width:110px;
+}
