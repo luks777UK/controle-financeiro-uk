@@ -40,7 +40,7 @@ function fatalDiagnostic313(step,error,extra={}){
     const box=document.getElementById("fatalLoginDiagnostic");
     const text=document.getElementById("fatalLoginDiagnosticText");
     const lines=[
-      `VERSÃO: 3.2.2`,
+      `VERSÃO: 4.0.0`,
       `ETAPA: ${step}`,
       `MENSAGEM: ${error?.message||String(error||"Erro desconhecido")}`
     ];
@@ -843,9 +843,9 @@ function billPaymentsForMonth(key){
 }
 function monthlyFinancialSeries(){
   return lastMonths(6).map(m=>{
-    const income=(state.incomes||[]).filter(x=>monthKeyFromDateValue(x.date)===m.key).reduce((s,x)=>s+(x.type==="withdrawal"?-Number(x.amount||0):Number(x.amount||0)),0);
-    const expenses=(state.expenses||[]).filter(x=>monthKeyFromDateValue(x.date)===m.key).reduce((s,x)=>s+(x.type==="withdrawal"?-Number(x.amount||0):Number(x.amount||0)),0);
-    const vault=(state.vaultEntries||[]).filter(x=>monthKeyFromDateValue(x.date)===m.key).reduce((s,x)=>s+(x.type==="withdrawal"?-Number(x.amount||0):Number(x.amount||0)),0);
+    const income=(state.incomes||[]).filter(x=>monthKeyFromDateValue(x.date)===m.key).reduce((s,x)=>s+Number(x.amount||0),0);
+    const expenses=(state.expenses||[]).filter(x=>monthKeyFromDateValue(x.date)===m.key).reduce((s,x)=>s+Number(x.amount||0),0);
+    const vault=(state.vaultEntries||[]).filter(x=>monthKeyFromDateValue(x.date)===m.key).reduce((s,x)=>s+Number(x.amount||0),0);
     const bills=billPaymentsForMonth(m.key);
     return {...m,income,expenses,vault,bills,wealth:income-expenses-bills};
   });
@@ -884,7 +884,7 @@ function renderWeeklyIncomeChart(){
   for(let i=0;i<7;i++){
     const d=new Date(start);d.setDate(start.getDate()+i);
     const key=dateKeyFromDate(d);
-    const value=(state.incomes||[]).filter(x=>x.date===key).reduce((s,x)=>s+(x.type==="withdrawal"?-Number(x.amount||0):Number(x.amount||0)),0);
+    const value=(state.incomes||[]).filter(x=>x.date===key).reduce((s,x)=>s+Number(x.amount||0),0);
     values.push({key,label:names[i],value});
   }
   const max=Math.max(1,...values.map(x=>x.value));
@@ -918,7 +918,7 @@ function showDayDetails(key){
   const billItems=(state.history||[]).filter(x=>x.type==="bill_payment"&&localDateKey(x.date)===key);
   const deposits=(state.history||[]).filter(x=>x.type!=="bill_payment"&&x.date&&localDateKey(x.date)===key&&((Number(x.cash)||0)+(Number(x.card)||0)>0));
   const income=sumItems(incomeItems),expenses=sumItems(expenseItems),vault=sumItems(vaultItems);
-  const bills=billItems.reduce((s,x)=>s+(x.type==="withdrawal"?-Number(x.amount||0):Number(x.amount||0)),0);
+  const bills=billItems.reduce((s,x)=>s+Number(x.amount||0),0);
   const net=income-expenses-bills-vault;
   const date=new Date(key+"T12:00:00");
   $("dayDetailsTitle").textContent=new Intl.DateTimeFormat("pt-BR",{weekday:"long",day:"numeric",month:"long"}).format(date);
@@ -1079,7 +1079,7 @@ function renderExpenses(){
     const d=new Date(`${x.date}T12:00:00`);
     return d.getFullYear()===year&&d.getMonth()===month;
   });
-  const total=monthItems.reduce((s,x)=>s+(x.type==="withdrawal"?-Number(x.amount||0):Number(x.amount||0)),0);
+  const total=monthItems.reduce((s,x)=>s+Number(x.amount||0),0);
   $("expenseMonthTotal").textContent=money(total);
   const cats={gasolina:0,mercado:0,lanche:0,lazer:0,casa:0,carro:0,saude:0,outros:0};
   monthItems.forEach(x=>cats[x.category]=(cats[x.category]||0)+Number(x.amount||0));
@@ -1111,43 +1111,90 @@ async function deleteExpense(id){
   state.expenses=state.expenses.filter(x=>x.id!==id);
   await persist("Gasto excluído");
 }
+function normalizeVaultV4(){
+  if(!Array.isArray(state.vaultEntries))state.vaultEntries=[];
+  state.vaultEntries=state.vaultEntries.map(entry=>({
+    id:entry.id||crypto.randomUUID?.()||String(Date.now()+Math.random()),
+    type:entry.type==="withdrawal"?"withdrawal":"deposit",
+    location:entry.location==="card"?"card":"envelope",
+    amount:Number(entry.amount||0),
+    description:entry.description||entry.note||"",
+    date:entry.date||currentLocalDate(),
+    ...entry
+  }));
+}
+
+function vaultLocationBalanceV4(location){
+  normalizeVaultV4();
+  return state.vaultEntries.reduce((sum,item)=>{
+    if(item.location!==location)return sum;
+    return sum+(item.type==="withdrawal"?-Number(item.amount||0):Number(item.amount||0));
+  },0);
+}
+
 function renderVault(){
   if(!state)return;
-  state.vaultEntries=Array.isArray(state.vaultEntries)?state.vaultEntries:[];
-  const balance=state.vaultEntries.reduce((s,x)=>s+(x.type==="withdrawal"?-Number(x.amount||0):Number(x.amount||0)),0);
-  $("vaultBalance").textContent=money(balance);
-  const now=new Date(),year=now.getFullYear(),month=now.getMonth();
-  const monthItems=state.vaultEntries.filter(x=>{
-    const d=new Date(`${x.date}T12:00:00`);
-    return d.getFullYear()===year&&d.getMonth()===month;
+  normalizeVaultV4();
+
+  const envelope=vaultLocationBalanceV4("envelope");
+  const card=vaultLocationBalanceV4("card");
+  $("vaultBalance").textContent=money(envelope+card);
+  $("vaultEnvelopeBalanceV4").textContent=money(envelope);
+  $("vaultCardBalanceV4").textContent=money(card);
+
+  const now=new Date();
+  const monthItems=state.vaultEntries.filter(item=>{
+    const date=new Date(`${item.date}T12:00:00`);
+    return date.getFullYear()===now.getFullYear()&&date.getMonth()===now.getMonth();
   });
-  $("vaultMonthTotal").textContent=money(monthItems.reduce((s,x)=>s+(x.type==="withdrawal"?-Number(x.amount||0):Number(x.amount||0)),0));
-  $("vaultEntryCount").textContent=String(state.vaultEntries.length);
-  const list=[...state.vaultEntries].sort((a,b)=>new Date(b.date)-new Date(a.date));
-  $("vaultList").innerHTML=list.length?list.map(x=>`<article class="vault-item">
-    <div class="vault-item-icon">💎</div>
-    <div class="vault-item-info"><b>${x.description||"Valor guardado"}</b><small>${new Date(x.date+"T12:00:00").toLocaleDateString("pt-BR")}</small><span class="vault-location-badge">${(x.location||"envelope")==="card"?"▰ Cartão":"£ Envelope"}</span></div>
-    <div class="vault-item-value"><strong>+${money(x.amount)}</strong><div class="row-actions"><button data-vault-edit="${x.id}">Editar</button><button data-vault-delete="${x.id}">Excluir</button></div></div>
-  </article>`).join(""):'<div class="empty-state">O cofre ainda está vazio.</div>';
-  document.querySelectorAll("[data-vault-edit]").forEach(b=>b.onclick=()=>editVaultEntry(b.dataset.vaultEdit));
-  document.querySelectorAll("[data-vault-delete]").forEach(b=>b.onclick=()=>deleteVaultEntry(b.dataset.vaultDelete));
+
+  const added=monthItems.filter(x=>x.type!=="withdrawal").reduce((s,x)=>s+Number(x.amount||0),0);
+  const removed=monthItems.filter(x=>x.type==="withdrawal").reduce((s,x)=>s+Number(x.amount||0),0);
+  $("vaultMonthAddedV4").textContent=money(added);
+  $("vaultMonthRemovedV4").textContent=money(removed);
+
+  const list=$("vaultList");
+  const entries=state.vaultEntries.slice().sort((a,b)=>new Date(b.date)-new Date(a.date));
+  if(!entries.length){
+    list.innerHTML='<div class="vault-empty-v4">O Cofre ainda está vazio.</div>';
+    return;
+  }
+
+  list.innerHTML=entries.map(item=>{
+    const removed=item.type==="withdrawal";
+    return `<article class="vault-entry-v4 ${removed?"removed":"added"}">
+      <div class="vault-entry-sign-v4">${removed?"−":"+"}</div>
+      <div class="vault-entry-info-v4">
+        <strong>${escapeText(item.description||(removed?"Retirada do Cofre":"Valor adicionado"))}</strong>
+        <small>${new Date(`${item.date}T12:00:00`).toLocaleDateString("pt-BR")} · ${item.location==="card"?"Cartão":"Envelope"}</small>
+      </div>
+      <div class="vault-entry-value-v4">
+        <strong>${removed?"−":"+"}${money(item.amount)}</strong>
+        <button type="button" data-vault-delete-v4="${item.id}" aria-label="Excluir movimentação">🗑</button>
+      </div>
+    </article>`;
+  }).join("");
+
+  list.querySelectorAll("[data-vault-delete-v4]").forEach(button=>{
+    button.onclick=()=>deleteVaultEntryV4(button.dataset.vaultDeleteV4);
+  });
 }
-function editVaultEntry(id){
-  const item=state.vaultEntries.find(x=>x.id===id);
-  if(!item)return;
-  $("vaultEditId").value=id;
-  $("vaultDialogTitle").textContent="Editar valor do cofre";
-  $("vaultAmount").value=item.amount;
-  $("vaultDescription").value=item.description||"";
-  $("vaultLocation").value=item.location||"envelope";
-  $("vaultDate").value=item.date;
-  $("vaultDialog").showModal();
+
+async function deleteVaultEntryV4(id){
+  const entry=(state.vaultEntries||[]).find(item=>String(item.id)===String(id));
+  if(!entry||!confirm("Excluir esta movimentação do Cofre?"))return;
+  const backup=structuredClone(state.vaultEntries);
+  try{
+    state.vaultEntries=state.vaultEntries.filter(item=>String(item.id)!==String(id));
+    await persist("Movimentação do Cofre excluída");
+  }catch(error){
+    state.vaultEntries=backup;
+    render();
+    fatalDiagnostic313("Excluir movimentação do Cofre 4.0",error,{entry_id:id});
+    toast("Não foi possível excluir a movimentação");
+  }
 }
-async function deleteVaultEntry(id){
-  if(!confirm("Excluir este valor do cofre?"))return;
-  state.vaultEntries=state.vaultEntries.filter(x=>x.id!==id);
-  await persist("Movimentação excluída");
-}
+
 function switchView(viewId){
   document.querySelectorAll(".app-section").forEach(x=>x.classList.remove("active-section"));
   
@@ -1711,39 +1758,95 @@ $("saveExpense").onclick=async e=>{
 };
 $("openVaultDeposit").onclick=()=>{
   $("vaultEditId").value="";
-  $("vaultDialogTitle").textContent="Adicionar ao cofre";
+  $("vaultDialogTitle").textContent="Adicionar ao Cofre";
   $("vaultAmount").value="";
   $("vaultDescription").value="";
   $("vaultLocation").value="envelope";
   $("vaultDate").value=currentLocalDate();
   $("vaultDialog").showModal();
 };
-$("saveVaultDeposit").onclick=async e=>{
-  e.preventDefault();
+
+$("saveVaultDeposit").onclick=async event=>{
+  event.preventDefault();
   const amount=Number($("vaultAmount").value)||0;
   if(amount<=0)return toast("Digite um valor válido");
-  state.vaultEntries=Array.isArray(state.vaultEntries)?state.vaultEntries:[];
-  const editId=$("vaultEditId").value;
-  const payload={
+
+  const description=$("vaultDescription").value.trim();
+  const location=$("vaultLocation").value;
+  const date=$("vaultDate").value||currentLocalDate();
+
+  normalizeVaultV4();
+  state.vaultEntries.push({
+    id:crypto.randomUUID?.()||String(Date.now()),
+    type:"deposit",
     amount,
-    description:$("vaultDescription").value.trim(),
-    location:$("vaultLocation").value,
-    date:$("vaultDate").value||currentLocalDate()
-  };
-  if(editId){
-    const item=state.vaultEntries.find(x=>x.id===editId);
-    if(item)Object.assign(item,payload);
-  }else{
-    state.vaultEntries.push({id:crypto.randomUUID(),...payload});
-  }
+    description,
+    location,
+    date
+  });
+
+  state.history=Array.isArray(state.history)?state.history:[];
+  state.history.push({
+    id:crypto.randomUUID?.()||String(Date.now()+1),
+    type:"vault_deposit",
+    text:`Adicionado ao Cofre · ${location==="card"?"Cartão":"Envelope"}`,
+    amount,
+    date:new Date(`${date}T12:00:00`).toISOString()
+  });
+
   $("vaultDialog").close();
-  await persist(editId?"Cofre atualizado":"Valor guardado no cofre");
+  await persist("Valor adicionado ao Cofre");
+};
+
+$("openVaultWithdrawV4").onclick=()=>{
+  $("vaultWithdrawLocationV4").value="envelope";
+  $("vaultWithdrawAmountV4").value="";
+  $("vaultWithdrawDescriptionV4").value="";
+  $("vaultWithdrawDateV4").value=currentLocalDate();
+  feedback("vaultWithdrawFeedbackV4","");
+  $("vaultWithdrawDialogV4").showModal();
+};
+
+$("confirmVaultWithdrawV4").onclick=async()=>{
+  feedback("vaultWithdrawFeedbackV4","");
+  const location=$("vaultWithdrawLocationV4").value;
+  const amount=Number($("vaultWithdrawAmountV4").value)||0;
+  const description=$("vaultWithdrawDescriptionV4").value.trim();
+  const date=$("vaultWithdrawDateV4").value||currentLocalDate();
+  const available=vaultLocationBalanceV4(location);
+
+  if(amount<=0)return feedback("vaultWithdrawFeedbackV4","Digite um valor válido.");
+  if(amount>available){
+    return feedback("vaultWithdrawFeedbackV4",`Saldo insuficiente no ${location==="card"?"Cartão":"Envelope"}. Disponível: ${money(available)}`);
+  }
+
+  normalizeVaultV4();
+  state.vaultEntries.push({
+    id:crypto.randomUUID?.()||String(Date.now()),
+    type:"withdrawal",
+    amount,
+    description,
+    location,
+    date
+  });
+
+  state.history=Array.isArray(state.history)?state.history:[];
+  state.history.push({
+    id:crypto.randomUUID?.()||String(Date.now()+1),
+    type:"vault_withdrawal",
+    text:`Retirado do Cofre · ${location==="card"?"Cartão":"Envelope"}`,
+    amount,
+    date:new Date(`${date}T12:00:00`).toISOString()
+  });
+
+  $("vaultWithdrawDialogV4").close();
+  await persist("Retirada do Cofre registrada");
 };
 
 
-const APP_VERSION="3.2.2";
+const APP_VERSION="4.0.0";
 const RELEASE_NOTES=[
-  {version:"3.2.2",date:"05/08/2026",title:"Cofre completo e exclusão de Bills",changes:["Adicionada retirada do Cofre.","Movimentações indicam Envelope ou Cartão.","Saldo do Cofre separado por local.","Bills podem ser excluídas com confirmação.","Meta diária é recalculada após excluir uma Bill."]},
+  {version:"4.0.0",date:"05/08/2026",title:"Reconstrução limpa das Bills e do Cofre",changes:["Cofre redesenhado com Envelope e Cartão separados.","Movimentações verdes para entradas e vermelhas para retiradas.","Cards de Bills reconstruídos com editar, excluir e pagar integrados.","Histórico de Bills usa verde para adições e vermelho para pagamentos.","Funções antigas duplicadas dessas telas foram substituídas."]},
   {version:"3.2.1",date:"05/08/2026",title:"Meta fixa por dia trabalhado",changes:["Meta principal agora é o total das Bills dividido por 20 dias trabalhados.","Depósitos não diminuem mais a meta diária.","O retângulo mostra Meta por dia e Já guardado.","Adicionar, remover ou editar Bills recalcula a meta.","Adicionada opção para limpar somente o histórico de atividades das Bills."]},
   {version:"3.2.0",date:"05/08/2026",title:"Motor único da meta e reset",changes:["Todas as rotas usam um cálculo autônomo.","Removida dependência de funções inacessíveis no Safari.","Reset grava diretamente no Supabase.","Prévia, topo e persistência usam o mesmo resultado."]},
   {version:"3.1.9",date:"05/08/2026",title:"Meta e reset substituídos diretamente",changes:["A meta é calculada com as mesmas Bills exibidas na tela.","O valor é atualizado durante a renderização, sem função atrasada.","O reset grava diretamente no Supabase sem usar o fluxo antigo.","Erros do banco passam a ser exibidos integralmente."]},
@@ -1772,7 +1875,7 @@ const safeClose=dialog=>{if(!dialog)return;try{dialog.close()}catch{dialog.remov
 
 function monthSummary(){
   const month=currentLocalDate().slice(0,7);
-  const total=list=>(list||[]).filter(x=>String(x.date||"").slice(0,7)===month).reduce((s,x)=>s+(x.type==="withdrawal"?-Number(x.amount||0):Number(x.amount||0)),0);
+  const total=list=>(list||[]).filter(x=>String(x.date||"").slice(0,7)===month).reduce((s,x)=>s+Number(x.amount||0),0);
   const bills=(state?.bills||[]).filter(x=>!x.completed);
   const income=total(state?.incomes),expense=total(state?.expenses),vault=total(state?.vaultEntries);
   const reserved=bills.reduce((s,x)=>s+Number(x.reserved||0),0);
@@ -1812,14 +1915,130 @@ function updateBillTopCards319(bills){
   if(card)card.textContent=money(Number(state?.card||0));
 }
 function renderCleanBills(){
-  const list=$("billList");if(!list||!state)return;
-  const bills=(state.bills||[]).filter(x=>!x.completed).slice().sort((a,b)=>new Date(a.due)-new Date(b.due));
+  if(!state)return;
+  const list=$("billList");
+  if(!list)return;
+
+  const bills=(state.bills||[])
+    .filter(b=>!b.completed)
+    .slice()
+    .sort((a,b)=>new Date(a.due)-new Date(b.due));
+
+  renderBillHeader(bills);
   list.innerHTML="";
-  bills.forEach(b=>{const remain=Math.max(0,Number(b.amount)-Number(b.reserved)),pct=b.amount?Math.min(100,b.reserved/b.amount*100):100,days=daysSafe(b.due);const card=document.createElement('article');card.className='v21-bill-card';card.dataset.days=days;card.dataset.ready=String(remain===0);card.innerHTML=`<div class="v21-bill-top"><span class="v21-bill-icon">${billEmoji(b.name)}</span><div><strong>${escapeText(b.name)}</strong><small>${formatDate(b.due)} · ${frequencyLabel(b.frequency)}</small></div><em class="${days<0?'danger':days<=7?'warning':''}">${days<0?`${Math.abs(days)}d atrasada`:days===0?'Hoje':`${days}d`}</em></div><div class="v21-bill-progress"><i style="width:${pct}%"></i></div><div class="v21-bill-bottom"><div><strong>${money(b.reserved)} <span>/ ${money(b.amount)}</span></strong><small>${remain?`${money(remain)} restantes`:'Totalmente reservada'}</small></div><div class="v21-bill-actions"><button data-edit>✎</button><button data-pay>✓</button></div></div>${b.type==='installment'?`<div class="v21-installment"><span>Parcela ${b.currentInstallment}/${b.totalInstallments}</span><i><b style="width:${Math.min(100,b.currentInstallment/b.totalInstallments*100)}%"></b></i></div>`:''}`;q('[data-edit]',card).onclick=()=>openBillCreateDialog(b.id);q('[data-pay]',card).onclick=()=>togglePaid(b.id);list.appendChild(card)});
-  renderBillHeader(bills);applyBillFilter();updateWalletSummary();updateBillTopCards319(bills);
+
+  for(const bill of bills){
+    const amount=Number(bill.amount||0);
+    const reserved=Number(bill.reserved||0);
+    const remaining=Math.max(0,amount-reserved);
+    const percent=amount?Math.min(100,reserved/amount*100):100;
+    const days=daysSafe(bill.due);
+    const statusClass=days<0?"late":days<=7?"soon":"normal";
+    const statusText=days<0?`${Math.abs(days)}d atrasada`:days===0?"Vence hoje":`${days}d`;
+
+    const card=document.createElement("article");
+    card.className="bill-card-v4";
+    card.dataset.days=String(days);
+    card.dataset.ready=String(remaining===0);
+
+    card.innerHTML=`
+      <div class="bill-v4-head">
+        <div class="bill-v4-icon">${billEmoji(bill.name)}</div>
+        <div class="bill-v4-name">
+          <strong>${escapeText(bill.name)}</strong>
+          <small>${formatDate(bill.due)} · ${frequencyLabel(bill.frequency)}</small>
+        </div>
+        <span class="bill-v4-status ${statusClass}">${statusText}</span>
+      </div>
+      <div class="bill-v4-progress"><i style="width:${percent}%"></i></div>
+      <div class="bill-v4-values">
+        <div>
+          <span>Reservado</span>
+          <strong>${money(reserved)} <small>/ ${money(amount)}</small></strong>
+          <em>${remaining>0?`${money(remaining)} restantes`:"Totalmente reservada"}</em>
+        </div>
+        <div class="bill-v4-actions">
+          <button class="bill-icon-action edit" type="button" aria-label="Editar Bill">✎</button>
+          <button class="bill-icon-action delete" type="button" aria-label="Excluir Bill">🗑</button>
+          <button class="bill-icon-action paid" type="button" aria-label="Marcar como paga">✓</button>
+        </div>
+      </div>
+      ${bill.type==="installment"?`
+        <div class="bill-v4-installment">
+          <span>Parcela ${bill.currentInstallment}/${bill.totalInstallments}</span>
+          <i><b style="width:${Math.min(100,bill.currentInstallment/bill.totalInstallments*100)}%"></b></i>
+        </div>`:""}
+    `;
+
+    card.querySelector(".edit").onclick=()=>openBillCreateDialog(bill.id);
+    card.querySelector(".delete").onclick=()=>deleteBillV4(bill.id);
+    card.querySelector(".paid").onclick=()=>togglePaid(bill.id);
+    list.appendChild(card);
+  }
+
+  applyBillFilter();
+  updateBillTopCards319(bills);
+  renderBillActivityV4();
 }
+
+async function deleteBillV4(id){
+  const bill=(state.bills||[]).find(item=>String(item.id)===String(id));
+  if(!bill)return;
+  if(!confirm(`Excluir a Bill “${bill.name}”?\n\nA conta será removida permanentemente.`))return;
+
+  const oldBills=structuredClone(state.bills||[]);
+  const oldHistory=structuredClone(state.history||[]);
+  try{
+    state.bills=(state.bills||[]).filter(item=>String(item.id)!==String(id));
+    state.dailyGoal=calculateFixedWorkdayGoal321(state.bills);
+    state.history=Array.isArray(state.history)?state.history:[];
+    state.history.push({
+      id:crypto.randomUUID?.()||String(Date.now()),
+      type:"bill_deleted",
+      text:`Bill excluída · ${bill.name}`,
+      bill:bill.name,
+      amount:Number(bill.amount||0),
+      date:new Date().toISOString()
+    });
+    await persist("Bill excluída");
+  }catch(error){
+    state.bills=oldBills;
+    state.history=oldHistory;
+    render();
+    fatalDiagnostic313("Excluir Bill 4.0",error,{bill_id:id});
+    toast("Não foi possível excluir a Bill");
+  }
+}
+
+function renderBillActivityV4(){
+  const container=$("historyList");
+  if(!container)return;
+  const items=(Array.isArray(state.history)?state.history:[]).slice().reverse().slice(0,30);
+
+  if(!items.length){
+    container.innerHTML='<div class="history-empty-v4">Nenhuma atividade registrada.</div>';
+    return;
+  }
+
+  container.innerHTML=items.map(item=>{
+    const text=String(item.text||item.label||"Atividade");
+    const lower=text.toLowerCase();
+    const type=String(item.type||"");
+    const added=type.includes("deposit")||lower.includes("adicionado")||lower.includes("depósito");
+    const removed=type==="bill_payment"||type==="bill_deleted"||lower.includes("paga")||lower.includes("excluída")||lower.includes("retirada");
+    const tone=removed?"removed":added?"added":"neutral";
+    const amount=Number(item.amount||0)||(Number(item.cash||0)+Number(item.card||0));
+
+    return `<article class="history-item-v4 ${tone}">
+      <span class="history-dot-v4"></span>
+      <div><strong>${escapeText(text)}</strong><small>${new Date(item.date).toLocaleString("pt-BR")}${item.bill?` · ${escapeText(item.bill)}`:""}</small></div>
+      <b>${amount?`${removed?"−":"+"}${money(amount)}`:""}</b>
+    </article>`;
+  }).join("");
+}
+
 function renderBillHeader(bills){const list=$("billList");let summary=$("v22BillSummary");if(!summary){summary=document.createElement('section');summary.id='v22BillSummary';summary.className='v21-bill-summary';list.before(summary)}const total=bills.reduce((s,b)=>s+Number(b.amount),0),reserved=bills.reduce((s,b)=>s+Number(b.reserved),0),pct=total?Math.min(100,reserved/total*100):0;summary.innerHTML=`<div><small>BILLS ATIVAS</small><strong>${bills.length} contas</strong><span>${money(total)} no total</span></div><div class="v21-summary-track"><i style="width:${pct}%"></i></div><b>${pct.toFixed(0)}% reservado</b>`;let filters=$("v22BillFilters");if(!filters){filters=document.createElement('div');filters.id='v22BillFilters';filters.className='v21-filters';filters.innerHTML='<button data-f="all">Todas</button><button data-f="late">Atrasadas</button><button data-f="week">7 dias</button><button data-f="ready">Reservadas</button>';summary.after(filters);filters.onclick=e=>{const btn=e.target.closest('button');if(!btn)return;activeBillFilter=btn.dataset.f;applyBillFilter()}}qa('button',filters).forEach(x=>x.classList.toggle('active',x.dataset.f===activeBillFilter))}
-function applyBillFilter(){qa('.v21-bill-card').forEach(card=>{const days=Number(card.dataset.days),ready=card.dataset.ready==='true';let show=true;if(activeBillFilter==='late')show=days<0;if(activeBillFilter==='week')show=days>=0&&days<=7;if(activeBillFilter==='ready')show=ready;card.hidden=!show});const f=$("v22BillFilters");if(f)qa('button',f).forEach(x=>x.classList.toggle('active',x.dataset.f===activeBillFilter))}
+function applyBillFilter(){qa('.bill-card-v4').forEach(card=>{const days=Number(card.dataset.days),ready=card.dataset.ready==='true';let show=true;if(activeBillFilter==='late')show=days<0;if(activeBillFilter==='week')show=days>=0&&days<=7;if(activeBillFilter==='ready')show=ready;card.hidden=!show});const f=$("v22BillFilters");if(f)qa('button',f).forEach(x=>x.classList.toggle('active',x.dataset.f===activeBillFilter))}
 function updateWalletSummary(){if($("quickCashTotal"))$("quickCashTotal").textContent=money(state.cash||0);if($("quickCardTotal"))$("quickCardTotal").textContent=money(state.card||0);if($("quickSavedTotal"))$("quickSavedTotal").textContent=money(Number(state.cash||0)+Number(state.card||0))}
 
 function ensureCleaningDialog(){if($("v22CleaningDialog"))return;const d=document.createElement('dialog');d.id='v22CleaningDialog';d.innerHTML=`<form method="dialog" class="dialog-card"><input id="v22CleaningId" type="hidden"><div class="dialog-heading"><div><h2>Registrar limpeza</h2><p>Pagamento diário no dia correto.</p></div><button value="cancel" class="round-button">×</button></div><label>Cliente ou casa<input id="v22CleaningClient" type="text"></label><label>Valor recebido<input id="v22CleaningAmount" type="number" inputmode="decimal" step="0.01"></label><label>Data opcional<input id="v22CleaningDate" type="date"></label><label>Observação<input id="v22CleaningNotes" type="text"></label><button id="v22SaveCleaning" value="cancel" class="primary-button">Salvar pagamento</button></form>`;document.body.appendChild(d);$("v22SaveCleaning").onclick=saveCleaning}
@@ -2216,202 +2435,4 @@ $("clearBillHistoryBtn").onclick=async()=>{
   }
 };
 
-
-function vaultBalanceByLocation322(location){
-  const entries=Array.isArray(state?.vaultEntries)?state.vaultEntries:[];
-  return entries.reduce((total,entry)=>{
-    const amount=Number(entry.amount||0);
-    const sameLocation=(entry.location||"envelope")===location;
-    if(!sameLocation)return total;
-    return total+(entry.type==="withdrawal"?-amount:amount);
-  },0);
-}
-
-function normalizeVaultEntries322(){
-  if(!Array.isArray(state.vaultEntries))state.vaultEntries=[];
-  state.vaultEntries=state.vaultEntries.map(entry=>({
-    type:"deposit",
-    location:"envelope",
-    ...entry
-  }));
-}
-
-function openVaultWithdraw322(){
-  normalizeVaultEntries322();
-  $("vaultWithdrawAmount").value="";
-  $("vaultWithdrawLocation").value="envelope";
-  $("vaultWithdrawNote").value="";
-  feedback("vaultWithdrawMsg","");
-  try{$("vaultWithdrawDialog").showModal()}
-  catch{$("vaultWithdrawDialog").setAttribute("open","")}
-}
-
-async function confirmVaultWithdraw322(){
-  feedback("vaultWithdrawMsg","");
-
-  const amount=Number($("vaultWithdrawAmount").value||0);
-  const location=$("vaultWithdrawLocation").value;
-  const note=$("vaultWithdrawNote").value.trim();
-
-  if(!Number.isFinite(amount)||amount<=0){
-    feedback("vaultWithdrawMsg","Digite um valor válido.");
-    return;
-  }
-
-  const available=vaultBalanceByLocation322(location);
-  if(amount>available){
-    feedback(
-      "vaultWithdrawMsg",
-      `Saldo insuficiente no ${location==="card"?"Cartão":"Envelope"}. Disponível: ${money(available)}`
-    );
-    return;
-  }
-
-  const button=$("confirmVaultWithdraw");
-  button.disabled=true;
-  button.textContent="Retirando…";
-
-  try{
-    state.vaultEntries.push({
-      id:crypto.randomUUID?.()||String(Date.now()),
-      type:"withdrawal",
-      amount,
-      location,
-      note,
-      date:new Date().toISOString()
-    });
-
-    state.history=Array.isArray(state.history)?state.history:[];
-    state.history.push({
-      date:new Date().toISOString(),
-      text:`Retirada do Cofre · ${location==="card"?"Cartão":"Envelope"} · ${money(amount)}`
-    });
-
-    try{$("vaultWithdrawDialog").close()}catch{}
-    await persist("Retirada do Cofre registrada");
-  }catch(error){
-    fatalDiagnostic313("Retirar do Cofre",error);
-    feedback("vaultWithdrawMsg","Não foi possível retirar do Cofre.");
-  }finally{
-    button.disabled=false;
-    button.textContent="Confirmar retirada";
-  }
-}
-
-function bindVaultWithdraw322(){
-  $("openVaultWithdraw")?.addEventListener("click",openVaultWithdraw322);
-  $("confirmVaultWithdraw")?.addEventListener("click",confirmVaultWithdraw322);
-}
-
-function installDeleteBillButtons322(){
-  const list=$("billList");
-  if(!list)return;
-
-  list.querySelectorAll("[data-bill-id]").forEach(card=>{
-    const id=card.dataset.billId;
-    if(!id||card.querySelector(".delete-bill-btn-322"))return;
-
-    const actions=card.querySelector(".bill-actions")||card;
-    const button=document.createElement("button");
-    button.type="button";
-    button.className="delete-bill-btn-322";
-    button.textContent="Excluir";
-    button.dataset.deleteBillId=id;
-    actions.appendChild(button);
-  });
-}
-
-async function deleteBill322(id){
-  const bill=(state.bills||[]).find(item=>String(item.id)===String(id));
-  if(!bill)return;
-
-  if(!confirm(`Excluir a Bill “${bill.name||"Sem nome"}”?\n\nEssa ação removerá a conta permanentemente.`)){
-    return;
-  }
-
-  const backup=structuredClone(state.bills||[]);
-
-  try{
-    state.bills=(state.bills||[]).filter(item=>String(item.id)!==String(id));
-    state.dailyGoal=calculateFixedWorkdayGoal321(state.bills);
-
-    state.history=Array.isArray(state.history)?state.history:[];
-    state.history.push({
-      date:new Date().toISOString(),
-      text:`Bill excluída · ${bill.name||"Sem nome"}`
-    });
-
-    await persist("Bill excluída");
-  }catch(error){
-    state.bills=backup;
-    render();
-    fatalDiagnostic313("Excluir Bill",error,{bill_id:id});
-    toast("Não foi possível excluir a Bill");
-  }
-}
-
-function bindDeleteBills322(){
-  $("billList")?.addEventListener("click",event=>{
-    const button=event.target.closest(".delete-bill-btn-322");
-    if(!button)return;
-    event.preventDefault();
-    event.stopPropagation();
-    deleteBill322(button.dataset.deleteBillId);
-  });
-}
-
-document.addEventListener("DOMContentLoaded",()=>{
-  bindVaultWithdraw322();
-  bindDeleteBills322();
-});
-window.addEventListener("pageshow",()=>{
-  setTimeout(()=>{
-    bindVaultWithdraw322();
-    bindDeleteBills322();
-    installDeleteBillButtons322();decorateVaultEntries322();ensureVaultLocationSummary322();
-  },50);
-});
-
 boot();
-
-const render322=render;render=function(){render322();setTimeout(installDeleteBillButtons322,0)};
-
-
-function decorateVaultEntries322(){
-  document.querySelectorAll("[data-vault-entry-id]").forEach(row=>{
-    const id=row.dataset.vaultEntryId;
-    const entry=(state.vaultEntries||[]).find(item=>String(item.id)===String(id));
-    if(!entry)return;
-
-    let badge=row.querySelector(".vault-location-badge-322");
-    if(!badge){
-      badge=document.createElement("span");
-      badge.className="vault-location-badge-322";
-      row.appendChild(badge);
-    }
-    badge.textContent=`${entry.type==="withdrawal"?"Retirada":"Depósito"} · ${entry.location==="card"?"Cartão":"Envelope"}`;
-    badge.classList.toggle("withdrawal",entry.type==="withdrawal");
-  });
-}
-
-
-
-function ensureVaultLocationSummary322(){
-  const vaultList=$("vaultList");
-  if(!vaultList||!state)return;
-
-  let summary=$("vaultLocationSummary322");
-  if(!summary){
-    summary=document.createElement("section");
-    summary.id="vaultLocationSummary322";
-    summary.className="vault-location-summary-322";
-    vaultList.before(summary);
-  }
-
-  const envelope=vaultBalanceByLocation322("envelope");
-  const card=vaultBalanceByLocation322("card");
-  summary.innerHTML=`
-    <article><span>Envelope</span><strong>${money(envelope)}</strong></article>
-    <article><span>Cartão</span><strong>${money(card)}</strong></article>`;
-}
-
