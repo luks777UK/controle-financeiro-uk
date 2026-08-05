@@ -1143,3 +1143,23 @@ body.settings-open-310{
 .bill-funds-313 span{padding:6px 8px;border-radius:10px;background:#10121c;color:#9296a8;font-size:7px}
 .bill-funds-313 strong{margin-left:3px;color:#f3f5ff;font-size:8px}
 .bill-funds-313 .goal{background:rgba(63,230,162,.06);border:1px solid rgba(63,230,162,.13);color:#42e5a4}
+
+
+/* Nosso Controle 3.1.5 — reorganização da tela Bills */
+.quick-actions-single{grid-template-columns:1fr}
+.bill-wallet-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
+.bill-wallet-card{display:flex;align-items:center;gap:11px;padding:13px;border-radius:20px;background:linear-gradient(145deg,#171927,#121420);border:1px solid rgba(255,255,255,.07);box-shadow:var(--shadow)}
+.bill-wallet-icon{flex:0 0 42px;width:42px;height:42px;display:grid;place-items:center;border-radius:13px;font-size:18px;font-weight:900}
+.bill-wallet-icon.envelope{background:rgba(63,230,162,.12);color:#43e7a5}
+.bill-wallet-icon.card{background:rgba(90,167,255,.13);color:#61adff}
+.bill-wallet-card span,.bill-wallet-card strong{display:block}
+.bill-wallet-card span{font-size:8px;color:#969aac}
+.bill-wallet-card strong{margin-top:4px;font-size:16px;color:#f5f6ff}
+.bill-daily-goal-card{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 18px;padding:10px 12px;border-radius:15px;background:linear-gradient(145deg,rgba(139,92,246,.10),rgba(63,230,162,.055));border:1px solid rgba(139,92,246,.16)}
+.bill-daily-goal-card span,.bill-daily-goal-card strong{display:block}
+.bill-daily-goal-card span{font-size:6.5px;font-weight:900;letter-spacing:1px;color:#ad91ff}
+.bill-daily-goal-card strong{margin-top:3px;font-size:15px;color:#f5f6ff}
+.bill-daily-goal-card small{max-width:46%;font-size:7px;line-height:1.35;text-align:right;color:#9296a8}
+.share-bottom-section{margin:18px 0 8px}
+.share-button-bottom{width:100%;opacity:.92}
+@media(max-width:430px){.bill-wallet-grid{gap:8px}.bill-wallet-card{padding:12px}.bill-wallet-icon{flex-basis:38px;width:38px;height:38px}.bill-wallet-card strong{font-size:14px}.bill-daily-goal-card small{max-width:44%}}

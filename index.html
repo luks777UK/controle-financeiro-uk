@@ -4,13 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
   <meta name="theme-color" content="#080914">
-  <meta name="application-name" content="Nosso Controle 3.1.4">
+  <meta name="application-name" content="Nosso Controle 3.1.5">
   <meta name="apple-mobile-web-app-title" content="Nosso Controle">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="styles.css?v=3.1.4">
-  <title>Nosso Controle 3.1.4</title>
+  <link rel="stylesheet" href="styles.css?v=3.1.5">
+  <title>Nosso Controle 3.1.5</title>
 </head>
 <body>
   <section id="authView" class="auth-screen">
@@ -301,20 +301,27 @@
         <span>Ainda falta <b id="missingTotal">£0,00</b></span>
       </div>
     </section>
-
-    <section class="quick-actions">
+    <section class="quick-actions quick-actions-single">
       <button id="openDeposit" class="deposit-button">
         <span class="deposit-plus">＋</span>
         <span><b>Novo depósito</b><small>Envelope ou cartão</small></span>
       </button>
-      
-      <button id="copyCode" class="share-button" type="button">
-        <span class="share-icon">↗</span>
-        <span>
-          <b>Compartilhar</b>
-          <small id="groupCodeText">Código da casa</small>
-        </span>
-      </button>
+    </section>
+
+    <section class="bill-wallet-grid" aria-label="Saldos guardados">
+      <article class="bill-wallet-card">
+        <div class="bill-wallet-icon envelope">£</div>
+        <div><span>Envelope</span><strong id="billEnvelopeBalance">£0,00</strong></div>
+      </article>
+      <article class="bill-wallet-card">
+        <div class="bill-wallet-icon card">▰</div>
+        <div><span>Cartão</span><strong id="billCardBalance">£0,00</strong></div>
+      </article>
+    </section>
+
+    <section class="bill-daily-goal-card">
+      <div><span>META DIÁRIA ATUAL</span><strong id="billDailyGoalTop">£0,00 por dia</strong></div>
+      <small>Valor necessário para cobrir todas as Bills dentro dos vencimentos.</small>
     </section>
 
     <div class="section-heading">
@@ -328,6 +335,13 @@
       <summary>Atividade recente <span>Ver histórico</span></summary>
       <div id="historyList" class="history-list"></div>
     </details>
+
+    <section class="share-bottom-section">
+      <button id="copyCode" class="share-button share-button-bottom" type="button">
+        <span class="share-icon">↗</span>
+        <span><b>Compartilhar casa</b><small id="groupCodeText">Código da casa</small></span>
+      </button>
+    </section>
 
     </section>
 
@@ -850,12 +864,12 @@
   <div id="toast" class="toast"></div>
   <canvas id="confetti"></canvas>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=3.1.4"></script>
+  <script src="app.js?v=3.1.5"></script>
   <script>
     if("serviceWorker" in navigator){
       window.addEventListener("load",async()=>{
         try{
-          const reg=await navigator.serviceWorker.register("./sw.js?v=3.1.4",{updateViaCache:"none"});
+          const reg=await navigator.serviceWorker.register("./sw.js?v=3.1.5",{updateViaCache:"none"});
           reg.update();
         }catch(error){console.warn("Service Worker:",error);}
       });

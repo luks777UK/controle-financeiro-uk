@@ -40,7 +40,7 @@ function fatalDiagnostic313(step,error,extra={}){
     const box=document.getElementById("fatalLoginDiagnostic");
     const text=document.getElementById("fatalLoginDiagnosticText");
     const lines=[
-      `VERSÃO: 3.1.4`,
+      `VERSÃO: 3.1.5`,
       `ETAPA: ${step}`,
       `MENSAGEM: ${error?.message||String(error||"Erro desconhecido")}`
     ];
@@ -1060,21 +1060,15 @@ function updateGoalPreview313(){
 }
 function enhanceBills313(){
   try{
-    const summary=$("v22BillSummary");
-    if(!summary||!state)return;
-    let row=$("billFunds313");
-    if(!row){
-      row=document.createElement("div");
-      row.id="billFunds313";
-      row.className="bill-funds-313";
-      summary.appendChild(row);
-    }
-    row.innerHTML=`
-      <span>Envelope <strong>${money(Number(state.cash||0))}</strong></span>
-      <span>Cartão <strong>${money(Number(state.card||0))}</strong></span>
-      <span class="goal">Meta diária <strong>${money(dailyGoal313(state.bills||[]))}</strong></span>`;
+    if(!state)return;
+    const envelope=$("billEnvelopeBalance");
+    const card=$("billCardBalance");
+    const goal=$("billDailyGoalTop");
+    if(envelope)envelope.textContent=money(Number(state.cash||0));
+    if(card)card.textContent=money(Number(state.card||0));
+    if(goal)goal.textContent=`${money(dailyGoal313(state.bills||[]))} por dia`;
   }catch(error){
-    fatalDiagnostic313("Exibir Envelope, Cartão e meta nas Bills",error);
+    fatalDiagnostic313("Exibir saldos e meta no topo das Bills",error);
   }
 }
 
@@ -1449,8 +1443,9 @@ $("saveVaultDeposit").onclick=async e=>{
 };
 
 
-const APP_VERSION="3.1.4";
+const APP_VERSION="3.1.5";
 const RELEASE_NOTES=[
+  {version:"3.1.5",date:"05/08/2026",title:"Bills mais limpa e organizada",changes:["Envelope e Cartão voltaram em cartões próprios.","Meta diária ganhou um retângulo compacto no topo.","Compartilhar foi movido para o final da tela Bills.","Resumo principal ficou menos poluído."]},
   {version:"3.1.0",date:"05/08/2026",title:"Refatoração de estabilidade",changes:[
     "Removidos scripts e manipuladores duplicados.",
     "Login unificado em um único fluxo.",
@@ -1523,7 +1518,7 @@ render=function(){
   try{renderCleanBills()}catch(error){fatalDiagnostic313("Bills premium",error)}
   try{renderUpdatesV22()}catch(error){fatalDiagnostic313("Atualizações",error)}
   try{prepareSettings()}catch(error){fatalDiagnostic313("Configurações",error)}
-  if(typeof enhanceBills313==="function")setTimeout(enhanceBills313,0);
+  if(typeof enhanceBills313==="function")setTimeout(()=>{document.getElementById("billFunds313")?.remove();enhanceBills313()},0);
 };
 window.addEventListener('pageshow',()=>{const d=$("updatesDialog");if(d?.open)safeClose(d)});
 ensureCleaningDialog();prepareSettings();renderUpdatesV22();
