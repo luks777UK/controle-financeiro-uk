@@ -1,4 +1,4 @@
-/* Nosso Controle 3.0.7 — aplicação refatorada */
+/* Nosso Controle 3.0.8 — aplicação refatorada */
 const cfg={
   SUPABASE_URL:"https://lhihsssbsjfliggtlaza.supabase.co",
   SUPABASE_ANON_KEY:"sb_publishable_0bttyUW7ASI8ylAyZjLkPA_NS8eThfO",
@@ -1361,9 +1361,9 @@ $("saveVaultDeposit").onclick=async e=>{
 };
 
 
-const APP_VERSION="3.0.7";
+const APP_VERSION="3.0.8";
 const RELEASE_NOTES=[
-  {version:"3.0.7",date:"05/08/2026",title:"Refatoração de estabilidade",changes:[
+  {version:"3.0.8",date:"05/08/2026",title:"Refatoração de estabilidade",changes:[
     "Removidos scripts e manipuladores duplicados.",
     "Login unificado em um único fluxo.",
     "Dashboard, Bills e filtros renderizados uma única vez.",
@@ -1435,7 +1435,7 @@ ensureCleaningDialog();prepareSettings();renderUpdatesV22();
 boot();
 
 
-/* Nosso Controle 3.0.7 — Compartilhar e Diagnóstico */
+/* Nosso Controle 3.0.8 — Compartilhar e Diagnóstico */
 const diagnosticLines=[];
 
 function addDiagnostic(message,detail){
@@ -1456,7 +1456,7 @@ function addDiagnosticError(step,error){
 function resetDiagnostic(){
   diagnosticLines.length=0;
   addDiagnostic("================================");
-  addDiagnostic("NOSSO CONTROLE 3.0.7");
+  addDiagnostic("NOSSO CONTROLE 3.0.8");
   addDiagnostic("================================");
 }
 async function runFullDiagnostic(){
@@ -1527,7 +1527,7 @@ window.addEventListener("pageshow",()=>setTimeout(installTools,50));
 
 
 
-/* Nosso Controle 3.0.7 — erro técnico visível no login */
+/* Nosso Controle 3.0.8 — erro técnico visível no login */
 let inlineDiagnosticLines=[];
 
 function clearInlineDiagnostic(){
@@ -1575,10 +1575,10 @@ document.addEventListener("DOMContentLoaded",()=>{
 
 
 
-/* Nosso Controle 3.0.7 — menu dos três pontos */
+/* Nosso Controle 3.0.8 — menu dos três pontos */
 (function installStableSettingsMenu307(){
   function getMenuButton(){
-    return document.getElementById("menuBtn")
+    return document.getElementById("menuButton")
       || document.querySelector('[data-action="settings"]')
       || Array.from(document.querySelectorAll("button")).find(btn=>{
         const text=(btn.textContent||"").replace(/\s/g,"");

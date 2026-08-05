@@ -4,13 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
   <meta name="theme-color" content="#080914">
-  <meta name="application-name" content="Nosso Controle 3.0.7">
+  <meta name="application-name" content="Nosso Controle 3.0.8">
   <meta name="apple-mobile-web-app-title" content="Nosso Controle">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="styles.css?v=3.0.7">
-  <title>Nosso Controle 3.0.7</title>
+  <link rel="stylesheet" href="styles.css?v=3.0.8">
+  <title>Nosso Controle 3.0.8</title>
 </head>
 <body>
   <section id="authView" class="auth-screen">
@@ -20,7 +20,7 @@
     <div class="panel auth-panel">
       <label>E-mail<input id="email" type="text" inputmode="email" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="username ou email"></label>
       <label>Senha<input id="password" type="password" autocomplete="current-password" placeholder="Mínimo 6 caracteres"></label>
-      <button id="menuBtn" id="loginBtn" class="primary-button">Entrar</button>
+      <button id="loginBtn" class="primary-button">Entrar</button>
       <button id="signupBtn" class="secondary-button">Criar conta</button>
       <button id="forgotPasswordBtn" class="text-button" type="button">Esqueci minha senha</button>
       
@@ -408,7 +408,7 @@
 
     <div id="settingsSheet" class="sheet-backdrop hidden">
       <section class="settings-sheet">
-        <div class="sheet-title"><h2>Configurações</h2><button id="closeSettingsBtn" id="closeSettings" class="round-button">×</button></div>
+        <div class="sheet-title"><h2>Configurações</h2><button id="closeSettingsBtn" class="round-button">×</button></div>
         <button id="openUpdatesPanel" class="sheet-action updates-action">
           <span class="sheet-action-icon">↻</span>
           <span><b>Atualizações</b><small>Versão instalada e novidades</small></span>
@@ -853,12 +853,12 @@
   <div id="toast" class="toast"></div>
   <canvas id="confetti"></canvas>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=3.0.7"></script>
+  <script src="app.js?v=3.0.8"></script>
   <script>
     if("serviceWorker" in navigator){
       window.addEventListener("load",async()=>{
         try{
-          const reg=await navigator.serviceWorker.register("./sw.js?v=3.0.7",{updateViaCache:"none"});
+          const reg=await navigator.serviceWorker.register("./sw.js?v=3.0.8",{updateViaCache:"none"});
           reg.update();
         }catch(error){console.warn("Service Worker:",error);}
       });
