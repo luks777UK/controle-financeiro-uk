@@ -40,7 +40,7 @@ function fatalDiagnostic313(step,error,extra={}){
     const box=document.getElementById("fatalLoginDiagnostic");
     const text=document.getElementById("fatalLoginDiagnosticText");
     const lines=[
-      `VERSÃO: 3.1.5`,
+      `VERSÃO: 3.1.6`,
       `ETAPA: ${step}`,
       `MENSAGEM: ${error?.message||String(error||"Erro desconhecido")}`
     ];
@@ -212,6 +212,7 @@ async function loadState(){
 }
 
 async function persist(successMessage){
+  try{if(state)state.dailyGoal=calculateDynamicDailyGoal316(state.bills||[])}catch(error){fatalDiagnostic313("Recalcular meta antes de salvar",error)}
   const stableScrollY=window.scrollY;
   closeKeyboardAndResetViewport(false);
   state.updatedAt=new Date().toISOString();
@@ -1025,27 +1026,51 @@ $("saveIncome").onclick=async e=>{
 
 
 
+function parseBillDate316(value){
+  if(!value)return null;
+  const parts=String(value).split("-").map(Number);
+  if(parts.length!==3||parts.some(Number.isNaN))return null;
+  return new Date(parts[0],parts[1]-1,parts[2],12,0,0,0);
+}
+
+function calculateDynamicDailyGoal316(bills){
+  const now=new Date();
+  const today=new Date(now.getFullYear(),now.getMonth(),now.getDate(),12,0,0,0);
+
+  const active=(Array.isArray(bills)?bills:[])
+    .filter(b=>!b.completed&&!b.paid)
+    .map(b=>{
+      const amount=Math.max(0,Number(b.amount||0));
+      const reserved=Math.max(0,Number(b.reserved||0));
+      return {
+        due:parseBillDate316(b.due),
+        remaining:Math.max(0,amount-reserved)
+      };
+    })
+    .filter(b=>b.due&&b.remaining>0)
+    .sort((a,b)=>a.due-b.due);
+
+  if(!active.length)return 0;
+
+  let cumulativeRemaining=0;
+  let requiredPerDay=0;
+
+  for(const bill of active){
+    cumulativeRemaining+=bill.remaining;
+    const milliseconds=bill.due-today;
+    const daysAvailable=Math.max(1,Math.ceil(milliseconds/86400000)+1);
+    requiredPerDay=Math.max(requiredPerDay,cumulativeRemaining/daysAvailable);
+  }
+
+  return Math.ceil(requiredPerDay*100)/100;
+}
+
 function dailyGoal313(bills){
   try{
-    const today=new Date(`${currentLocalDate()}T12:00:00`);
-    const active=(Array.isArray(bills)?bills:[])
-      .filter(b=>!b.completed&&!b.paid)
-      .map(b=>({
-        remaining:Math.max(0,Number(b.amount||0)-Number(b.reserved||0)),
-        due:new Date(`${b.due}T12:00:00`)
-      }))
-      .filter(b=>b.remaining>0&&!Number.isNaN(b.due.getTime()))
-      .sort((a,b)=>a.due-b.due);
-    let cumulative=0,goal=0;
-    for(const bill of active){
-      cumulative+=bill.remaining;
-      const days=Math.max(1,Math.ceil((bill.due-today)/86400000)+1);
-      goal=Math.max(goal,cumulative/days);
-    }
-    return Math.ceil(goal*100)/100;
+    return calculateDynamicDailyGoal316(bills);
   }catch(error){
-    fatalDiagnostic313("Calcular meta diária",error);
-    return Number(state?.dailyGoal||0);
+    fatalDiagnostic313("Calcular meta diária dinâmica",error);
+    return 0;
   }
 }
 function updateGoalPreview313(){
@@ -1053,22 +1078,57 @@ function updateGoalPreview313(){
     const bills=(state?.bills||[]).map(b=>({...b}));
     const amount=Number($("newBillAmount")?.value)||0;
     const due=$("newBillDue")?.value||"";
-    if(amount>0&&due)bills.push({amount,due,reserved:0,completed:false,paid:false});
+    const editId=$("billCreateEditId")?.value||"";
+
+    if(amount>0&&due){
+      const current=bills.find(b=>b.id===editId);
+      const draft={
+        ...(current||{}),
+        id:editId||"preview_bill",
+        amount,
+        due,
+        reserved:Number(current?.reserved||0),
+        completed:false,
+        paid:false
+      };
+      const idx=bills.findIndex(b=>b.id===editId);
+      if(idx>=0)bills[idx]=draft;
+      else bills.push(draft);
+    }
+
     const target=$("billGoalPreviewValue313");
-    if(target)target.textContent=`${money(dailyGoal313(bills))} por dia`;
-  }catch(error){fatalDiagnostic313("Prévia da meta",error)}
+    if(target)target.textContent=`${money(calculateDynamicDailyGoal316(bills))} por dia`;
+  }catch(error){
+    fatalDiagnostic313("Prévia da meta diária",error);
+  }
 }
 function enhanceBills313(){
   try{
     if(!state)return;
+
     const envelope=$("billEnvelopeBalance");
     const card=$("billCardBalance");
     const goal=$("billDailyGoalTop");
+    const goalCard=document.querySelector(".bill-daily-goal-card small");
+
+    const calculatedGoal=calculateDynamicDailyGoal316(state.bills||[]);
+    state.dailyGoal=calculatedGoal;
+
+    const pending=(state.bills||[])
+      .filter(b=>!b.completed&&!b.paid)
+      .reduce((sum,b)=>sum+Math.max(0,Number(b.amount||0)-Number(b.reserved||0)),0);
+
     if(envelope)envelope.textContent=money(Number(state.cash||0));
     if(card)card.textContent=money(Number(state.card||0));
-    if(goal)goal.textContent=`${money(dailyGoal313(state.bills||[]))} por dia`;
+    if(goal)goal.textContent=`${money(calculatedGoal)} por dia`;
+
+    if(goalCard){
+      goalCard.textContent=pending>0
+        ? `${money(pending)} ainda precisam ser cobertos nas Bills ativas.`
+        : "Todas as Bills ativas já estão cobertas.";
+    }
   }catch(error){
-    fatalDiagnostic313("Exibir saldos e meta no topo das Bills",error);
+    fatalDiagnostic313("Atualizar meta diária dinâmica",error);
   }
 }
 
@@ -1443,8 +1503,9 @@ $("saveVaultDeposit").onclick=async e=>{
 };
 
 
-const APP_VERSION="3.1.5";
+const APP_VERSION="3.1.6";
 const RELEASE_NOTES=[
+  {version:"3.1.6",date:"05/08/2026",title:"Meta diária realmente dinâmica",changes:["A meta agora considera todas as Bills ativas e seus vencimentos.","Adicionar, editar, remover, concluir ou reservar uma Bill recalcula a meta.","O cartão informa quanto ainda falta cobrir.","A prévia do formulário mostra a meta antes de salvar."]},
   {version:"3.1.5",date:"05/08/2026",title:"Bills mais limpa e organizada",changes:["Envelope e Cartão voltaram em cartões próprios.","Meta diária ganhou um retângulo compacto no topo.","Compartilhar foi movido para o final da tela Bills.","Resumo principal ficou menos poluído."]},
   {version:"3.1.0",date:"05/08/2026",title:"Refatoração de estabilidade",changes:[
     "Removidos scripts e manipuladores duplicados.",

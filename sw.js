@@ -1,4 +1,10 @@
-const VERSION='3.1.5';
+const VERSION='3.1.6';
 self.addEventListener('install',()=>self.skipWaiting());
-self.addEventListener('activate',event=>event.waitUntil((async()=>{for(const key of await caches.keys())await caches.delete(key);await self.clients.claim();})()));
-self.addEventListener('fetch',event=>{if(event.request.method!=="GET")return;event.respondWith(fetch(event.request,{cache:"no-store"}));});
+self.addEventListener('activate',event=>event.waitUntil((async()=>{
+  for(const key of await caches.keys())await caches.delete(key);
+  await self.clients.claim();
+})()));
+self.addEventListener('fetch',event=>{
+  if(event.request.method!=='GET')return;
+  event.respondWith(fetch(event.request,{cache:'no-store'}));
+});
