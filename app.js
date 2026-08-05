@@ -40,7 +40,7 @@ function fatalDiagnostic313(step,error,extra={}){
     const box=document.getElementById("fatalLoginDiagnostic");
     const text=document.getElementById("fatalLoginDiagnosticText");
     const lines=[
-      `VERSÃO: 3.1.7`,
+      `VERSÃO: 3.1.8`,
       `ETAPA: ${step}`,
       `MENSAGEM: ${error?.message||String(error||"Erro desconhecido")}`
     ];
@@ -1123,14 +1123,29 @@ function calculateDynamicDailyGoal316(bills){
       undatedRemaining+=bill.remaining;
       continue;
     }
+
     cumulativeRemaining+=bill.remaining;
-    const daysAvailable=Math.max(1,Math.ceil((bill.due-today)/86400000)+1);
-    requiredPerDay=Math.max(requiredPerDay,cumulativeRemaining/daysAvailable);
+    const daysAvailable=Math.max(
+      1,
+      Math.ceil((bill.due-today)/86400000)+1
+    );
+    requiredPerDay=Math.max(
+      requiredPerDay,
+      cumulativeRemaining/daysAvailable
+    );
   }
 
   if(undatedRemaining>0){
-    const lastDay=new Date(today.getFullYear(),today.getMonth()+1,0,12,0,0,0);
-    const daysLeft=Math.max(1,Math.ceil((lastDay-today)/86400000)+1);
+    const lastDay=new Date(
+      today.getFullYear(),
+      today.getMonth()+1,
+      0,
+      12,0,0,0
+    );
+    const daysLeft=Math.max(
+      1,
+      Math.ceil((lastDay-today)/86400000)+1
+    );
     requiredPerDay=Math.max(
       requiredPerDay,
       (cumulativeRemaining+undatedRemaining)/daysLeft
@@ -1578,8 +1593,9 @@ $("saveVaultDeposit").onclick=async e=>{
 };
 
 
-const APP_VERSION="3.1.7";
+const APP_VERSION="3.1.8";
 const RELEASE_NOTES=[
+  {version:"3.1.8",date:"05/08/2026",title:"Correção definitiva da meta e reset",changes:["Substituído integralmente o cálculo defeituoso da meta diária.","Corrigido uso da variável Bill fora do loop.","Reset agora recalcula e atualiza a interface antes de sincronizar.","Histórico antigo é normalizado antes do reset."]},
   {version:"3.1.7",date:"05/08/2026",title:"Meta diária e reset corrigidos",changes:["Leitura de valores aceita formatos com libra e vírgula.","Datas ISO e brasileiras são reconhecidas.","Meta diária deixa de zerar quando existem Bills pendentes.","Zerar reservas e depósitos voltou a funcionar com dupla confirmação."]},
   {version:"3.1.6",date:"05/08/2026",title:"Meta diária realmente dinâmica",changes:["A meta agora considera todas as Bills ativas e seus vencimentos.","Adicionar, editar, remover, concluir ou reservar uma Bill recalcula a meta.","O cartão informa quanto ainda falta cobrir.","A prévia do formulário mostra a meta antes de salvar."]},
   {version:"3.1.5",date:"05/08/2026",title:"Bills mais limpa e organizada",changes:["Envelope e Cartão voltaram em cartões próprios.","Meta diária ganhou um retângulo compacto no topo.","Compartilhar foi movido para o final da tela Bills.","Resumo principal ficou menos poluído."]},
@@ -1949,12 +1965,13 @@ $("resetFinance").onclick=async()=>{
     state.cash=0;
     state.card=0;
     state.bills=(state.bills||[]).map(b=>({...b,reserved:0}));
-    state.history=state.history||[];
+    if(!Array.isArray(state.history))state.history=[];
     state.history.push({
       date:new Date().toISOString(),
       text:"Reservas e depósitos zerados"
     });
     state.dailyGoal=calculateDynamicDailyGoal316(state.bills);
+    enhanceBills313();
     $("settingsSheet").classList.add("hidden");
     await persist("Reservas e depósitos zerados");
   }catch(error){
