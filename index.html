@@ -4,13 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
   <meta name="theme-color" content="#080914">
-  <meta name="application-name" content="Nosso Controle 3.2.1">
+  <meta name="application-name" content="Nosso Controle 3.2.2">
   <meta name="apple-mobile-web-app-title" content="Nosso Controle">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="styles.css?v=3.2.1">
-  <title>Nosso Controle 3.2.1</title>
+  <link rel="stylesheet" href="styles.css?v=3.2.2">
+  <title>Nosso Controle 3.2.2</title>
 </head>
 <body>
   <section id="authView" class="auth-screen">
@@ -388,6 +388,10 @@
           <p>Guarde o que sobrar dos depósitos diários.</p>
         </div>
         <button id="openVaultDeposit" class="page-add-button vault-add">＋</button>
+      <button id="openVaultWithdraw" class="secondary-button vault-withdraw-button" type="button">
+        <span>−</span>
+        <b>Retirar do Cofre</b>
+      </button>
       </div>
 
       <section class="vault-hero">
@@ -874,15 +878,46 @@
     </section>
   </dialog>
 
+
+  <dialog id="vaultWithdrawDialog">
+    <form method="dialog" class="dialog-card">
+      <div class="dialog-heading">
+        <div>
+          <h2>Retirar do Cofre</h2>
+          <p>Escolha o valor e de onde o dinheiro será retirado.</p>
+        </div>
+        <button value="cancel" class="round-button">×</button>
+      </div>
+
+      <label>Valor
+        <input id="vaultWithdrawAmount" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="0,00">
+      </label>
+
+      <label>Retirar de
+        <select id="vaultWithdrawLocation">
+          <option value="envelope">Envelope</option>
+          <option value="card">Cartão</option>
+        </select>
+      </label>
+
+      <label>Observação
+        <input id="vaultWithdrawNote" type="text" maxlength="80" placeholder="Opcional">
+      </label>
+
+      <div id="vaultWithdrawMsg" class="feedback"></div>
+      <button id="confirmVaultWithdraw" class="primary-button" type="button">Confirmar retirada</button>
+    </form>
+  </dialog>
+
   <div id="toast" class="toast"></div>
   <canvas id="confetti"></canvas>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=3.2.1"></script>
+  <script src="app.js?v=3.2.2"></script>
   <script>
     if("serviceWorker" in navigator){
       window.addEventListener("load",async()=>{
         try{
-          const reg=await navigator.serviceWorker.register("./sw.js?v=3.2.1",{updateViaCache:"none"});
+          const reg=await navigator.serviceWorker.register("./sw.js?v=3.2.2",{updateViaCache:"none"});
           reg.update();
         }catch(error){console.warn("Service Worker:",error);}
       });

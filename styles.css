@@ -1278,3 +1278,69 @@ body.settings-open-310{
     font-size:6.5px;
   }
 }
+
+
+/* Nosso Controle 3.2.2 — Cofre e exclusão de Bills */
+.vault-withdraw-button{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+}
+.vault-withdraw-button>span{
+  font-size:20px;
+  line-height:1;
+}
+.vault-extra-actions{
+  margin:10px 0;
+}
+.vault-location-summary-322{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  margin:10px 0;
+}
+.vault-location-summary-322 article{
+  padding:11px;
+  border-radius:14px;
+  background:#151725;
+  border:1px solid rgba(255,255,255,.06);
+}
+.vault-location-summary-322 span,
+.vault-location-summary-322 strong{
+  display:block;
+}
+.vault-location-summary-322 span{
+  color:#9296a8;
+  font-size:7px;
+}
+.vault-location-summary-322 strong{
+  margin-top:4px;
+  font-size:14px;
+}
+.vault-location-badge-322{
+  display:inline-flex;
+  margin-top:5px;
+  padding:4px 7px;
+  border-radius:999px;
+  background:rgba(63,230,162,.08);
+  color:#42e5a4;
+  font-size:7px;
+}
+.vault-location-badge-322.withdrawal{
+  background:rgba(255,112,132,.08);
+  color:#ff8497;
+}
+.delete-bill-btn-322{
+  margin-left:auto;
+  padding:6px 8px;
+  border:1px solid rgba(255,112,132,.15);
+  border-radius:9px;
+  background:rgba(255,112,132,.065);
+  color:#ff8497;
+  font-size:7px;
+  font-weight:800;
+}
+.delete-bill-btn-322:active{
+  transform:scale(.97);
+}

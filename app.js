@@ -40,7 +40,7 @@ function fatalDiagnostic313(step,error,extra={}){
     const box=document.getElementById("fatalLoginDiagnostic");
     const text=document.getElementById("fatalLoginDiagnosticText");
     const lines=[
-      `VERSÃO: 3.2.1`,
+      `VERSÃO: 3.2.2`,
       `ETAPA: ${step}`,
       `MENSAGEM: ${error?.message||String(error||"Erro desconhecido")}`
     ];
@@ -843,9 +843,9 @@ function billPaymentsForMonth(key){
 }
 function monthlyFinancialSeries(){
   return lastMonths(6).map(m=>{
-    const income=(state.incomes||[]).filter(x=>monthKeyFromDateValue(x.date)===m.key).reduce((s,x)=>s+Number(x.amount||0),0);
-    const expenses=(state.expenses||[]).filter(x=>monthKeyFromDateValue(x.date)===m.key).reduce((s,x)=>s+Number(x.amount||0),0);
-    const vault=(state.vaultEntries||[]).filter(x=>monthKeyFromDateValue(x.date)===m.key).reduce((s,x)=>s+Number(x.amount||0),0);
+    const income=(state.incomes||[]).filter(x=>monthKeyFromDateValue(x.date)===m.key).reduce((s,x)=>s+(x.type==="withdrawal"?-Number(x.amount||0):Number(x.amount||0)),0);
+    const expenses=(state.expenses||[]).filter(x=>monthKeyFromDateValue(x.date)===m.key).reduce((s,x)=>s+(x.type==="withdrawal"?-Number(x.amount||0):Number(x.amount||0)),0);
+    const vault=(state.vaultEntries||[]).filter(x=>monthKeyFromDateValue(x.date)===m.key).reduce((s,x)=>s+(x.type==="withdrawal"?-Number(x.amount||0):Number(x.amount||0)),0);
     const bills=billPaymentsForMonth(m.key);
     return {...m,income,expenses,vault,bills,wealth:income-expenses-bills};
   });
@@ -884,7 +884,7 @@ function renderWeeklyIncomeChart(){
   for(let i=0;i<7;i++){
     const d=new Date(start);d.setDate(start.getDate()+i);
     const key=dateKeyFromDate(d);
-    const value=(state.incomes||[]).filter(x=>x.date===key).reduce((s,x)=>s+Number(x.amount||0),0);
+    const value=(state.incomes||[]).filter(x=>x.date===key).reduce((s,x)=>s+(x.type==="withdrawal"?-Number(x.amount||0):Number(x.amount||0)),0);
     values.push({key,label:names[i],value});
   }
   const max=Math.max(1,...values.map(x=>x.value));
@@ -918,7 +918,7 @@ function showDayDetails(key){
   const billItems=(state.history||[]).filter(x=>x.type==="bill_payment"&&localDateKey(x.date)===key);
   const deposits=(state.history||[]).filter(x=>x.type!=="bill_payment"&&x.date&&localDateKey(x.date)===key&&((Number(x.cash)||0)+(Number(x.card)||0)>0));
   const income=sumItems(incomeItems),expenses=sumItems(expenseItems),vault=sumItems(vaultItems);
-  const bills=billItems.reduce((s,x)=>s+Number(x.amount||0),0);
+  const bills=billItems.reduce((s,x)=>s+(x.type==="withdrawal"?-Number(x.amount||0):Number(x.amount||0)),0);
   const net=income-expenses-bills-vault;
   const date=new Date(key+"T12:00:00");
   $("dayDetailsTitle").textContent=new Intl.DateTimeFormat("pt-BR",{weekday:"long",day:"numeric",month:"long"}).format(date);
@@ -1079,7 +1079,7 @@ function renderExpenses(){
     const d=new Date(`${x.date}T12:00:00`);
     return d.getFullYear()===year&&d.getMonth()===month;
   });
-  const total=monthItems.reduce((s,x)=>s+Number(x.amount||0),0);
+  const total=monthItems.reduce((s,x)=>s+(x.type==="withdrawal"?-Number(x.amount||0):Number(x.amount||0)),0);
   $("expenseMonthTotal").textContent=money(total);
   const cats={gasolina:0,mercado:0,lanche:0,lazer:0,casa:0,carro:0,saude:0,outros:0};
   monthItems.forEach(x=>cats[x.category]=(cats[x.category]||0)+Number(x.amount||0));
@@ -1114,14 +1114,14 @@ async function deleteExpense(id){
 function renderVault(){
   if(!state)return;
   state.vaultEntries=Array.isArray(state.vaultEntries)?state.vaultEntries:[];
-  const balance=state.vaultEntries.reduce((s,x)=>s+Number(x.amount||0),0);
+  const balance=state.vaultEntries.reduce((s,x)=>s+(x.type==="withdrawal"?-Number(x.amount||0):Number(x.amount||0)),0);
   $("vaultBalance").textContent=money(balance);
   const now=new Date(),year=now.getFullYear(),month=now.getMonth();
   const monthItems=state.vaultEntries.filter(x=>{
     const d=new Date(`${x.date}T12:00:00`);
     return d.getFullYear()===year&&d.getMonth()===month;
   });
-  $("vaultMonthTotal").textContent=money(monthItems.reduce((s,x)=>s+Number(x.amount||0),0));
+  $("vaultMonthTotal").textContent=money(monthItems.reduce((s,x)=>s+(x.type==="withdrawal"?-Number(x.amount||0):Number(x.amount||0)),0));
   $("vaultEntryCount").textContent=String(state.vaultEntries.length);
   const list=[...state.vaultEntries].sort((a,b)=>new Date(b.date)-new Date(a.date));
   $("vaultList").innerHTML=list.length?list.map(x=>`<article class="vault-item">
@@ -1741,8 +1741,9 @@ $("saveVaultDeposit").onclick=async e=>{
 };
 
 
-const APP_VERSION="3.2.1";
+const APP_VERSION="3.2.2";
 const RELEASE_NOTES=[
+  {version:"3.2.2",date:"05/08/2026",title:"Cofre completo e exclusão de Bills",changes:["Adicionada retirada do Cofre.","Movimentações indicam Envelope ou Cartão.","Saldo do Cofre separado por local.","Bills podem ser excluídas com confirmação.","Meta diária é recalculada após excluir uma Bill."]},
   {version:"3.2.1",date:"05/08/2026",title:"Meta fixa por dia trabalhado",changes:["Meta principal agora é o total das Bills dividido por 20 dias trabalhados.","Depósitos não diminuem mais a meta diária.","O retângulo mostra Meta por dia e Já guardado.","Adicionar, remover ou editar Bills recalcula a meta.","Adicionada opção para limpar somente o histórico de atividades das Bills."]},
   {version:"3.2.0",date:"05/08/2026",title:"Motor único da meta e reset",changes:["Todas as rotas usam um cálculo autônomo.","Removida dependência de funções inacessíveis no Safari.","Reset grava diretamente no Supabase.","Prévia, topo e persistência usam o mesmo resultado."]},
   {version:"3.1.9",date:"05/08/2026",title:"Meta e reset substituídos diretamente",changes:["A meta é calculada com as mesmas Bills exibidas na tela.","O valor é atualizado durante a renderização, sem função atrasada.","O reset grava diretamente no Supabase sem usar o fluxo antigo.","Erros do banco passam a ser exibidos integralmente."]},
@@ -1771,7 +1772,7 @@ const safeClose=dialog=>{if(!dialog)return;try{dialog.close()}catch{dialog.remov
 
 function monthSummary(){
   const month=currentLocalDate().slice(0,7);
-  const total=list=>(list||[]).filter(x=>String(x.date||"").slice(0,7)===month).reduce((s,x)=>s+Number(x.amount||0),0);
+  const total=list=>(list||[]).filter(x=>String(x.date||"").slice(0,7)===month).reduce((s,x)=>s+(x.type==="withdrawal"?-Number(x.amount||0):Number(x.amount||0)),0);
   const bills=(state?.bills||[]).filter(x=>!x.completed);
   const income=total(state?.incomes),expense=total(state?.expenses),vault=total(state?.vaultEntries);
   const reserved=bills.reduce((s,x)=>s+Number(x.reserved||0),0);
@@ -2215,4 +2216,202 @@ $("clearBillHistoryBtn").onclick=async()=>{
   }
 };
 
+
+function vaultBalanceByLocation322(location){
+  const entries=Array.isArray(state?.vaultEntries)?state.vaultEntries:[];
+  return entries.reduce((total,entry)=>{
+    const amount=Number(entry.amount||0);
+    const sameLocation=(entry.location||"envelope")===location;
+    if(!sameLocation)return total;
+    return total+(entry.type==="withdrawal"?-amount:amount);
+  },0);
+}
+
+function normalizeVaultEntries322(){
+  if(!Array.isArray(state.vaultEntries))state.vaultEntries=[];
+  state.vaultEntries=state.vaultEntries.map(entry=>({
+    type:"deposit",
+    location:"envelope",
+    ...entry
+  }));
+}
+
+function openVaultWithdraw322(){
+  normalizeVaultEntries322();
+  $("vaultWithdrawAmount").value="";
+  $("vaultWithdrawLocation").value="envelope";
+  $("vaultWithdrawNote").value="";
+  feedback("vaultWithdrawMsg","");
+  try{$("vaultWithdrawDialog").showModal()}
+  catch{$("vaultWithdrawDialog").setAttribute("open","")}
+}
+
+async function confirmVaultWithdraw322(){
+  feedback("vaultWithdrawMsg","");
+
+  const amount=Number($("vaultWithdrawAmount").value||0);
+  const location=$("vaultWithdrawLocation").value;
+  const note=$("vaultWithdrawNote").value.trim();
+
+  if(!Number.isFinite(amount)||amount<=0){
+    feedback("vaultWithdrawMsg","Digite um valor válido.");
+    return;
+  }
+
+  const available=vaultBalanceByLocation322(location);
+  if(amount>available){
+    feedback(
+      "vaultWithdrawMsg",
+      `Saldo insuficiente no ${location==="card"?"Cartão":"Envelope"}. Disponível: ${money(available)}`
+    );
+    return;
+  }
+
+  const button=$("confirmVaultWithdraw");
+  button.disabled=true;
+  button.textContent="Retirando…";
+
+  try{
+    state.vaultEntries.push({
+      id:crypto.randomUUID?.()||String(Date.now()),
+      type:"withdrawal",
+      amount,
+      location,
+      note,
+      date:new Date().toISOString()
+    });
+
+    state.history=Array.isArray(state.history)?state.history:[];
+    state.history.push({
+      date:new Date().toISOString(),
+      text:`Retirada do Cofre · ${location==="card"?"Cartão":"Envelope"} · ${money(amount)}`
+    });
+
+    try{$("vaultWithdrawDialog").close()}catch{}
+    await persist("Retirada do Cofre registrada");
+  }catch(error){
+    fatalDiagnostic313("Retirar do Cofre",error);
+    feedback("vaultWithdrawMsg","Não foi possível retirar do Cofre.");
+  }finally{
+    button.disabled=false;
+    button.textContent="Confirmar retirada";
+  }
+}
+
+function bindVaultWithdraw322(){
+  $("openVaultWithdraw")?.addEventListener("click",openVaultWithdraw322);
+  $("confirmVaultWithdraw")?.addEventListener("click",confirmVaultWithdraw322);
+}
+
+function installDeleteBillButtons322(){
+  const list=$("billList");
+  if(!list)return;
+
+  list.querySelectorAll("[data-bill-id]").forEach(card=>{
+    const id=card.dataset.billId;
+    if(!id||card.querySelector(".delete-bill-btn-322"))return;
+
+    const actions=card.querySelector(".bill-actions")||card;
+    const button=document.createElement("button");
+    button.type="button";
+    button.className="delete-bill-btn-322";
+    button.textContent="Excluir";
+    button.dataset.deleteBillId=id;
+    actions.appendChild(button);
+  });
+}
+
+async function deleteBill322(id){
+  const bill=(state.bills||[]).find(item=>String(item.id)===String(id));
+  if(!bill)return;
+
+  if(!confirm(`Excluir a Bill “${bill.name||"Sem nome"}”?\n\nEssa ação removerá a conta permanentemente.`)){
+    return;
+  }
+
+  const backup=structuredClone(state.bills||[]);
+
+  try{
+    state.bills=(state.bills||[]).filter(item=>String(item.id)!==String(id));
+    state.dailyGoal=calculateFixedWorkdayGoal321(state.bills);
+
+    state.history=Array.isArray(state.history)?state.history:[];
+    state.history.push({
+      date:new Date().toISOString(),
+      text:`Bill excluída · ${bill.name||"Sem nome"}`
+    });
+
+    await persist("Bill excluída");
+  }catch(error){
+    state.bills=backup;
+    render();
+    fatalDiagnostic313("Excluir Bill",error,{bill_id:id});
+    toast("Não foi possível excluir a Bill");
+  }
+}
+
+function bindDeleteBills322(){
+  $("billList")?.addEventListener("click",event=>{
+    const button=event.target.closest(".delete-bill-btn-322");
+    if(!button)return;
+    event.preventDefault();
+    event.stopPropagation();
+    deleteBill322(button.dataset.deleteBillId);
+  });
+}
+
+document.addEventListener("DOMContentLoaded",()=>{
+  bindVaultWithdraw322();
+  bindDeleteBills322();
+});
+window.addEventListener("pageshow",()=>{
+  setTimeout(()=>{
+    bindVaultWithdraw322();
+    bindDeleteBills322();
+    installDeleteBillButtons322();decorateVaultEntries322();ensureVaultLocationSummary322();
+  },50);
+});
+
 boot();
+
+const render322=render;render=function(){render322();setTimeout(installDeleteBillButtons322,0)};
+
+
+function decorateVaultEntries322(){
+  document.querySelectorAll("[data-vault-entry-id]").forEach(row=>{
+    const id=row.dataset.vaultEntryId;
+    const entry=(state.vaultEntries||[]).find(item=>String(item.id)===String(id));
+    if(!entry)return;
+
+    let badge=row.querySelector(".vault-location-badge-322");
+    if(!badge){
+      badge=document.createElement("span");
+      badge.className="vault-location-badge-322";
+      row.appendChild(badge);
+    }
+    badge.textContent=`${entry.type==="withdrawal"?"Retirada":"Depósito"} · ${entry.location==="card"?"Cartão":"Envelope"}`;
+    badge.classList.toggle("withdrawal",entry.type==="withdrawal");
+  });
+}
+
+
+
+function ensureVaultLocationSummary322(){
+  const vaultList=$("vaultList");
+  if(!vaultList||!state)return;
+
+  let summary=$("vaultLocationSummary322");
+  if(!summary){
+    summary=document.createElement("section");
+    summary.id="vaultLocationSummary322";
+    summary.className="vault-location-summary-322";
+    vaultList.before(summary);
+  }
+
+  const envelope=vaultBalanceByLocation322("envelope");
+  const card=vaultBalanceByLocation322("card");
+  summary.innerHTML=`
+    <article><span>Envelope</span><strong>${money(envelope)}</strong></article>
+    <article><span>Cartão</span><strong>${money(card)}</strong></article>`;
+}
+
