@@ -1124,30 +1124,71 @@ body.settings-open-310{
 }
 
 
-/* Nosso Controle 3.1.1 — meta diária e saldos nas Bills */
+/* Nosso Controle 3.1.2 */
+.inline-diagnostic-box{
+  margin-top:12px;
+  padding:11px;
+  border-radius:14px;
+  background:#090b13;
+  border:1px solid rgba(255,112,132,.22);
+}
+.inline-diagnostic-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:8px;
+}
+.inline-diagnostic-head b{font-size:9px;color:#ff8fa0}
+.inline-diagnostic-head button{
+  border:0;
+  padding:5px 8px;
+  border-radius:8px;
+  background:rgba(139,92,246,.15);
+  color:#b89cff;
+  font-size:8px;
+  font-weight:800;
+}
+#inlineDiagnosticLog{
+  margin:0;
+  max-height:220px;
+  overflow:auto;
+  white-space:pre-wrap;
+  word-break:break-word;
+  color:#d7dae7;
+  font:10px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace;
+}
 .bill-goal-preview{
   margin:2px 0 12px;
   padding:11px 12px;
   border-radius:15px;
-  background:linear-gradient(145deg,rgba(63,230,162,.08),rgba(90,167,255,.055));
+  background:rgba(63,230,162,.07);
   border:1px solid rgba(63,230,162,.14);
 }
 .bill-goal-preview span,.bill-goal-preview strong,.bill-goal-preview small{display:block}
 .bill-goal-preview span{font-size:7px;font-weight:900;letter-spacing:1px;color:#42e5a4}
-.bill-goal-preview strong{margin-top:5px;font-size:17px;color:#f4f7ff}
+.bill-goal-preview strong{margin-top:5px;font-size:17px}
 .bill-goal-preview small{margin-top:4px;font-size:7.5px;line-height:1.4;color:#969aac}
-.v311-summary-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
-.v311-summary-top>div:first-child small,.v311-summary-top>div:first-child strong,.v311-summary-top>div:first-child span{display:block}
-.v311-goal-chip{flex:none;min-width:100px;padding:8px 10px;border-radius:13px;text-align:right;background:rgba(63,230,162,.075);border:1px solid rgba(63,230,162,.12)}
-.v311-goal-chip small,.v311-goal-chip strong,.v311-goal-chip span{display:block}
-.v311-goal-chip small{font-size:6.5px;color:#42e5a4;font-weight:900;letter-spacing:.7px}
-.v311-goal-chip strong{font-size:14px;margin-top:3px;color:#f5f6ff}
-.v311-goal-chip span{font-size:7px;color:#9296a8;margin-top:1px}
-.v311-summary-bottom{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:7px}
-.v311-summary-bottom>b{margin-right:auto;font-size:8px;color:#9296a8}
-.v311-summary-bottom>span{padding:5px 7px;border-radius:9px;background:#10121c;color:#8f94a7;font-size:7px}
-.v311-summary-bottom>span strong{margin-left:3px;color:#f3f5ff;font-size:8px}
-@media(max-width:430px){
-  .v311-summary-top{align-items:stretch}
-  .v311-goal-chip{min-width:94px}
+.v312-bill-extra{
+  display:flex;
+  gap:7px;
+  flex-wrap:wrap;
+  margin-top:9px;
+}
+.v312-bill-extra span{
+  padding:6px 8px;
+  border-radius:10px;
+  background:#10121c;
+  color:#9296a8;
+  font-size:7px;
+}
+.v312-bill-extra strong{
+  margin-left:3px;
+  color:#f3f5ff;
+  font-size:8px;
+}
+.v312-bill-extra .goal{
+  border:1px solid rgba(63,230,162,.13);
+  background:rgba(63,230,162,.06);
+  color:#42e5a4;
 }

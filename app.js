@@ -175,7 +175,6 @@ async function loadState(){
     ...b
   }));
 
-  recalculateDailyGoal();
   render();
   return true;
 }
@@ -229,6 +228,7 @@ function authMessage(error){
 }
 async function handleLogin(){
   feedback("authMsg","");
+  clearInlineDiagnostic312();
   const email=$("email").value.trim().toLowerCase();
   const password=$("password").value;
 
@@ -277,6 +277,11 @@ async function handleLogin(){
     await loadMembership();
   }catch(error){
     console.error("Falha após login:",error);
+    showInlineDiagnostic312("Abrir dados após login",error,{
+      user_id:user?.id||"—",
+      household_id:householdId||"—",
+      version:APP_VERSION
+    });
     feedback("authMsg","Login realizado, mas ocorreu um erro ao abrir seus dados.");
     show("authView");
   }
@@ -989,41 +994,70 @@ $("saveIncome").onclick=async e=>{
 
 
 
-function requiredDailyGoalForBills(bills){
-  const active=(bills||[])
+let inlineDiagnosticLines312=[];
+
+function clearInlineDiagnostic312(){
+  inlineDiagnosticLines312=[];
+  const box=$("inlineDiagnosticBox");
+  const log=$("inlineDiagnosticLog");
+  if(box)box.classList.add("hidden");
+  if(log)log.textContent="";
+}
+
+function showInlineDiagnostic312(step,error,extra={}){
+  const lines=[`ETAPA: ${step}`];
+  if(error){
+    lines.push(`MENSAGEM: ${error.message||String(error)}`);
+    if(error.code)lines.push(`CÓDIGO: ${error.code}`);
+    if(error.details)lines.push(`DETALHES: ${error.details}`);
+    if(error.hint)lines.push(`SUGESTÃO: ${error.hint}`);
+    if(error.stack)lines.push(`STACK: ${error.stack}`);
+  }
+  Object.entries(extra||{}).forEach(([key,value])=>lines.push(`${key.toUpperCase()}: ${value??"—"}`));
+  inlineDiagnosticLines312=lines;
+  const box=$("inlineDiagnosticBox");
+  const log=$("inlineDiagnosticLog");
+  if(log)log.textContent=lines.join("\n");
+  if(box)box.classList.remove("hidden");
+  console.error("[Nosso Controle]",step,error,extra);
+}
+
+function requiredDailyGoal312(bills){
+  const today=new Date(`${currentLocalDate()}T12:00:00`);
+  const active=(Array.isArray(bills)?bills:[])
     .filter(b=>!b.completed&&!b.paid)
-    .map(b=>({...b,remaining:Math.max(0,Number(b.amount||0)-Number(b.reserved||0))}))
-    .filter(b=>b.remaining>0)
-    .sort((a,b)=>new Date(a.due)-new Date(b.due));
+    .map(b=>{
+      const amount=Number(b.amount||0);
+      const reserved=Number(b.reserved||0);
+      const due=new Date(`${b.due}T12:00:00`);
+      return {...b,remaining:Math.max(0,amount-reserved),dueDate:due};
+    })
+    .filter(b=>b.remaining>0 && !Number.isNaN(b.dueDate.getTime()))
+    .sort((a,b)=>a.dueDate-b.dueDate);
 
   let cumulative=0;
   let required=0;
   for(const bill of active){
     cumulative+=bill.remaining;
-    const days=Math.max(1,daysUntil(bill.due)+1);
+    const days=Math.max(1,Math.ceil((bill.dueDate-today)/86400000)+1);
     required=Math.max(required,cumulative/days);
   }
   return Math.ceil(required*100)/100;
 }
 
-function recalculateDailyGoal(){
-  const goal=requiredDailyGoalForBills(state?.bills||[]);
-  state.dailyGoal=goal;
-  return goal;
-}
-
-function draftBillsForGoalPreview(){
+function draftBills312(){
   const bills=(state?.bills||[]).map(b=>({...b}));
   const amount=Number($("newBillAmount")?.value)||0;
-  const due=$("newBillDue")?.value;
+  const due=$("newBillDue")?.value||"";
   if(amount<=0||!due)return bills;
 
   const editId=$("billCreateEditId")?.value||"";
+  const existing=bills.find(b=>b.id===editId);
   const draft={
-    id:editId||"preview_bill",
+    id:editId||"preview",
     amount,
     due,
-    reserved:editId?Number(bills.find(b=>b.id===editId)?.reserved||0):0,
+    reserved:Number(existing?.reserved||0),
     paid:false,
     completed:false
   };
@@ -1033,16 +1067,46 @@ function draftBillsForGoalPreview(){
   return bills;
 }
 
-function updateBillGoalPreview(){
-  const value=$("billGoalPreviewValue");
-  if(!value)return;
-  const goal=requiredDailyGoalForBills(draftBillsForGoalPreview());
-  value.textContent=`${money(goal)} por dia`;
+function updateBillGoalPreview312(){
+  try{
+    const value=$("billGoalPreviewValue");
+    if(value)value.textContent=`${money(requiredDailyGoal312(draftBills312()))} por dia`;
+  }catch(error){
+    showInlineDiagnostic312("Prévia da meta diária",error);
+  }
+}
+
+function applyBillsEnhancements312(){
+  try{
+    if(!state)return;
+
+    const bills=(state.bills||[]).filter(b=>!b.completed);
+    const goal=requiredDailyGoal312(bills);
+    const summary=$("v22BillSummary");
+    if(summary){
+      let extra=$("v312BillExtra");
+      if(!extra){
+        extra=document.createElement("div");
+        extra.id="v312BillExtra";
+        extra.className="v312-bill-extra";
+        summary.appendChild(extra);
+      }
+      extra.innerHTML=`
+        <span>Envelope <strong>${money(Number(state.cash||0))}</strong></span>
+        <span>Cartão <strong>${money(Number(state.card||0))}</strong></span>
+        <span class="goal">Meta diária <strong>${money(goal)}</strong></span>`;
+    }
+  }catch(error){
+    showInlineDiagnostic312("Melhorias visuais das Bills",error,{
+      version:APP_VERSION,
+      household_id:householdId||"—"
+    });
+  }
 }
 
 $("openNewBill").onclick=()=>openBillCreateDialog();
-$("newBillType").onchange=()=>{$("installmentFields").classList.toggle("hidden",$("newBillType").value!=="installment");updateBillGoalPreview()};
-["newBillAmount","newBillDue","newBillFrequency","newBillCurrentInstallment","newBillTotalInstallments"].forEach(id=>$(id)?.addEventListener("input",updateBillGoalPreview));
+$("newBillType").onchange=()=>{$("installmentFields").classList.toggle("hidden",$("newBillType").value!=="installment");updateBillGoalPreview312()};
+["newBillAmount","newBillDue","newBillFrequency","newBillCurrentInstallment","newBillTotalInstallments"].forEach(id=>$(id)?.addEventListener("input",updateBillGoalPreview312));
 $("saveNewBill").onclick=async e=>{
   e.preventDefault();
   const name=$("newBillName").value.trim();
@@ -1074,9 +1138,13 @@ $("saveNewBill").onclick=async e=>{
       ...payload
     });
   }
-  const newGoal=recalculateDailyGoal();
+  try{
+    state.dailyGoal=requiredDailyGoal312(state.bills);
+  }catch(error){
+    showInlineDiagnostic312("Recalcular meta após salvar Bill",error);
+  }
   $("billCreateDialog").close();
-  await persist(`${editId?"Bill atualizada":"Bill adicionada"} · nova meta ${money(newGoal)}/dia`);
+  await persist(editId?"Bill atualizada":"Bill adicionada");
 };
 $("openCompletedBills").onclick=()=>{
   $("settingsSheet").classList.add("hidden");
@@ -1219,7 +1287,7 @@ function openBillCreateDialog(id=null){
     $("newBillTotalInstallments").value=bill.totalInstallments||12;
     $("installmentFields").classList.toggle("hidden",bill.type!=="installment");
   }
-  $("billCreateDialog").showModal();setTimeout(updateBillGoalPreview,0);
+  $("billCreateDialog").showModal();setTimeout(updateBillGoalPreview312,0);
 }
 function renderCompletedBills(){
   const list=state.completedBills||[];
@@ -1411,14 +1479,14 @@ $("saveVaultDeposit").onclick=async e=>{
 };
 
 
-const APP_VERSION="3.1.1";
+const APP_VERSION="3.1.2";
 const RELEASE_NOTES=[
-  {version:"3.1.1",date:"05/08/2026",title:"Meta diária inteligente e diagnóstico completo",changes:[
-    "Envelope e Cartão exibidos diretamente no resumo das Bills.",
-    "Meta diária recalculada automaticamente ao criar ou editar uma Bill.",
-    "Prévia da nova meta dentro do formulário de Bill.",
-    "Cálculo considera valores restantes e datas de vencimento.",
-    "Diagnóstico ampliado com versão, cache, sessão, saldos e tempo de resposta."
+  {version:"3.1.2",date:"05/08/2026",title:"Bills protegidas e log no login",changes:[
+    "Meta diária automática isolada do fluxo de login.",
+    "Envelope e Cartão exibidos no resumo das Bills.",
+    "Prévia da nova meta ao criar ou editar uma Bill.",
+    "Erros visuais não impedem mais a abertura do aplicativo.",
+    "Detalhes técnicos aparecem diretamente na tela de login."
   ]},
   {version:"3.1.0",date:"05/08/2026",title:"Refatoração de estabilidade",changes:[
     "Removidos scripts e manipuladores duplicados.",
@@ -1474,51 +1542,7 @@ function renderCleanBills(){
   bills.forEach(b=>{const remain=Math.max(0,Number(b.amount)-Number(b.reserved)),pct=b.amount?Math.min(100,b.reserved/b.amount*100):100,days=daysSafe(b.due);const card=document.createElement('article');card.className='v21-bill-card';card.dataset.days=days;card.dataset.ready=String(remain===0);card.innerHTML=`<div class="v21-bill-top"><span class="v21-bill-icon">${billEmoji(b.name)}</span><div><strong>${escapeText(b.name)}</strong><small>${formatDate(b.due)} · ${frequencyLabel(b.frequency)}</small></div><em class="${days<0?'danger':days<=7?'warning':''}">${days<0?`${Math.abs(days)}d atrasada`:days===0?'Hoje':`${days}d`}</em></div><div class="v21-bill-progress"><i style="width:${pct}%"></i></div><div class="v21-bill-bottom"><div><strong>${money(b.reserved)} <span>/ ${money(b.amount)}</span></strong><small>${remain?`${money(remain)} restantes`:'Totalmente reservada'}</small></div><div class="v21-bill-actions"><button data-edit>✎</button><button data-pay>✓</button></div></div>${b.type==='installment'?`<div class="v21-installment"><span>Parcela ${b.currentInstallment}/${b.totalInstallments}</span><i><b style="width:${Math.min(100,b.currentInstallment/b.totalInstallments*100)}%"></b></i></div>`:''}`;q('[data-edit]',card).onclick=()=>openBillCreateDialog(b.id);q('[data-pay]',card).onclick=()=>togglePaid(b.id);list.appendChild(card)});
   renderBillHeader(bills);applyBillFilter();updateWalletSummary();
 }
-function renderBillHeader(bills){
-  const list=$("billList");
-  let summary=$("v22BillSummary");
-  if(!summary){
-    summary=document.createElement("section");
-    summary.id="v22BillSummary";
-    summary.className="v21-bill-summary v311-bill-summary";
-    list.before(summary);
-  }
-
-  const total=bills.reduce((s,b)=>s+Number(b.amount||0),0);
-  const reserved=bills.reduce((s,b)=>s+Math.min(Number(b.reserved||0),Number(b.amount||0)),0);
-  const pct=total?Math.min(100,reserved/total*100):0;
-  const cash=Number(state.cash||0);
-  const card=Number(state.card||0);
-  const goal=requiredDailyGoalForBills(bills);
-
-  summary.innerHTML=`
-    <div class="v311-summary-top">
-      <div><small>BILLS ATIVAS</small><strong>${bills.length} contas</strong><span>${money(total)} no total</span></div>
-      <div class="v311-goal-chip"><small>META DIÁRIA</small><strong>${money(goal)}</strong><span>por dia</span></div>
-    </div>
-    <div class="v21-summary-track"><i style="width:${pct}%"></i></div>
-    <div class="v311-summary-bottom">
-      <b>${pct.toFixed(0)}% reservado</b>
-      <span>Envelope <strong>${money(cash)}</strong></span>
-      <span>Cartão <strong>${money(card)}</strong></span>
-    </div>`;
-
-  let filters=$("v22BillFilters");
-  if(!filters){
-    filters=document.createElement("div");
-    filters.id="v22BillFilters";
-    filters.className="v21-filters";
-    filters.innerHTML='<button data-f="all">Todas</button><button data-f="late">Atrasadas</button><button data-f="week">7 dias</button><button data-f="ready">Reservadas</button>';
-    summary.after(filters);
-    filters.onclick=e=>{
-      const btn=e.target.closest("button");
-      if(!btn)return;
-      activeBillFilter=btn.dataset.f;
-      applyBillFilter();
-    };
-  }
-  qa("button",filters).forEach(x=>x.classList.toggle("active",x.dataset.f===activeBillFilter));
-}
+function renderBillHeader(bills){const list=$("billList");let summary=$("v22BillSummary");if(!summary){summary=document.createElement('section');summary.id='v22BillSummary';summary.className='v21-bill-summary';list.before(summary)}const total=bills.reduce((s,b)=>s+Number(b.amount),0),reserved=bills.reduce((s,b)=>s+Number(b.reserved),0),pct=total?Math.min(100,reserved/total*100):0;summary.innerHTML=`<div><small>BILLS ATIVAS</small><strong>${bills.length} contas</strong><span>${money(total)} no total</span></div><div class="v21-summary-track"><i style="width:${pct}%"></i></div><b>${pct.toFixed(0)}% reservado</b>`;let filters=$("v22BillFilters");if(!filters){filters=document.createElement('div');filters.id='v22BillFilters';filters.className='v21-filters';filters.innerHTML='<button data-f="all">Todas</button><button data-f="late">Atrasadas</button><button data-f="week">7 dias</button><button data-f="ready">Reservadas</button>';summary.after(filters);filters.onclick=e=>{const btn=e.target.closest('button');if(!btn)return;activeBillFilter=btn.dataset.f;applyBillFilter()}}qa('button',filters).forEach(x=>x.classList.toggle('active',x.dataset.f===activeBillFilter))}
 function applyBillFilter(){qa('.v21-bill-card').forEach(card=>{const days=Number(card.dataset.days),ready=card.dataset.ready==='true';let show=true;if(activeBillFilter==='late')show=days<0;if(activeBillFilter==='week')show=days>=0&&days<=7;if(activeBillFilter==='ready')show=ready;card.hidden=!show});const f=$("v22BillFilters");if(f)qa('button',f).forEach(x=>x.classList.toggle('active',x.dataset.f===activeBillFilter))}
 function updateWalletSummary(){if($("quickCashTotal"))$("quickCashTotal").textContent=money(state.cash||0);if($("quickCardTotal"))$("quickCardTotal").textContent=money(state.card||0);if($("quickSavedTotal"))$("quickSavedTotal").textContent=money(Number(state.cash||0)+Number(state.card||0))}
 
@@ -1530,7 +1554,14 @@ function renderUpdatesV22(){const panel=q('#updatesDialog .updates-panel');if(!p
 function prepareSettings(){const sheet=$("settingsSheet");if(!sheet)return;sheet.classList.add('v218-settings-fixed');qa('.updates-version-badge,.settings-version').forEach(x=>x.textContent=APP_VERSION)}
 
 const baseRender=render;
-render=function(){baseRender();renderCleanDashboard();renderCleanBills();renderUpdatesV22();prepareSettings()};
+render=function(){
+  baseRender();
+  try{renderCleanDashboard()}catch(error){showInlineDiagnostic312("Renderizar dashboard premium",error)}
+  try{renderCleanBills()}catch(error){showInlineDiagnostic312("Renderizar Bills premium",error)}
+  try{renderUpdatesV22()}catch(error){showInlineDiagnostic312("Renderizar atualizações",error)}
+  try{prepareSettings()}catch(error){showInlineDiagnostic312("Preparar configurações",error)}
+  applyBillsEnhancements312();
+};
 window.addEventListener('pageshow',()=>{const d=$("updatesDialog");if(d?.open)safeClose(d)});
 ensureCleaningDialog();prepareSettings();renderUpdatesV22();
 
@@ -1609,62 +1640,101 @@ function closeDiagnostic310(){
 
 async function runDiagnostic310(){
   diagnosticLines310.length=0;
-  const started=performance.now();
   diagnosticAdd310("================================");
-  diagnosticAdd310("NOSSO CONTROLE 3.1.1");
+  diagnosticAdd310("NOSSO CONTROLE 3.1.0");
   diagnosticAdd310("================================");
   diagnosticAdd310("Online",navigator.onLine?"SIM":"NÃO");
   diagnosticAdd310("URL",location.href);
-  diagnosticAdd310("User agent",navigator.userAgent);
 
-  if(typeof sb==="undefined"||!sb){diagnosticAdd310("❌ Cliente Supabase não inicializado");return;}
+  if(typeof sb==="undefined"||!sb){
+    diagnosticAdd310("❌ Cliente Supabase não inicializado");
+    return;
+  }
   diagnosticAdd310("✅ Cliente Supabase inicializado");
 
-  const swRegistration=await navigator.serviceWorker?.getRegistration?.();
-  diagnosticAdd310("Service Worker",swRegistration?"ATIVO":"NÃO REGISTRADO");
-  const cacheNames=await caches.keys().catch(()=>[]);
-  diagnosticAdd310("Caches locais",cacheNames.length);
-
   let sessionResponse;
-  try{sessionResponse=await sb.auth.getSession()}catch(error){diagnosticError310("Consultar sessão",error);return;}
-  if(sessionResponse.error){diagnosticError310("Sessão",sessionResponse.error);return;}
+  try{
+    sessionResponse=await sb.auth.getSession();
+  }catch(error){
+    diagnosticError310("Consultar sessão",error);
+    return;
+  }
+
+  if(sessionResponse.error){
+    diagnosticError310("Sessão",sessionResponse.error);
+    return;
+  }
+
   const session=sessionResponse.data?.session;
-  if(!session?.user){diagnosticAdd310("❌ Nenhuma sessão ativa");return;}
+  if(!session?.user){
+    diagnosticAdd310("❌ Nenhuma sessão ativa");
+    return;
+  }
 
   diagnosticAdd310("✅ Login ativo");
   diagnosticAdd310("User ID",session.user.id);
   diagnosticAdd310("E-mail",session.user.email||"—");
-  diagnosticAdd310("Expiração da sessão",session.expires_at?new Date(session.expires_at*1000).toLocaleString("pt-BR"):"—");
 
-  const queryStart=performance.now();
-  const member=await sb.from("household_members").select("household_id").eq("user_id",session.user.id).maybeSingle();
-  if(member.error){diagnosticError310("household_members",member.error);return;}
-  if(!member.data?.household_id){diagnosticAdd310("❌ Nenhum vínculo de casa encontrado");return;}
+  let member;
+  try{
+    member=await sb
+      .from("household_members")
+      .select("household_id")
+      .eq("user_id",session.user.id)
+      .maybeSingle();
+  }catch(error){
+    diagnosticError310("household_members",error);
+    return;
+  }
+
+  if(member.error){
+    diagnosticError310("household_members",member.error);
+    return;
+  }
+  if(!member.data?.household_id){
+    diagnosticAdd310("❌ Nenhum vínculo de casa encontrado");
+    return;
+  }
+
   const houseId=member.data.household_id;
   diagnosticAdd310("✅ Household ID",houseId);
 
-  const house=await sb.from("households").select("code").eq("id",houseId).maybeSingle();
-  if(house.error)diagnosticError310("households",house.error);
-  else diagnosticAdd310("✅ Código da casa",house.data?.code||"SEM CÓDIGO");
+  const house=await sb
+    .from("households")
+    .select("code")
+    .eq("id",houseId)
+    .maybeSingle();
 
-  const finance=await sb.from("finance_state").select("data,updated_at").eq("household_id",houseId).maybeSingle();
-  if(finance.error){diagnosticError310("finance_state",finance.error);return;}
-  if(!finance.data?.data){diagnosticAdd310("❌ finance_state sem dados");return;}
+  if(house.error){
+    diagnosticError310("households",house.error);
+  }else{
+    diagnosticAdd310("✅ Código da casa",house.data?.code||"SEM CÓDIGO");
+  }
+
+  const finance=await sb
+    .from("finance_state")
+    .select("data")
+    .eq("household_id",houseId)
+    .maybeSingle();
+
+  if(finance.error){
+    diagnosticError310("finance_state",finance.error);
+    return;
+  }
+  if(!finance.data?.data){
+    diagnosticAdd310("❌ finance_state sem dados");
+    return;
+  }
 
   const data=finance.data.data;
   diagnosticAdd310("✅ finance_state carregado");
-  diagnosticAdd310("Tempo das consultas",`${Math.round(performance.now()-queryStart)} ms`);
-  diagnosticAdd310("Última sincronização",finance.data.updated_at?new Date(finance.data.updated_at).toLocaleString("pt-BR"):data.updatedAt||"—");
   diagnosticAdd310("Bills",Array.isArray(data.bills)?data.bills.length:"campo inválido");
   diagnosticAdd310("Receitas",Array.isArray(data.incomes)?data.incomes.length:"campo inválido");
   diagnosticAdd310("Gastos",Array.isArray(data.expenses)?data.expenses.length:"campo inválido");
   diagnosticAdd310("Cofre",Array.isArray(data.vaultEntries)?data.vaultEntries.length:"campo inválido");
-  diagnosticAdd310("Envelope",money(Number(data.cash||0)));
-  diagnosticAdd310("Cartão",money(Number(data.card||0)));
-  diagnosticAdd310("Meta diária calculada",money(requiredDailyGoalForBills(data.bills||[])));
-  diagnosticAdd310("Tempo total",`${Math.round(performance.now()-started)} ms`);
-  diagnosticAdd310("🟢 SISTEMA SAUDÁVEL");
+  diagnosticAdd310("✅ Diagnóstico concluído");
 }
+
 async function copyDiagnostic310(){
   const text=diagnosticLines310.join("\n")||$("diagnosticLog")?.textContent||"Sem log";
   try{
@@ -1747,5 +1817,18 @@ function bindStableControls310(){
 document.addEventListener("DOMContentLoaded",bindStableControls310);
 window.addEventListener("pageshow",()=>setTimeout(bindStableControls310,50));
 setTimeout(bindStableControls310,250);
+
+
+document.addEventListener("DOMContentLoaded",()=>{
+  $("copyInlineDiagnosticBtn")?.addEventListener("click",async()=>{
+    const text=inlineDiagnosticLines312.join("\n")||$("inlineDiagnosticLog")?.textContent||"Sem detalhes";
+    try{
+      await navigator.clipboard.writeText(text);
+      toast("Detalhes copiados");
+    }catch{
+      prompt("Copie os detalhes:",text);
+    }
+  });
+});
 
 boot();
