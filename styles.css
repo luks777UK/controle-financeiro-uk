@@ -997,3 +997,16 @@ body,
   opacity:.72;
   pointer-events:none;
 }
+
+
+/* Nosso Controle 3.0.3 — login e recuperação simplificados */
+#newPasswordDialog::backdrop{
+  background:rgba(2,3,10,.8);
+  backdrop-filter:blur(8px);
+}
+#saveNewPasswordBtn:disabled,
+#createAccountBtn:disabled,
+#sendResetBtn:disabled{
+  opacity:.7;
+  pointer-events:none;
+}

@@ -1,4 +1,4 @@
-/* Nosso Controle 3.0.2 — aplicação refatorada */
+/* Nosso Controle 3.0.3 — aplicação refatorada */
 const cfg={
   SUPABASE_URL:"https://lhihsssbsjfliggtlaza.supabase.co",
   SUPABASE_ANON_KEY:"sb_publishable_0bttyUW7ASI8ylAyZjLkPA_NS8eThfO",
@@ -59,7 +59,7 @@ async function boot(){
     const {data:{session},error}=await sb.auth.getSession();
     if(error)throw error;
     if(!session){show("authView");return}
-    user=session.user;await ensureProfile(user);await loadMembership();
+    user=session.user;await loadMembership();
   }catch(error){console.error("Boot:",error);show("authView");feedback("authMsg","Não foi possível restaurar a sessão. Entre novamente.")}
 }
 async function loadMembership(){
@@ -213,18 +213,17 @@ $("password").addEventListener("keydown",event=>{
 $("signupBtn").onclick=()=>{
   feedback("signupMsg","");
   $("signupEmail").value=$("email").value.includes("@")?$("email").value.trim().toLowerCase():"";
-  const pending=pendingSignup();
-  if(pending?.email){$("signupEmail").value=pending.email;$("signupUsername").value=pending.username||"";showResendConfirmation(true);}
+  $("signupPassword").value="";
+  $("signupPasswordConfirm").value="";
   try{$("signupDialog").showModal()}catch{$("signupDialog").setAttribute("open","")}
 };
+
 $("createAccountBtn").onclick=async()=>{
   feedback("signupMsg","");
-  showResendConfirmation(false);
-  const username=normalizeUsername($("signupUsername").value);
   const email=$("signupEmail").value.trim().toLowerCase();
   const password=$("signupPassword").value;
   const confirm=$("signupPasswordConfirm").value;
-  if(username.length<3)return feedback("signupMsg","Use um Username com pelo menos 3 caracteres.");
+
   if(!email.includes("@"))return feedback("signupMsg","Digite um e-mail válido.");
   if(password.length<6)return feedback("signupMsg","A senha precisa ter pelo menos 6 caracteres.");
   if(password!==confirm)return feedback("signupMsg","As senhas não são iguais.");
@@ -237,73 +236,37 @@ $("createAccountBtn").onclick=async()=>{
     const {data,error}=await sb.auth.signUp({
       email,
       password,
-      options:{
-        data:{username},
-        emailRedirectTo:`${location.origin}${location.pathname}`
-      }
+      options:{emailRedirectTo:`${location.origin}${location.pathname}`}
     });
 
     if(error){
-      const msg=String(error.message||"").toLowerCase();
-      if(msg.includes("already registered")||msg.includes("already been registered")){
-        feedback("signupMsg","Este e-mail já possui uma conta. Entre com a senha antiga ou toque em Esqueci minha senha.");
+      const text=String(error.message||"").toLowerCase();
+      if(text.includes("already registered")||text.includes("already been registered")){
+        feedback("signupMsg","Este e-mail já possui conta. Use Entrar ou Esqueci minha senha.");
       }else{
         feedback("signupMsg",error.message);
       }
       return;
     }
 
-    const identities=data?.user?.identities||[];
-    if(data?.user && identities.length===0){
-      feedback("signupMsg","Este e-mail já possui uma conta. Não foi criada uma nova. Use Entrar ou Recuperar senha.");
-      $("email").value=email;
-      localStorage.setItem("nosso-controle-email",email);
-      return;
-    }
-
-    rememberIdentity(username,email);
+    localStorage.setItem("nosso-controle-email",email);
+    $("email").value=email;
 
     if(data?.session?.user){
       user=data.session.user;
-      await ensureProfile(user,username);
-      clearPendingSignup();
-      feedback("signupMsg","Conta criada. Entrando…");
       try{$("signupDialog").close()}catch{}
       await loadMembership();
       return;
     }
 
-    savePendingSignup(username,email);
-    $("email").value=email;
-    feedback("signupMsg","Conta criada. Abra o e-mail de confirmação enviado pelo Supabase. Depois volte e faça o primeiro acesso usando o e-mail completo.");
-    showResendConfirmation(true);
+    feedback("signupMsg","Conta criada. Confirme o e-mail recebido e depois entre com e-mail e senha.");
   }catch(error){
-    feedback("signupMsg",navigator.onLine?(error?.message||"Não foi possível criar a conta."):"Sem conexão com a internet.");
+    feedback("signupMsg",navigator.onLine
+      ? (error?.message||"Não foi possível criar a conta.")
+      : "Sem conexão com a internet.");
   }finally{
     button.disabled=false;
     button.textContent="Criar minha conta";
-  }
-};
-
-$("resendConfirmationBtn").onclick=async()=>{
-  const pending=pendingSignup();
-  const email=$("signupEmail").value.trim().toLowerCase()||pending?.email||"";
-  if(!email.includes("@"))return feedback("signupMsg","Digite o e-mail usado no cadastro.");
-  const button=$("resendConfirmationBtn");
-  button.disabled=true;
-  button.textContent="Reenviando…";
-  try{
-    const {error}=await sb.auth.resend({
-      type:"signup",
-      email,
-      options:{emailRedirectTo:`${location.origin}${location.pathname}`}
-    });
-    feedback("signupMsg",error?error.message:"E-mail de confirmação reenviado. Verifique também Spam e Lixo eletrônico.");
-  }catch(error){
-    feedback("signupMsg",error?.message||"Não foi possível reenviar agora.");
-  }finally{
-    button.disabled=false;
-    button.textContent="Reenviar e-mail de confirmação";
   }
 };
 
@@ -324,6 +287,66 @@ $("sendResetBtn").onclick=async()=>{
   }catch(error){feedback("resetMsg",error?.message||"Não foi possível enviar o link.")}
   finally{button.disabled=false;button.textContent="Enviar link"}
 };
+
+
+function openNewPasswordDialog(){
+  feedback("newPasswordMsg","");
+  $("newPassword").value="";
+  $("newPasswordConfirm").value="";
+  try{$("newPasswordDialog").showModal()}catch{$("newPasswordDialog").setAttribute("open","")}
+}
+
+$("saveNewPasswordBtn").onclick=async()=>{
+  feedback("newPasswordMsg","");
+  const password=$("newPassword").value;
+  const confirm=$("newPasswordConfirm").value;
+
+  if(password.length<6)return feedback("newPasswordMsg","A senha precisa ter pelo menos 6 caracteres.");
+  if(password!==confirm)return feedback("newPasswordMsg","As senhas não são iguais.");
+
+  const button=$("saveNewPasswordBtn");
+  button.disabled=true;
+  button.textContent="Salvando…";
+
+  try{
+    const {error}=await sb.auth.updateUser({password});
+    if(error){
+      feedback("newPasswordMsg",error.message);
+      return;
+    }
+    feedback("newPasswordMsg","Senha atualizada. Você já pode entrar.");
+    setTimeout(async()=>{
+      try{$("newPasswordDialog").close()}catch{}
+      await sb.auth.signOut();
+      show("authView");
+      $("password").value="";
+      feedback("authMsg","Senha alterada. Entre usando o e-mail e a nova senha.");
+    },900);
+  }catch(error){
+    feedback("newPasswordMsg",error?.message||"Não foi possível salvar a nova senha.");
+  }finally{
+    button.disabled=false;
+    button.textContent="Salvar nova senha";
+  }
+};
+
+sb.auth.onAuthStateChange(async(event,session)=>{
+  if(event==="PASSWORD_RECOVERY"){
+    user=session?.user||null;
+    setTimeout(openNewPasswordDialog,0);
+    return;
+  }
+  if(event==="SIGNED_IN" && session?.user){
+    user=session.user;
+  }
+  if(event==="SIGNED_OUT"){
+    user=null;
+    householdId=null;
+    householdCode=null;
+    state=null;
+  }
+});
+
 $("createHouseholdBtn").onclick=async()=>{
   const c=makeCode();
   const {data:h,error}=await sb.from("households").insert({code:c,owner_id:user.id}).select().single();
@@ -1252,9 +1275,9 @@ $("saveVaultDeposit").onclick=async e=>{
 };
 
 
-const APP_VERSION="3.0.2";
+const APP_VERSION="3.0.3";
 const RELEASE_NOTES=[
-  {version:"3.0.2",date:"05/08/2026",title:"Refatoração de estabilidade",changes:[
+  {version:"3.0.3",date:"05/08/2026",title:"Refatoração de estabilidade",changes:[
     "Removidos scripts e manipuladores duplicados.",
     "Login unificado em um único fluxo.",
     "Dashboard, Bills e filtros renderizados uma única vez.",
