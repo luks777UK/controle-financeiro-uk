@@ -1378,3 +1378,21 @@ body.settings-open-310{
     gap:8px;
   }
 }
+
+
+/* Nosso Controle 4.0.3 */
+.build-marker-403{
+  margin:8px 0 12px;
+  padding:9px 12px;
+  border-radius:12px;
+  background:rgba(66,229,164,.07);
+  border:1px solid rgba(66,229,164,.13);
+  color:#42e5a4;
+  font-size:8px;
+  font-weight:800;
+  text-align:center;
+}
+.bill-icon-action.paid{
+  font-size:11px;
+  font-weight:900;
+}

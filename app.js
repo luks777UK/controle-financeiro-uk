@@ -40,7 +40,7 @@ function fatalDiagnostic313(step,error,extra={}){
     const box=document.getElementById("fatalLoginDiagnostic");
     const text=document.getElementById("fatalLoginDiagnosticText");
     const lines=[
-      `VERSÃO: 4.0.2`,
+      `VERSÃO: 4.0.3`,
       `ETAPA: ${step}`,
       `MENSAGEM: ${error?.message||String(error||"Erro desconhecido")}`
     ];
@@ -1861,8 +1861,9 @@ $("confirmVaultWithdrawV4").onclick=async()=>{
 };
 
 
-const APP_VERSION="4.0.2";
+const APP_VERSION="4.0.3";
 const RELEASE_NOTES=[
+  {version:"4.0.3",date:"05/08/2026",title:"Atualização forçada no Safari",changes:["Service workers antigos são removidos.","Caches do site são apagados ao abrir.","Pagamento dividido e limpeza do histórico passam a carregar sem versão antiga.","A versão carregada aparece nas Configurações."]},
   {version:"4.0.2",date:"05/08/2026",title:"Pagamento dividido e histórico corrigido",changes:["Ao pagar uma Bill, o app pergunta quanto sai do Envelope e do Cartão.","O pagamento valida os saldos e exige a soma exata da Bill.","Pagamentos aparecem em vermelho no histórico.","Limpar histórico de Bills agora grava diretamente no Supabase."]},
   {version:"4.0.1",date:"05/08/2026",title:"Histórico do Cofre em ordem correta",changes:["Movimentações mais recentes aparecem no topo.","Movimentações do mesmo dia respeitam a ordem em que foram adicionadas.","Novas entradas e retiradas salvam o horário exato."]},
   {version:"4.0.0",date:"05/08/2026",title:"Reconstrução limpa das Bills e do Cofre",changes:["Cofre redesenhado com Envelope e Cartão separados.","Movimentações verdes para entradas e vermelhas para retiradas.","Cards de Bills reconstruídos com editar, excluir e pagar integrados.","Histórico de Bills usa verde para adições e vermelho para pagamentos.","Funções antigas duplicadas dessas telas foram substituídas."]},
@@ -1979,7 +1980,7 @@ function renderCleanBills(){
         <div class="bill-v4-actions">
           <button class="bill-icon-action edit" type="button" aria-label="Editar Bill">✎</button>
           <button class="bill-icon-action delete" type="button" aria-label="Excluir Bill">🗑</button>
-          <button class="bill-icon-action paid" type="button" aria-label="Marcar como paga">✓</button>
+          <button class="bill-icon-action paid" type="button" aria-label="Pagar Bill" title="Pagar Bill">£✓</button>
         </div>
       </div>
       ${bill.type==="installment"?`
@@ -2539,7 +2540,7 @@ $("resetFinance").onclick=async()=>{
 };
 
 
-$("clearBillHistoryBtn").onclick=async()=>{
+async function legacyClearBillHistory402(){
   const history=Array.isArray(state?.history)?state.history:[];
   const billTypes=new Set([
     "bill_payment",
@@ -2612,5 +2613,63 @@ $("clearBillHistoryBtn").onclick=async()=>{
     }
   }
 };
+
+
+function bindV403Actions(){
+  const clear=$("clearBillHistoryBtn");
+  if(clear&&!clear.dataset.bound403){
+    clear.dataset.bound403="1";
+    clear.addEventListener("click",async event=>{
+      event.preventDefault();
+      if(typeof clearBillHistoryV403==="function"){
+        await clearBillHistoryV403();
+      }
+    });
+  }
+}
+
+async function clearBillHistoryV403(){
+  const history=Array.isArray(state?.history)?state.history:[];
+  const isBillEntry=item=>{
+    const type=String(item?.type||"").toLowerCase();
+    const text=String(item?.text||"").toLowerCase();
+    return type.startsWith("bill_") ||
+      Boolean(item?.bill) ||
+      text.includes("bill") ||
+      text.includes("conta paga") ||
+      text.includes("reservado");
+  };
+
+  const count=history.filter(isBillEntry).length;
+  if(!count){
+    toast("O histórico de Bills já está vazio");
+    return;
+  }
+
+  if(!confirm(`Limpar ${count} atividades de Bills?`))return;
+
+  const backup=structuredClone(history);
+  try{
+    state.history=history.filter(item=>!isBillEntry(item));
+    state.updatedAt=new Date().toISOString();
+
+    const {error}=await sb
+      .from("finance_state")
+      .update({data:structuredClone(state),updated_at:state.updatedAt})
+      .eq("household_id",householdId);
+
+    if(error)throw error;
+    render();
+    toast("Histórico de Bills limpo");
+  }catch(error){
+    state.history=backup;
+    render();
+    fatalDiagnostic313("Limpar histórico 4.0.3",error);
+    alert(`Erro ao limpar histórico:\n\n${error?.message||String(error)}`);
+  }
+}
+
+window.addEventListener("pageshow",()=>setTimeout(bindV403Actions,100));
+document.addEventListener("DOMContentLoaded",()=>setTimeout(bindV403Actions,100));
 
 boot();
