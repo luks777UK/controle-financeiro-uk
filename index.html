@@ -7,13 +7,14 @@
   <meta http-equiv="Expires" content="0">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
   <meta name="theme-color" content="#080914">
-  <meta name="application-name" content="Nosso Controle 4.1.1">
+  <meta name="application-name" content="Nosso Controle 5.0.0-beta.1">
   <meta name="apple-mobile-web-app-title" content="Nosso Controle">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="styles.css?v=4.1.1-fresh">
-  <title>Nosso Controle 4.1.1</title>
+  <link rel="stylesheet" href="route.css?v=5.0.0-beta.1">
+  <link rel="stylesheet" href="styles.css?v=5.0.0-beta.1">
+  <title>Nosso Controle 5.0.0-beta.1</title>
 </head>
 <body>
   <section id="authView" class="auth-screen">
@@ -432,9 +433,72 @@
       <section id="vaultList" class="vault-list-v4"></section>
     </section>
 
+    <section id="routeView" class="app-section route-view-v5">
+      <div class="route-header-v5">
+        <div>
+          <span class="page-overline">NEGÓCIO DE LIMPEZA</span>
+          <h2>Rota</h2>
+          <p>Agenda, pagamentos, horas e clientes em um só lugar.</p>
+        </div>
+        <button id="openRouteClientV5" class="page-add-button" type="button">＋</button>
+      </div>
+
+      <section class="route-week-summary-v5">
+        <article>
+          <span>Esperado</span>
+          <strong id="routeExpectedV5">£0,00</strong>
+          <small>serviços programados</small>
+        </article>
+        <article>
+          <span>Recebido</span>
+          <strong id="routeReceivedV5">£0,00</strong>
+          <small>pagamentos confirmados</small>
+        </article>
+        <article>
+          <span>Horas</span>
+          <strong id="routeHoursV5">0h</strong>
+          <small id="routeWorkedHoursV5">0h concluídas</small>
+        </article>
+      </section>
+
+      <div class="route-week-nav-v5">
+        <button id="routePrevWeekV5" type="button">‹</button>
+        <div>
+          <strong id="routeWeekLabelV5">Semana</strong>
+          <small id="routeWeekRangeV5">Datas</small>
+        </div>
+        <button id="routeNextWeekV5" type="button">›</button>
+      </div>
+
+      <div id="routeDayTabsV5" class="route-day-tabs-v5"></div>
+
+      <section class="route-selected-day-v5">
+        <div class="route-day-heading-v5">
+          <div>
+            <h3 id="routeSelectedDayTitleV5">Segunda-feira</h3>
+            <p id="routeSelectedDaySubtitleV5">0 clientes programados</p>
+          </div>
+          <strong id="routeSelectedDayTotalV5">£0,00</strong>
+        </div>
+        <div id="routeClientListV5" class="route-client-list-v5"></div>
+      </section>
+
+      <section class="route-overdue-v5">
+        <button id="toggleRouteOverdueV5" class="route-overdue-head-v5" type="button">
+          <span>
+            <b>Pagamentos atrasados</b>
+            <small>Clientes que ainda não foram marcados como pagos</small>
+          </span>
+          <strong id="routeOverdueCountV5">0</strong>
+        </button>
+        <div id="routeOverdueListV5" class="route-overdue-list-v5 hidden"></div>
+      </section>
+    </section>
+
     <nav class="bottom-nav">
       <button class="nav-item active" data-view="overviewView"><span>◉</span><b>Geral</b></button>
       <button class="nav-item" data-view="billsView"><span>▤</span><b>Bills</b></button>
+      <button class="nav-item" data-view="routeView"><span>▦</span><b>Rota</b></button>
       <button class="nav-item" data-view="expensesView"><span>₤</span><b>Gastos</b></button>
       <button class="nav-item" data-view="vaultView"><span>◆</span><b>Cofre</b></button>
     </nav>
@@ -467,7 +531,7 @@
         <button id="resetFinance" class="sheet-action danger">Zerar reservas e depósitos</button>
         
       <div id="buildMarker403" class="build-marker-403">
-        Versão carregada: 4.1.1
+        Versão carregada: 5.0.0-beta.1
       </div>
 
       <button id="logoutBtn" class="sheet-action">Sair da conta</button>
@@ -972,13 +1036,166 @@
     </section>
   </dialog>
 
+
+  <dialog id="routeClientDialogV5">
+    <form method="dialog" class="dialog-card route-dialog-v5">
+      <div class="dialog-heading">
+        <div>
+          <h2 id="routeClientDialogTitleV5">Novo cliente</h2>
+          <p>Configure o serviço recorrente.</p>
+        </div>
+        <button value="cancel" class="round-button">×</button>
+      </div>
+
+      <input id="routeClientIdV5" type="hidden">
+
+      <label>Nome do cliente
+        <input id="routeClientNameV5" type="text" maxlength="80" placeholder="Ex.: Sarah">
+      </label>
+
+      <div class="route-form-grid-v5">
+        <label>Dia padrão
+          <select id="routeClientDayV5">
+            <option value="1">Segunda</option>
+            <option value="2">Terça</option>
+            <option value="3">Quarta</option>
+            <option value="4">Quinta</option>
+            <option value="5">Sexta</option>
+            <option value="6">Sábado</option>
+            <option value="0">Domingo</option>
+          </select>
+        </label>
+
+        <label>Ordem no dia
+          <input id="routeClientOrderV5" type="number" min="1" max="20" value="1">
+        </label>
+
+        <label>Frequência
+          <select id="routeClientFrequencyV5">
+            <option value="weekly">Semanal</option>
+            <option value="fortnightly">Quinzenal</option>
+          </select>
+        </label>
+
+        <label>Data inicial
+          <input id="routeClientAnchorV5" type="date">
+        </label>
+
+        <label>Valor por hora
+          <input id="routeClientRateV5" type="number" min="0" step="0.01" inputmode="decimal" placeholder="17,00">
+        </label>
+
+        <label>Horas previstas
+          <input id="routeClientHoursV5" type="number" min="0.25" step="0.25" inputmode="decimal" placeholder="2">
+        </label>
+      </div>
+
+      <label>Observação
+        <input id="routeClientNoteV5" type="text" maxlength="120" placeholder="Código da porta, instruções...">
+      </label>
+
+      <section class="route-client-preview-v5">
+        <span>VALOR PREVISTO POR LIMPEZA</span>
+        <strong id="routeClientAmountPreviewV5">£0,00</strong>
+      </section>
+
+      <div id="routeClientFeedbackV5" class="feedback"></div>
+      <button id="saveRouteClientV5" class="primary-button" type="button">Salvar cliente</button>
+      <button id="deleteRouteClientV5" class="danger-outline-v5 hidden" type="button">Excluir cliente</button>
+    </form>
+  </dialog>
+
+  <dialog id="routePaymentDialogV5">
+    <form method="dialog" class="dialog-card route-dialog-v5">
+      <div class="dialog-heading">
+        <div>
+          <h2>Confirmar pagamento</h2>
+          <p id="routePaymentClientV5">Cliente</p>
+        </div>
+        <button value="cancel" class="round-button">×</button>
+      </div>
+
+      <input id="routePaymentKeyV5" type="hidden">
+
+      <section class="route-payment-total-v5">
+        <span>VALOR PREVISTO</span>
+        <strong id="routePaymentExpectedV5">£0,00</strong>
+      </section>
+
+      <label>Valor recebido
+        <input id="routePaymentAmountV5" type="number" min="0" step="0.01" inputmode="decimal">
+      </label>
+
+      <label>Como recebeu?
+        <select id="routePaymentMethodV5">
+          <option value="card">Cartão / transferência</option>
+          <option value="cash">Dinheiro</option>
+        </select>
+      </label>
+
+      <label>Data do pagamento
+        <input id="routePaymentDateV5" type="date">
+      </label>
+
+      <div id="routePaymentFeedbackV5" class="feedback"></div>
+      <button id="saveRoutePaymentV5" class="primary-button" type="button">Confirmar pagamento</button>
+      <button id="removeRoutePaymentV5" class="danger-outline-v5 hidden" type="button">Desmarcar pagamento</button>
+    </form>
+  </dialog>
+
+  <dialog id="routeManageDialogV5">
+    <form method="dialog" class="dialog-card route-dialog-v5">
+      <div class="dialog-heading">
+        <div>
+          <h2>Alterar limpeza</h2>
+          <p id="routeManageClientV5">Cliente</p>
+        </div>
+        <button value="cancel" class="round-button">×</button>
+      </div>
+
+      <input id="routeManageKeyV5" type="hidden">
+
+      <label>Data desta limpeza
+        <input id="routeManageDateV5" type="date">
+      </label>
+
+      <div class="route-form-grid-v5">
+        <label>Valor por hora
+          <input id="routeManageRateV5" type="number" min="0" step="0.01" inputmode="decimal">
+        </label>
+        <label>Horas
+          <input id="routeManageHoursV5" type="number" min="0.25" step="0.25" inputmode="decimal">
+        </label>
+      </div>
+
+      <label class="route-cancel-toggle-v5">
+        <input id="routeManageCancelledV5" type="checkbox">
+        <span>
+          <b>Limpeza cancelada</b>
+          <small>Remove o serviço do valor esperado da semana</small>
+        </span>
+      </label>
+
+      <section class="route-client-preview-v5">
+        <span>NOVO VALOR PREVISTO</span>
+        <strong id="routeManageAmountPreviewV5">£0,00</strong>
+      </section>
+
+      <div id="routeManageFeedbackV5" class="feedback"></div>
+      <button id="saveRouteManageV5" class="primary-button" type="button">Salvar alteração</button>
+      <button id="restoreRouteManageV5" class="secondary-button" type="button">Restaurar padrão do cliente</button>
+      <button id="editRouteClientFromVisitV5" class="secondary-button" type="button">Editar cadastro do cliente</button>
+    </form>
+  </dialog>
+
   <div id="toast" class="toast"></div>
   <canvas id="confetti"></canvas>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=4.1.1-fresh"></script>
+  <script src="app.js?v=5.0.0-beta.1-fresh"></script>
+  <script src="route.js?v=5.0.0-beta.1"></script>
   <script>
     (async()=>{
-      const BUILD="4.1.1";
+      const BUILD="5.0.0-beta.1";
       try{
         if("serviceWorker" in navigator){
           const registrations=await navigator.serviceWorker.getRegistrations();

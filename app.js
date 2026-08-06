@@ -40,7 +40,7 @@ function fatalDiagnostic313(step,error,extra={}){
     const box=document.getElementById("fatalLoginDiagnostic");
     const text=document.getElementById("fatalLoginDiagnosticText");
     const lines=[
-      `VERSÃO: 4.1.1`,
+      `VERSÃO: 5.0.0-beta.1`,
       `ETAPA: ${step}`,
       `MENSAGEM: ${error?.message||String(error||"Erro desconhecido")}`
     ];
@@ -2090,8 +2090,9 @@ $("confirmVaultWithdrawV4").onclick=async()=>{
 };
 
 
-const APP_VERSION="4.1.1";
+const APP_VERSION="5.0.0-beta.1";
 const RELEASE_NOTES=[
+  {version:"5.0.0-beta.1",date:"06/08/2026",title:"Rota de Limpezas Beta",changes:["Nova aba Rota com agenda de segunda a domingo.","Clientes semanais e quinzenais com ordem diária.","Controle de horas, valores esperados e recebidos.","Confirmação de pagamento em dinheiro ou cartão.","Lista de pagamentos atrasados.","Pressionar por 2 segundos permite remarcar, alterar horas, valor ou cancelar."]},
   {version:"4.1.1",date:"05/08/2026",title:"Compatibilidade do calendário corrigida",changes:["Restaurada a função localDateKey usada pela Visão Geral.","Calendário e Estatísticas mantêm a nova lógica sem quebrar telas antigas.","Login e carregamento dos dados voltam a funcionar normalmente."]},
   {version:"4.1.0",date:"05/08/2026",title:"Calendário, estatísticas e backup externo",changes:["Calendário de depósitos reconstruído para mostrar apenas reservas das Bills.","Estatísticas mensais com histórico, CSV e relatório para salvar como PDF.","Backup automático salvo externamente no Supabase Storage.","Importação de backup JSON para restaurar todo o controle.","Backup atualizado após cada sincronização."]},
   {version:"4.0.4",date:"05/08/2026",title:"Editar e excluir depósitos das Bills",changes:["Depósitos agora têm botões de editar e excluir no histórico.","Editar desfaz o depósito antigo antes de aplicar o novo.","Excluir remove os valores do Envelope, Cartão e reservas das Bills.","Novos depósitos salvam o mapa exato de distribuição entre as Bills.","Alterações são bloqueadas quando o dinheiro já foi usado."]},
