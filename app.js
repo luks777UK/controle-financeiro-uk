@@ -40,7 +40,7 @@ function fatalDiagnostic313(step,error,extra={}){
     const box=document.getElementById("fatalLoginDiagnostic");
     const text=document.getElementById("fatalLoginDiagnosticText");
     const lines=[
-      `VERSÃO: 5.0.0-beta.8`,
+      `VERSÃO: 5.0.0-beta.9`,
       `ETAPA: ${step}`,
       `MENSAGEM: ${error?.message||String(error||"Erro desconhecido")}`
     ];
@@ -2090,8 +2090,9 @@ $("confirmVaultWithdrawV4").onclick=async()=>{
 };
 
 
-const APP_VERSION="5.0.0-beta.8";
+const APP_VERSION="5.0.0-beta.9";
 const RELEASE_NOTES=[
+  {version:"5.0.0-beta.9",date:"06/08/2026",title:"Calendário da Rota e atrasos mensais",changes:["Calendário ao lado de Rota.","Datas mostram clientes.","Cancelamento de um ou vários dias.","Resumo mensal mostra atrasos.","Dinheiro e Cartão agrupados."]},
   {version:"5.0.0-beta.8",date:"06/08/2026",title:"Resumo semanal limpo e abertura no dia atual",changes:["Card duplicado Cancelados removido do resumo semanal.","Cancelados do mês mostram valor total e quantidade de clientes.","Botão Mostrar mais ficou mais fino e discreto.","A Rota sempre abre na semana atual e no dia de hoje."]},
   {version:"5.0.0-beta.7",date:"06/08/2026",title:"Rota mais limpa e recebimentos separados",changes:["Botão Mostrar mais reduzido.","Resumo mensal mostra dinheiro e cartão.","Atrasados e cancelados abaixo do resumo semanal.","Barra de filtros removida."]},
   {version:"5.0.0-beta.6",date:"06/08/2026",title:"Rota compacta e resumo mensal",changes:["Atrasados e cancelados lado a lado.","Busca e filtros dentro de Mostrar mais.","Resumo mensal adicionado.","Nova frequência Somente uma vez.","Scroll mais suave."]},
@@ -3487,6 +3488,8 @@ boot();
     R.$("routeMonthCashV57").textContent=R.money(cash);
     R.$("routeMonthCardV57").textContent=R.money(card);
     R.$("routeMonthHoursV56").textContent=`${hours.toFixed(hours%1?1:0)}h`;
+    R.$("routeMonthOverdueAmountV59").textContent=R.money(overdueAmount);
+    R.$("routeMonthOverdueCountV59").textContent=`${overdueClients} ${overdueClients===1?"cliente":"clientes"}`;
     const cancelledItems=items.filter(x=>x.cancelled);
     const cancelledAmount=cancelledItems.reduce((sum,item)=>sum+item.amount,0);
     const cancelledClients=new Set(cancelledItems.map(item=>item.clientId)).size;
@@ -3734,6 +3737,17 @@ boot();
   "use strict";
   const R=window.RouteV5;
 
+
+  R.calendarV59={month:new Date(new Date().getFullYear(),new Date().getMonth(),1,12),selectedDate:R.today(),multiMonth:new Date(new Date().getFullYear(),new Date().getMonth(),1,12),selectedKeys:new Set()};
+  R.monthCellsV59=month=>{const f=new Date(month.getFullYear(),month.getMonth(),1,12),l=new Date(month.getFullYear(),month.getMonth()+1,0,12),cells=[];for(let i=0;i<(f.getDay()+6)%7;i++)cells.push(null);for(let d=1;d<=l.getDate();d++)cells.push(new Date(month.getFullYear(),month.getMonth(),d,12));while(cells.length%7)cells.push(null);return cells};
+  R.openCalendarV59=()=>{const n=new Date();R.calendarV59.month=new Date(n.getFullYear(),n.getMonth(),1,12);R.calendarV59.selectedDate=R.today();R.renderCalendarV59();R.$("routeCalendarDialogV59").showModal()};
+  R.renderCalendarV59=()=>{const m=R.calendarV59.month,s=new Date(m.getFullYear(),m.getMonth(),1,12),e=new Date(m.getFullYear(),m.getMonth()+1,0,12),items=R.instances(s,e);R.$("routeCalendarMonthLabelV59").textContent=new Intl.DateTimeFormat("pt-BR",{month:"long",year:"numeric"}).format(m);const g=R.$("routeCalendarGridV59");g.innerHTML=R.monthCellsV59(m).map(d=>{if(!d)return '<span></span>';const k=R.key(d),its=items.filter(x=>x.actualDate===k),c=['route-calendar-day-v59',k===R.today()?'today':'',k===R.calendarV59.selectedDate?'selected':'',its.length?'has-clients':''].filter(Boolean).join(' ');return `<button type="button" class="${c}" data-calendar-date="${k}"><span>${d.getDate()}</span>${its.length?`<small>${its.length}</small>`:''}</button>`}).join('');g.querySelectorAll('[data-calendar-date]').forEach(b=>b.onclick=()=>{R.calendarV59.selectedDate=b.dataset.calendarDate;R.renderCalendarV59()});R.renderCalendarDayClientsV59()};
+  R.renderCalendarDayClientsV59=()=>{const k=R.calendarV59.selectedDate,d=R.date(k),w=R.weekStart(d),items=R.instances(w,R.addDays(w,6)).filter(x=>x.actualDate===k).sort((a,b)=>a.order-b.order);R.$("routeCalendarDayLabelV59").textContent=new Intl.DateTimeFormat("pt-BR",{weekday:"long",day:"2-digit",month:"long"}).format(d);R.$("routeCalendarDayTotalV59").textContent=R.money(items.filter(x=>!x.cancelled).reduce((s,x)=>s+x.amount,0));const l=R.$("routeCalendarClientsV59");l.innerHTML=items.length?items.map(x=>`<button type="button" class="route-calendar-client-v59 ${x.cancelled?'cancelled':x.paid?'paid':R.isOverdue(x)?'overdue':''}" data-calendar-client="${x.key}"><span>${x.order}º</span><div><strong>${R.escape(x.client.name)}</strong><small>${x.hours}h · ${R.money(x.amount)}</small></div><em>${x.cancelled?'Cancelado':x.paid?'Pago':'Abrir'}</em></button>`).join(''):'<div class="route-empty-v5"><b>Nenhum cliente neste dia</b></div>';l.querySelectorAll('[data-calendar-client]').forEach(b=>b.onclick=()=>{const x=R.fromKey(b.dataset.calendarClient);R.$("routeCancelVisitKeyV59").value=x.key;R.$("routeCancelClientLabelV59").textContent=`${x.client.name} · ${R.formatDate(x.actualDate)}`;R.$("routeCancelModeDialogV59").showModal()})};
+  R.cancelSingleV59=async()=>{const x=R.fromKey(R.$("routeCancelVisitKeyV59").value);if(!x)return;if(x.paid)return alert("Desmarque o pagamento antes de cancelar.");R.upsertVisit(x,{cancelled:true});R.$("routeCancelModeDialogV59").close();await persist("Limpeza cancelada");R.renderCalendarV59()};
+  R.openMultiCancelV59=()=>{const x=R.fromKey(R.$("routeCancelVisitKeyV59").value);if(!x)return;R.$("routeCancelModeDialogV59").close();R.$("routeMultiCancelClientIdV59").value=x.clientId;R.$("routeMultiCancelClientV59").textContent=x.client.name;const d=R.date(x.actualDate);R.calendarV59.multiMonth=new Date(d.getFullYear(),d.getMonth(),1,12);R.calendarV59.selectedKeys=new Set();R.renderMultiCancelV59();R.$("routeMultiCancelDialogV59").showModal()};
+  R.clientScheduledDatesInMonthV59=(c,m)=>{const s=new Date(m.getFullYear(),m.getMonth(),1,12),e=new Date(m.getFullYear(),m.getMonth()+1,0,12),a=[];for(let d=new Date(s);d<=e;d=R.addDays(d,1))if(R.isScheduled(c,d))a.push(R.key(d));return [...new Set(a)]};
+  R.renderMultiCancelV59=()=>{const c=R.client(R.$("routeMultiCancelClientIdV59").value),m=R.calendarV59.multiMonth;if(!c)return;const sched=new Set(R.clientScheduledDatesInMonthV59(c,m));R.$("routeMultiCancelMonthV59").textContent=new Intl.DateTimeFormat("pt-BR",{month:"long",year:"numeric"}).format(m);const g=R.$("routeMultiCancelGridV59");g.innerHTML=R.monthCellsV59(m).map(d=>{if(!d)return '<span></span>';const k=R.key(d),on=sched.has(k),sel=R.calendarV59.selectedKeys.has(k);return `<button type="button" class="route-calendar-day-v59 multi ${on?'scheduled':''} ${sel?'selected-cancel':''}" data-multi-date="${k}" ${on?'':'disabled'}><span>${d.getDate()}</span></button>`}).join('');g.querySelectorAll('[data-multi-date]').forEach(b=>b.onclick=()=>{const k=b.dataset.multiDate;R.calendarV59.selectedKeys.has(k)?R.calendarV59.selectedKeys.delete(k):R.calendarV59.selectedKeys.add(k);R.renderMultiCancelV59()});const n=R.calendarV59.selectedKeys.size;R.$("routeMultiCancelCountV59").textContent=`${n} ${n===1?'dia selecionado':'dias selecionados'}`};
+  R.saveMultiCancelV59=async()=>{const c=R.client(R.$("routeMultiCancelClientIdV59").value),keys=[...R.calendarV59.selectedKeys];if(!c||!keys.length)return alert("Selecione pelo menos um dia.");for(const k of keys){const x=R.instance(c,k);if(!x.paid)R.upsertVisit(x,{actualDate:k,cancelled:true})}R.$("routeMultiCancelDialogV59").close();await persist(`${keys.length} limpezas canceladas`);R.renderCalendarV59()};
   function bind(){
     const once=(id,event,fn)=>{
       const node=R.$(id);if(!node)return;
@@ -3743,6 +3757,17 @@ boot();
     };
 
     once("openRouteClientV5","click",()=>R.openClient());
+    once("openRouteCalendarV59","click",R.openCalendarV59);
+    once("closeRouteCalendarV59","click",()=>R.$("routeCalendarDialogV59").close());
+    once("routeCalendarPrevV59","click",()=>{R.calendarV59.month=new Date(R.calendarV59.month.getFullYear(),R.calendarV59.month.getMonth()-1,1,12);R.renderCalendarV59()});
+    once("routeCalendarNextV59","click",()=>{R.calendarV59.month=new Date(R.calendarV59.month.getFullYear(),R.calendarV59.month.getMonth()+1,1,12);R.renderCalendarV59()});
+    once("routeCalendarTodayV59","click",()=>{const n=new Date();R.calendarV59.month=new Date(n.getFullYear(),n.getMonth(),1,12);R.calendarV59.selectedDate=R.today();R.renderCalendarV59()});
+    once("cancelSingleVisitV59","click",R.cancelSingleV59);
+    once("cancelMultipleVisitsV59","click",R.openMultiCancelV59);
+    once("closeRouteMultiCancelV59","click",()=>R.$("routeMultiCancelDialogV59").close());
+    once("routeMultiCancelPrevV59","click",()=>{R.calendarV59.multiMonth=new Date(R.calendarV59.multiMonth.getFullYear(),R.calendarV59.multiMonth.getMonth()-1,1,12);R.renderMultiCancelV59()});
+    once("routeMultiCancelNextV59","click",()=>{R.calendarV59.multiMonth=new Date(R.calendarV59.multiMonth.getFullYear(),R.calendarV59.multiMonth.getMonth()+1,1,12);R.renderMultiCancelV59()});
+    once("saveRouteMultiCancelV59","click",R.saveMultiCancelV59);
     once("routePrevWeekV5","click",()=>{R.ui.week=R.addDays(R.ui.week,-7);R.render();});
     once("routeNextWeekV5","click",()=>{R.ui.week=R.addDays(R.ui.week,7);R.render();});
     once("toggleRouteOverdueV5","click",()=>{R.$("routeOverduePanelV56").classList.toggle("hidden");R.$("routeCancelledPanelV56").classList.add("hidden");});
