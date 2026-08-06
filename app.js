@@ -40,7 +40,7 @@ function fatalDiagnostic313(step,error,extra={}){
     const box=document.getElementById("fatalLoginDiagnostic");
     const text=document.getElementById("fatalLoginDiagnosticText");
     const lines=[
-      `VERSÃO: 5.0.0-beta.2`,
+      `VERSÃO: 5.0.0-beta.3`,
       `ETAPA: ${step}`,
       `MENSAGEM: ${error?.message||String(error||"Erro desconhecido")}`
     ];
@@ -2090,8 +2090,9 @@ $("confirmVaultWithdrawV4").onclick=async()=>{
 };
 
 
-const APP_VERSION="5.0.0-beta.2";
+const APP_VERSION="5.0.0-beta.3";
 const RELEASE_NOTES=[
+  {version:"5.0.0-beta.3",date:"06/08/2026",title:"Menu compacto e sequência do cliente",changes:["Sequência obrigatória e visível ao cadastrar ou editar clientes.","Menu do número reduzido para quatro opções principais.","Botão Mostrar mais revela cancelamento, restauração, perfil e edição do cadastro.","Menu ocupa menos espaço na tela."]},
   {version:"5.0.0-beta.2",date:"06/08/2026",title:"Route CRM Beta 2",changes:["Atrasados movidos para o topo com total em libras e confirmação de pagamento.","Menu extra aberto pelo botão de ordem do cliente.","Busca, filtros, favoritos e duplicação de clientes.","Perfil individual com histórico, totais mensais e anuais, horas, lucro e cancelamentos.","Código da Rota dividido em módulos menores."]},
   {version:"5.0.0-beta.1",date:"06/08/2026",title:"Rota de Limpezas Beta",changes:["Nova aba Rota com agenda de segunda a domingo.","Clientes semanais e quinzenais com ordem diária.","Controle de horas, valores esperados e recebidos.","Confirmação de pagamento em dinheiro ou cartão.","Lista de pagamentos atrasados.","Pressionar por 2 segundos permite remarcar, alterar horas, valor ou cancelar."]},
   {version:"4.1.1",date:"05/08/2026",title:"Compatibilidade do calendário corrigida",changes:["Restaurada a função localDateKey usada pela Visão Geral.","Calendário e Estatísticas mantêm a nova lógica sem quebrar telas antigas.","Login e carregamento dos dados voltam a funcionar normalmente."]},
@@ -3183,6 +3184,7 @@ boot();
 
   R.previewClient = () => {
     const rate=Number(R.$("routeClientRateV5").value||0);
+    const sequence=Math.max(1,Number(R.$("routeClientOrderV5").value||0));
     const hours=Number(R.$("routeClientHoursV5").value||0);
     const cost=Number(R.$("routeClientCostV5").value||0);
     const extra=Number(R.$("routeClientExtraCostV5").value||0);
@@ -3219,13 +3221,14 @@ boot();
     const hours=Number(R.$("routeClientHoursV5").value||0);
     if(!name)return R.feedback("routeClientFeedbackV5","Digite o nome do cliente.");
     if(rate<=0||hours<=0)return R.feedback("routeClientFeedbackV5","Informe valor/hora e horas.");
+    if(!sequence)return R.feedback("routeClientFeedbackV5","Escolha a sequência do cliente no dia.");
 
     const id=R.$("routeClientIdV5").value;
     const payload={
       name,
       favorite:R.$("routeClientFavoriteV5").checked,
       day:Number(R.$("routeClientDayV5").value),
-      order:Math.max(1,Number(R.$("routeClientOrderV5").value||1)),
+      order:sequence,
       frequency:R.$("routeClientFrequencyV5").value,
       anchorDate:R.$("routeClientAnchorV5").value||R.today(),
       hourlyRate:rate,
@@ -3423,6 +3426,12 @@ boot();
     R.$("routeManageKeyV5").value=item.key;
     R.$("routeManageClientV5").textContent=`${item.client.name} · ${R.formatDate(item.actualDate)}`;
     R.$("routeCancelVisitV5").querySelector("b").textContent=item.cancelled?"Reativar limpeza":"Cancelar limpeza";
+    R.$("routeMoreOptionsV53")?.classList.add("hidden");
+    const moreButton=R.$("routeShowMoreV53");
+    if(moreButton){
+      moreButton.querySelector("b").textContent="Mostrar mais";
+      moreButton.querySelector("small").textContent="Outras opções";
+    }
     R.$("routeManageDialogV5").showModal();
   };
 
@@ -3526,6 +3535,14 @@ boot();
     once("routeChangeHoursV5","click",()=>R.openQuick("hours",R.fromKey(R.$("routeManageKeyV5").value)));
     once("routeChangeRateV5","click",()=>R.openQuick("rate",R.fromKey(R.$("routeManageKeyV5").value)));
     once("routeChangeOrderV5","click",()=>R.openQuick("order",R.fromKey(R.$("routeManageKeyV5").value)));
+    once("routeShowMoreV53","click",()=>{
+      const extra=R.$("routeMoreOptionsV53");
+      const button=R.$("routeShowMoreV53");
+      const opening=extra.classList.contains("hidden");
+      extra.classList.toggle("hidden");
+      button.querySelector("b").textContent=opening?"Mostrar menos":"Mostrar mais";
+      button.querySelector("small").textContent=opening?"Ocultar opções":"Outras opções";
+    });
     once("routeCancelVisitV5","click",R.toggleCancel);
     once("routeRestoreVisitV5","click",R.restore);
     once("routeViewClientV5","click",()=>{const x=R.fromKey(R.$("routeManageKeyV5").value);R.$("routeManageDialogV5").close();R.openProfile(x.client);});
