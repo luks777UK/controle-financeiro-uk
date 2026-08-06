@@ -7,13 +7,13 @@
   <meta http-equiv="Expires" content="0">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
   <meta name="theme-color" content="#080914">
-  <meta name="application-name" content="Nosso Controle 5.0.0-beta.11">
+  <meta name="application-name" content="Nosso Controle 5.0.0-beta.12">
   <meta name="apple-mobile-web-app-title" content="Nosso Controle">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="styles.css?v=5.0.0-beta.11-fresh">
-  <title>Nosso Controle 5.0.0-beta.11</title>
+  <link rel="stylesheet" href="styles.css?v=5.0.0-beta.12-fresh">
+  <title>Nosso Controle 5.0.0-beta.12</title>
 </head>
 <body>
   <section id="authView" class="auth-screen">
@@ -442,40 +442,16 @@
         <button id="openRouteClientV5" class="page-add-button" type="button">＋</button>
       </div>
 
-      <section class="route-week-summary-v5 route-week-summary-beta2">
-        <article>
-          <span>Esperado</span>
-          <strong id="routeExpectedV5">£0,00</strong>
-          <small>serviços programados</small>
-        </article>
-        <article>
-          <span>Recebido</span>
-          <strong id="routeReceivedV5">£0,00</strong>
-          <small>pagamentos confirmados</small>
-        </article>
-        <article class="route-extra-summary-v511">
-          <span>Extra</span>
-          <strong id="routeExtraWeeklyV511">£0,00</strong>
-          <small id="routeExtraWeeklyCountV511">0 serviços</small>
-        </article>
-        <article>
-          <span>Horas</span>
-          <strong id="routeHoursV5">0h</strong>
-          <small id="routeWorkedHoursV5">0h concluídas</small>
-        </article>
-
+      <section class="route-dashboard-grid-v512">
+        <article class="route-dashboard-card-v512 expected"><span>Esperado</span><strong id="routeExpectedV5">£0,00</strong><small id="routeExpectedCountV512">0 serviços</small></article>
+        <article class="route-dashboard-card-v512 received"><span>Recebido</span><strong id="routeReceivedV5">£0,00</strong><small id="routeReceivedCountV512">0 pagamentos</small></article>
+        <article class="route-dashboard-card-v512 extra"><span>Extra</span><strong id="routeExtraWeeklyV511">£0,00</strong><small id="routeExtraWeeklyCountV511">0 serviços</small></article>
+        <article class="route-dashboard-card-v512 hours"><span>Horas</span><strong id="routeHoursV5">0h</strong><small id="routeWorkedHoursV5">0h concluídas</small></article>
+        <button id="toggleRouteOverdueV5" class="route-dashboard-card-v512 overdue" type="button"><span>Atrasados</span><strong id="routeOverdueAmountV5">£0,00</strong><small id="routeOverdueSubtitleV5">0 clientes</small><em id="routeOverdueCountV5">0</em></button>
+        <button id="toggleRouteCancelledV56" class="route-dashboard-card-v512 cancelled" type="button"><span>Cancelados</span><strong id="routeCancelledAmountV56">£0,00</strong><small id="routeCancelledSubtitleV56">0 clientes</small><em id="routeCancelledCountV56">0</em></button>
       </section>
 
-      <section class="route-status-pair-v56">
-        <button id="toggleRouteOverdueV5" class="route-status-card-v56 overdue" type="button">
-          <div><span>ATRASADOS</span><strong id="routeOverdueAmountV5">£0,00</strong><small id="routeOverdueSubtitleV5">Nenhum cliente</small></div>
-          <em id="routeOverdueCountV5">0</em>
-        </button>
-        <button id="toggleRouteCancelledV56" class="route-status-card-v56 cancelled" type="button">
-          <div><span>CANCELADOS</span><strong id="routeCancelledAmountV56">£0,00</strong><small id="routeCancelledSubtitleV56">Nenhum nesta semana</small></div>
-          <em id="routeCancelledCountV56">0</em>
-        </button>
-      </section>
+
       <section id="routeOverduePanelV56" class="route-status-panel-v56 hidden">
         <div class="route-status-panel-head-v56"><div><strong>Pagamentos atrasados</strong><small>Vencidos desde o dia seguinte à limpeza</small></div><button id="closeRouteOverdueV56" type="button">×</button></div>
         <div id="routeOverdueListV5" class="route-overdue-list-v5"></div>
@@ -487,7 +463,7 @@
 
       <div class="route-compact-actions-v510">
         <button id="toggleRouteToolsV56" class="route-tools-toggle-v56" type="button">
-          <span>•••</span><div><strong>Mostrar mais</strong><small>Busca e resumo</small></div><em>⌄</em>
+          <span>•••</span><div><strong>Mais</strong><small>Resumo</small></div><em>⌄</em>
         </button>
         <button id="openRouteClientListV510" class="route-client-list-button-v510" type="button">
           <span>☷</span><div><strong>Lista de clientes</strong><small>Editar e excluir</small></div>
@@ -581,7 +557,7 @@
         <button id="resetFinance" class="sheet-action danger">Zerar reservas e depósitos</button>
         
       <div id="buildMarker403" class="build-marker-403">
-        Versão carregada: 5.0.0-beta.11 · Single Deploy
+        Versão carregada: 5.0.0-beta.12 · Single Deploy
       </div>
 
       <button id="logoutBtn" class="sheet-action">Sair da conta</button>
@@ -1258,10 +1234,10 @@
 <div id="toast" class="toast"></div>
   <canvas id="confetti"></canvas>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=5.0.0-beta.11-fresh"></script>
+  <script src="app.js?v=5.0.0-beta.12-fresh"></script>
   <script>
     (async()=>{
-      const BUILD="5.0.0-beta.11-single";
+      const BUILD="5.0.0-beta.12-single";
       try{
         if("serviceWorker" in navigator){
           const registrations=await navigator.serviceWorker.getRegistrations();

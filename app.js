@@ -40,7 +40,7 @@ function fatalDiagnostic313(step,error,extra={}){
     const box=document.getElementById("fatalLoginDiagnostic");
     const text=document.getElementById("fatalLoginDiagnosticText");
     const lines=[
-      `VERSÃO: 5.0.0-beta.11.1`,
+      `VERSÃO: 5.0.0-beta.12.1`,
       `ETAPA: ${step}`,
       `MENSAGEM: ${error?.message||String(error||"Erro desconhecido")}`
     ];
@@ -2090,8 +2090,9 @@ $("confirmVaultWithdrawV4").onclick=async()=>{
 };
 
 
-const APP_VERSION="5.0.0-beta.11";
+const APP_VERSION="5.0.0-beta.12";
 const RELEASE_NOTES=[
+  {version:"5.0.0-beta.12",date:"06/08/2026",title:"Painel da Rota simétrico",changes:["Seis indicadores em grade 3 por 2.","Cards com a mesma largura e altura.","Esperado e Recebido exibem quantidades.","Mais ocupa 30% e Lista de clientes 70%."]},
   {version:"5.0.0-beta.11",date:"06/08/2026",title:"Extras nos resumos e primeira data obrigatória",changes:["Extras aparecem no resumo semanal.","Extras aparecem no resumo mensal.","Todo cliente precisa de uma primeira data.","Cliente Extra já é agendado na data escolhida e continua disponível para futuros serviços."]},
   {version:"5.0.0-beta.10",date:"06/08/2026",title:"Clientes extras e lista geral",changes:["Novo tipo Extra · sem data fixa.","Clientes extras são adicionados pelo calendário somente nos dias escolhidos.","Selo Extra identifica esses serviços.","Lista alfabética de clientes adicionada ao lado de Mostrar mais.","Lista permite abrir perfil, editar e excluir clientes."]},
   {version:"5.0.0-beta.9.1",date:"06/08/2026",title:"Correção do resumo mensal",changes:["Corrigido erro overdueAmount ao abrir dados após login.","Valor e quantidade de clientes em atraso voltaram a carregar no resumo mensal.","Calendário e demais funções da Rota foram preservados."]},
@@ -3471,8 +3472,11 @@ boot();
     const items=R.weekItems();
     const active=items.filter(x=>!x.cancelled);
     const weeklyExtra=active.filter(item=>item.client?.frequency==="extra"||item.visit?.extra);
+    const weeklyPaid=active.filter(item=>item.paid);
     R.$("routeExpectedV5").textContent=R.money(active.reduce((s,x)=>s+x.amount,0));
-    R.$("routeReceivedV5").textContent=R.money(active.filter(x=>x.paid).reduce((s,x)=>s+x.amountReceived,0));
+    R.$("routeExpectedCountV512").textContent=`${active.length} ${active.length===1?"serviço":"serviços"}`;
+    R.$("routeReceivedV5").textContent=R.money(weeklyPaid.reduce((s,x)=>s+x.amountReceived,0));
+    R.$("routeReceivedCountV512").textContent=`${weeklyPaid.length} ${weeklyPaid.length===1?"pagamento":"pagamentos"}`;
     R.$("routeExtraWeeklyV511").textContent=R.money(weeklyExtra.reduce((sum,item)=>sum+item.amount,0));
     R.$("routeExtraWeeklyCountV511").textContent=
       `${weeklyExtra.length} ${weeklyExtra.length===1?"serviço":"serviços"}`;
@@ -3492,7 +3496,7 @@ boot();
     const overdue=R.overdueItems();
     R.$("routeOverdueAmountV5").textContent=R.money(overdue.reduce((s,x)=>s+x.amount,0));
     R.$("routeOverdueCountV5").textContent=String(overdue.length);
-    R.$("routeOverdueSubtitleV5").textContent=overdue.length?`${overdue.length} ${overdue.length===1?"cliente":"clientes"}`:"Nenhum cliente";
+    R.$("routeOverdueSubtitleV5").textContent=`${overdue.length} ${overdue.length===1?"cliente":"clientes"}`;
     const overdueList=R.$("routeOverdueListV5");
     overdueList.innerHTML=overdue.length?overdue.map(item=>`<article class="route-overdue-item-v5"><div><strong>${R.escape(item.client.name)}${item.client.frequency==="extra"?' <i class="route-extra-inline-v510">EXTRA</i>':''}</strong><span>${R.formatDate(item.actualDate)} · ${R.daysLate(item.actualDate)} dias de atraso</span></div><div class="route-overdue-action-v5"><b>${R.money(item.amount)}</b><button type="button" data-overdue-pay="${item.key}">Confirmar pago</button></div></article>`).join(""):'<div class="route-empty-v5"><b>Nenhum pagamento atrasado</b><span>Tudo em dia.</span></div>';
     overdueList.querySelectorAll("[data-overdue-pay]").forEach(btn=>btn.onclick=()=>R.openPayment(R.fromKey(btn.dataset.overduePay)));
@@ -3500,7 +3504,8 @@ boot();
     const cancelled=R.weekItems().filter(item=>item.cancelled);
     R.$("routeCancelledAmountV56").textContent=R.money(cancelled.reduce((s,x)=>s+x.amount,0));
     R.$("routeCancelledCountV56").textContent=String(cancelled.length);
-    R.$("routeCancelledSubtitleV56").textContent=cancelled.length?`${cancelled.length} ${cancelled.length===1?"limpeza":"limpezas"}`:"Nenhum nesta semana";
+    const cancelledClients=new Set(cancelled.map(item=>item.clientId)).size;
+    R.$("routeCancelledSubtitleV56").textContent=`${cancelledClients} ${cancelledClients===1?"cliente":"clientes"}`;
     const cancelledList=R.$("routeCancelledListV56");
     cancelledList.innerHTML=cancelled.length?cancelled.map(item=>`<article class="route-overdue-item-v5 route-cancelled-item-v56"><div><strong>${R.escape(item.client.name)}</strong><span>${R.formatDate(item.actualDate)} · ${item.hours}h</span></div><div class="route-overdue-action-v5"><b>${R.money(item.amount)}</b><button type="button" data-cancelled-manage="${item.key}">Abrir opções</button></div></article>`).join(""):'<div class="route-empty-v5"><b>Nenhuma limpeza cancelada</b><span>Nada foi removido desta semana.</span></div>';
     cancelledList.querySelectorAll("[data-cancelled-manage]").forEach(btn=>btn.onclick=()=>R.openManage(R.fromKey(btn.dataset.cancelledManage)));
@@ -3857,8 +3862,8 @@ boot();
     once("toggleRouteToolsV56","click",()=>{
       const panel=R.$("routeExtraToolsV56"),button=R.$("toggleRouteToolsV56"),opening=panel.classList.contains("hidden");
       panel.classList.toggle("hidden");
-      button.querySelector("strong").textContent=opening?"Mostrar menos":"Mostrar mais";
-      button.querySelector("small").textContent=opening?"Ocultar busca e resumo":"Busca e resumo mensal";
+      button.querySelector("strong").textContent=opening?"Menos":"Mais";
+      button.querySelector("small").textContent=opening?"Fechar":"Resumo";
       button.querySelector("em").textContent=opening?"⌃":"⌄";
       if(opening)setTimeout(()=>panel.scrollIntoView({behavior:"smooth",block:"nearest"}),80);
     });
