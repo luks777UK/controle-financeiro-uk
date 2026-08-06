@@ -40,7 +40,7 @@ function fatalDiagnostic313(step,error,extra={}){
     const box=document.getElementById("fatalLoginDiagnostic");
     const text=document.getElementById("fatalLoginDiagnosticText");
     const lines=[
-      `VERSÃO: 5.0.0-beta.9`,
+      `VERSÃO: 5.0.0-beta.9.1.1`,
       `ETAPA: ${step}`,
       `MENSAGEM: ${error?.message||String(error||"Erro desconhecido")}`
     ];
@@ -2090,9 +2090,10 @@ $("confirmVaultWithdrawV4").onclick=async()=>{
 };
 
 
-const APP_VERSION="5.0.0-beta.9";
+const APP_VERSION="5.0.0-beta.9.1";
 const RELEASE_NOTES=[
-  {version:"5.0.0-beta.9",date:"06/08/2026",title:"Calendário da Rota e atrasos mensais",changes:["Calendário ao lado de Rota.","Datas mostram clientes.","Cancelamento de um ou vários dias.","Resumo mensal mostra atrasos.","Dinheiro e Cartão agrupados."]},
+  {version:"5.0.0-beta.9.1",date:"06/08/2026",title:"Correção do resumo mensal",changes:["Corrigido erro overdueAmount ao abrir dados após login.","Valor e quantidade de clientes em atraso voltaram a carregar no resumo mensal.","Calendário e demais funções da Rota foram preservados."]},
+  {version:"5.0.0-beta.9.1",date:"06/08/2026",title:"Calendário da Rota e atrasos mensais",changes:["Calendário ao lado de Rota.","Datas mostram clientes.","Cancelamento de um ou vários dias.","Resumo mensal mostra atrasos.","Dinheiro e Cartão agrupados."]},
   {version:"5.0.0-beta.8",date:"06/08/2026",title:"Resumo semanal limpo e abertura no dia atual",changes:["Card duplicado Cancelados removido do resumo semanal.","Cancelados do mês mostram valor total e quantidade de clientes.","Botão Mostrar mais ficou mais fino e discreto.","A Rota sempre abre na semana atual e no dia de hoje."]},
   {version:"5.0.0-beta.7",date:"06/08/2026",title:"Rota mais limpa e recebimentos separados",changes:["Botão Mostrar mais reduzido.","Resumo mensal mostra dinheiro e cartão.","Atrasados e cancelados abaixo do resumo semanal.","Barra de filtros removida."]},
   {version:"5.0.0-beta.6",date:"06/08/2026",title:"Rota compacta e resumo mensal",changes:["Atrasados e cancelados lado a lado.","Busca e filtros dentro de Mostrar mais.","Resumo mensal adicionado.","Nova frequência Somente uma vez.","Scroll mais suave."]},
@@ -3481,6 +3482,9 @@ boot();
     const cash=paid.filter(x=>x.paymentMethod==="cash").reduce((s,x)=>s+x.amountReceived,0);
     const card=paid.filter(x=>x.paymentMethod!=="cash").reduce((s,x)=>s+x.amountReceived,0);
     const hours=active.reduce((s,x)=>s+x.hours,0);
+    const overdueItems=items.filter(R.isOverdue);
+    const overdueAmount=overdueItems.reduce((sum,item)=>sum+item.amount,0);
+    const overdueClients=new Set(overdueItems.map(item=>item.clientId)).size;
     R.$("routeMonthLabelV56").textContent=new Intl.DateTimeFormat("pt-BR",{month:"long",year:"numeric"}).format(reference);
     R.$("routeMonthRangeV56").textContent=`${R.pad(start.getDate())}/${R.pad(start.getMonth()+1)} — ${R.pad(end.getDate())}/${R.pad(end.getMonth()+1)}`;
     R.$("routeMonthExpectedV56").textContent=R.money(expected);
