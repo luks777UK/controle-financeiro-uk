@@ -7,14 +7,13 @@
   <meta http-equiv="Expires" content="0">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
   <meta name="theme-color" content="#080914">
-  <meta name="application-name" content="Nosso Controle 5.0.0-beta.1">
+  <meta name="application-name" content="Nosso Controle 5.0.0-beta.2">
   <meta name="apple-mobile-web-app-title" content="Nosso Controle">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="route.css?v=5.0.0-beta.1">
-  <link rel="stylesheet" href="styles.css?v=5.0.0-beta.1">
-  <title>Nosso Controle 5.0.0-beta.1</title>
+  <link rel="stylesheet" href="styles.css?v=5.0.0-beta.2-single">
+  <title>Nosso Controle 5.0.0-beta.2</title>
 </head>
 <body>
   <section id="authView" class="auth-screen">
@@ -438,12 +437,26 @@
         <div>
           <span class="page-overline">NEGÓCIO DE LIMPEZA</span>
           <h2>Rota</h2>
-          <p>Agenda, pagamentos, horas e clientes em um só lugar.</p>
+          <p>Clientes, agenda, pagamentos e desempenho.</p>
         </div>
         <button id="openRouteClientV5" class="page-add-button" type="button">＋</button>
       </div>
 
-      <section class="route-week-summary-v5">
+      <section class="route-overdue-v5 route-overdue-top-v5">
+        <button id="toggleRouteOverdueV5" class="route-overdue-head-v5" type="button">
+          <span>
+            <b>Pagamentos atrasados</b>
+            <small id="routeOverdueSubtitleV5">Nenhum cliente em atraso</small>
+          </span>
+          <div class="route-overdue-total-v5">
+            <strong id="routeOverdueAmountV5">£0,00</strong>
+            <em id="routeOverdueCountV5">0</em>
+          </div>
+        </button>
+        <div id="routeOverdueListV5" class="route-overdue-list-v5 hidden"></div>
+      </section>
+
+      <section class="route-week-summary-v5 route-week-summary-beta2">
         <article>
           <span>Esperado</span>
           <strong id="routeExpectedV5">£0,00</strong>
@@ -459,12 +472,32 @@
           <strong id="routeHoursV5">0h</strong>
           <small id="routeWorkedHoursV5">0h concluídas</small>
         </article>
+        <article>
+          <span>Cancelados</span>
+          <strong id="routeCancelledV5">0</strong>
+          <small>fora da previsão</small>
+        </article>
+      </section>
+
+      <section class="route-tools-v5">
+        <label class="route-search-v5">
+          <span>⌕</span>
+          <input id="routeSearchV5" type="search" placeholder="Buscar cliente">
+        </label>
+        <select id="routeStatusFilterV5" aria-label="Filtrar clientes">
+          <option value="all">Todos</option>
+          <option value="pending">Pendentes</option>
+          <option value="paid">Pagos</option>
+          <option value="overdue">Atrasados</option>
+          <option value="cancelled">Cancelados</option>
+          <option value="favorite">Favoritos</option>
+        </select>
       </section>
 
       <div class="route-week-nav-v5">
         <button id="routePrevWeekV5" type="button">‹</button>
         <div>
-          <strong id="routeWeekLabelV5">Semana</strong>
+          <strong id="routeWeekLabelV5">Esta semana</strong>
           <small id="routeWeekRangeV5">Datas</small>
         </div>
         <button id="routeNextWeekV5" type="button">›</button>
@@ -481,17 +514,6 @@
           <strong id="routeSelectedDayTotalV5">£0,00</strong>
         </div>
         <div id="routeClientListV5" class="route-client-list-v5"></div>
-      </section>
-
-      <section class="route-overdue-v5">
-        <button id="toggleRouteOverdueV5" class="route-overdue-head-v5" type="button">
-          <span>
-            <b>Pagamentos atrasados</b>
-            <small>Clientes que ainda não foram marcados como pagos</small>
-          </span>
-          <strong id="routeOverdueCountV5">0</strong>
-        </button>
-        <div id="routeOverdueListV5" class="route-overdue-list-v5 hidden"></div>
       </section>
     </section>
 
@@ -531,7 +553,7 @@
         <button id="resetFinance" class="sheet-action danger">Zerar reservas e depósitos</button>
         
       <div id="buildMarker403" class="build-marker-403">
-        Versão carregada: 5.0.0-beta.1
+        Versão carregada: 5.0.0-beta.2 · Single Deploy
       </div>
 
       <button id="logoutBtn" class="sheet-action">Sair da conta</button>
@@ -1037,75 +1059,105 @@
   </dialog>
 
 
+
   <dialog id="routeClientDialogV5">
     <form method="dialog" class="dialog-card route-dialog-v5">
       <div class="dialog-heading">
-        <div>
-          <h2 id="routeClientDialogTitleV5">Novo cliente</h2>
-          <p>Configure o serviço recorrente.</p>
-        </div>
+        <div><h2 id="routeClientDialogTitleV5">Novo cliente</h2><p>Cadastro completo da rota.</p></div>
         <button value="cancel" class="round-button">×</button>
       </div>
-
       <input id="routeClientIdV5" type="hidden">
-
-      <label>Nome do cliente
-        <input id="routeClientNameV5" type="text" maxlength="80" placeholder="Ex.: Sarah">
+      <label>Nome do cliente<input id="routeClientNameV5" type="text" maxlength="80"></label>
+      <label class="route-favorite-toggle-v5">
+        <input id="routeClientFavoriteV5" type="checkbox">
+        <span><b>Cliente favorito</b><small>Fica destacado e pode ser filtrado</small></span>
       </label>
-
       <div class="route-form-grid-v5">
-        <label>Dia padrão
-          <select id="routeClientDayV5">
-            <option value="1">Segunda</option>
-            <option value="2">Terça</option>
-            <option value="3">Quarta</option>
-            <option value="4">Quinta</option>
-            <option value="5">Sexta</option>
-            <option value="6">Sábado</option>
-            <option value="0">Domingo</option>
-          </select>
-        </label>
-
-        <label>Ordem no dia
-          <input id="routeClientOrderV5" type="number" min="1" max="20" value="1">
-        </label>
-
-        <label>Frequência
-          <select id="routeClientFrequencyV5">
-            <option value="weekly">Semanal</option>
-            <option value="fortnightly">Quinzenal</option>
-          </select>
-        </label>
-
-        <label>Data inicial
-          <input id="routeClientAnchorV5" type="date">
-        </label>
-
-        <label>Valor por hora
-          <input id="routeClientRateV5" type="number" min="0" step="0.01" inputmode="decimal" placeholder="17,00">
-        </label>
-
-        <label>Horas previstas
-          <input id="routeClientHoursV5" type="number" min="0.25" step="0.25" inputmode="decimal" placeholder="2">
-        </label>
+        <label>Dia padrão<select id="routeClientDayV5">
+          <option value="1">Segunda</option><option value="2">Terça</option>
+          <option value="3">Quarta</option><option value="4">Quinta</option>
+          <option value="5">Sexta</option><option value="6">Sábado</option>
+          <option value="0">Domingo</option>
+        </select></label>
+        <label>Ordem no dia<input id="routeClientOrderV5" type="number" min="1" max="30" value="1"></label>
+        <label>Frequência<select id="routeClientFrequencyV5">
+          <option value="weekly">Semanal</option><option value="fortnightly">Quinzenal</option>
+        </select></label>
+        <label>Data inicial<input id="routeClientAnchorV5" type="date"></label>
+        <label>Valor por hora<input id="routeClientRateV5" type="number" min="0" step="0.01" inputmode="decimal"></label>
+        <label>Horas previstas<input id="routeClientHoursV5" type="number" min="0.25" step="0.25" inputmode="decimal"></label>
+        <label>Custo estimado/h<input id="routeClientCostV5" type="number" min="0" step="0.01" inputmode="decimal"></label>
+        <label>Estacionamento/custos<input id="routeClientExtraCostV5" type="number" min="0" step="0.01" inputmode="decimal"></label>
       </div>
-
-      <label>Observação
-        <input id="routeClientNoteV5" type="text" maxlength="120" placeholder="Código da porta, instruções...">
-      </label>
-
-      <section class="route-client-preview-v5">
-        <span>VALOR PREVISTO POR LIMPEZA</span>
-        <strong id="routeClientAmountPreviewV5">£0,00</strong>
+      <label>Observações permanentes<textarea id="routeClientNoteV5" maxlength="500" rows="4"></textarea></label>
+      <section class="route-client-preview-v5 route-client-preview-grid-v5">
+        <div><span>RECEITA PREVISTA</span><strong id="routeClientAmountPreviewV5">£0,00</strong></div>
+        <div><span>LUCRO ESTIMADO</span><strong id="routeClientProfitPreviewV5">£0,00</strong></div>
       </section>
-
       <div id="routeClientFeedbackV5" class="feedback"></div>
       <button id="saveRouteClientV5" class="primary-button" type="button">Salvar cliente</button>
-      <button id="deleteRouteClientV5" class="danger-outline-v5 hidden" type="button">Excluir cliente</button>
+      <div class="route-client-admin-actions-v5">
+        <button id="duplicateRouteClientV5" class="secondary-button hidden" type="button">Duplicar cliente</button>
+        <button id="deleteRouteClientV5" class="danger-outline-v5 hidden" type="button">Excluir cliente</button>
+      </div>
     </form>
   </dialog>
 
-  <dialog id="routePaymentDialogV5">
+  <dialog id="routeManageDialogV5">
+    <form method="dialog" class="dialog-card route-dialog-v5">
+      <div class="dialog-heading">
+        <div><h2>Opções da limpeza</h2><p id="routeManageClientV5">Cliente</p></div>
+        <button value="cancel" class="round-button">×</button>
+      </div>
+      <input id="routeManageKeyV5" type="hidden">
+      <div class="route-manage-menu-v5">
+        <button id="routeChangeDateV5" type="button"><span>📅</span><div><b>Alterar data</b><small>Mover somente esta limpeza</small></div></button>
+        <button id="routeChangeHoursV5" type="button"><span>⏰</span><div><b>Alterar horas</b><small>Ajustar duração desta visita</small></div></button>
+        <button id="routeChangeRateV5" type="button"><span>£</span><div><b>Alterar valor/hora</b><small>Alterar somente esta limpeza</small></div></button>
+        <button id="routeChangeOrderV5" type="button"><span>№</span><div><b>Alterar ordem</b><small>Mudar posição no dia</small></div></button>
+        <button id="routeCancelVisitV5" class="danger" type="button"><span>×</span><div><b>Cancelar limpeza</b><small>Remove do esperado da semana</small></div></button>
+        <button id="routeRestoreVisitV5" type="button"><span>↺</span><div><b>Restaurar padrão</b><small>Desfazer alterações</small></div></button>
+        <button id="routeViewClientV5" type="button"><span>👤</span><div><b>Perfil do cliente</b><small>Histórico e números</small></div></button>
+        <button id="routeEditClientV5" type="button"><span>✎</span><div><b>Editar cadastro</b><small>Alterar padrão recorrente</small></div></button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="routeQuickEditDialogV5">
+    <form method="dialog" class="dialog-card route-dialog-v5">
+      <div class="dialog-heading">
+        <div><h2 id="routeQuickEditTitleV5">Alterar</h2><p id="routeQuickEditSubtitleV5">Cliente</p></div>
+        <button value="cancel" class="round-button">×</button>
+      </div>
+      <input id="routeQuickEditKeyV5" type="hidden">
+      <input id="routeQuickEditTypeV5" type="hidden">
+      <label id="routeQuickEditFieldWrapV5">Novo valor<input id="routeQuickEditValueV5" type="text"></label>
+      <div id="routeQuickEditFeedbackV5" class="feedback"></div>
+      <button id="saveRouteQuickEditV5" class="primary-button" type="button">Salvar alteração</button>
+    </form>
+  </dialog>
+
+  <dialog id="routeClientProfileDialogV5">
+    <section class="route-profile-panel-v5">
+      <div class="calendar-top">
+        <div><span class="calendar-overline">PERFIL DO CLIENTE</span><h2 id="routeProfileNameV5">Cliente</h2><p id="routeProfileScheduleV5">Agenda</p></div>
+        <button id="closeRouteProfileV5" class="round-button" type="button">×</button>
+      </div>
+      <section class="route-profile-stats-v5">
+        <article><span>Pago no mês</span><strong id="routeProfileMonthV5">£0,00</strong></article>
+        <article><span>Pago no ano</span><strong id="routeProfileYearV5">£0,00</strong></article>
+        <article><span>Horas acumuladas</span><strong id="routeProfileHoursV5">0h</strong></article>
+        <article><span>Lucro estimado</span><strong id="routeProfileProfitV5">£0,00</strong></article>
+        <article><span>Cancelamentos</span><strong id="routeProfileCancellationsV5">0</strong></article>
+        <article><span>Visitas pagas</span><strong id="routeProfilePaidVisitsV5">0</strong></article>
+      </section>
+      <section class="route-profile-note-v5"><span>OBSERVAÇÕES</span><p id="routeProfileNoteV5">Nenhuma observação.</p></section>
+      <div class="section-heading compact-heading"><div><h2>Histórico</h2><p>Mais recente primeiro.</p></div></div>
+      <section id="routeProfileHistoryV5" class="route-profile-history-v5"></section>
+    </section>
+  </dialog>
+
+<dialog id="routePaymentDialogV5">
     <form method="dialog" class="dialog-card route-dialog-v5">
       <div class="dialog-heading">
         <div>
@@ -1143,59 +1195,13 @@
     </form>
   </dialog>
 
-  <dialog id="routeManageDialogV5">
-    <form method="dialog" class="dialog-card route-dialog-v5">
-      <div class="dialog-heading">
-        <div>
-          <h2>Alterar limpeza</h2>
-          <p id="routeManageClientV5">Cliente</p>
-        </div>
-        <button value="cancel" class="round-button">×</button>
-      </div>
-
-      <input id="routeManageKeyV5" type="hidden">
-
-      <label>Data desta limpeza
-        <input id="routeManageDateV5" type="date">
-      </label>
-
-      <div class="route-form-grid-v5">
-        <label>Valor por hora
-          <input id="routeManageRateV5" type="number" min="0" step="0.01" inputmode="decimal">
-        </label>
-        <label>Horas
-          <input id="routeManageHoursV5" type="number" min="0.25" step="0.25" inputmode="decimal">
-        </label>
-      </div>
-
-      <label class="route-cancel-toggle-v5">
-        <input id="routeManageCancelledV5" type="checkbox">
-        <span>
-          <b>Limpeza cancelada</b>
-          <small>Remove o serviço do valor esperado da semana</small>
-        </span>
-      </label>
-
-      <section class="route-client-preview-v5">
-        <span>NOVO VALOR PREVISTO</span>
-        <strong id="routeManageAmountPreviewV5">£0,00</strong>
-      </section>
-
-      <div id="routeManageFeedbackV5" class="feedback"></div>
-      <button id="saveRouteManageV5" class="primary-button" type="button">Salvar alteração</button>
-      <button id="restoreRouteManageV5" class="secondary-button" type="button">Restaurar padrão do cliente</button>
-      <button id="editRouteClientFromVisitV5" class="secondary-button" type="button">Editar cadastro do cliente</button>
-    </form>
-  </dialog>
-
-  <div id="toast" class="toast"></div>
+<div id="toast" class="toast"></div>
   <canvas id="confetti"></canvas>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=5.0.0-beta.1-fresh"></script>
-  <script src="route.js?v=5.0.0-beta.1"></script>
+  <script src="app.js?v=5.0.0-beta.2-single"></script>
   <script>
     (async()=>{
-      const BUILD="5.0.0-beta.1";
+      const BUILD="5.0.0-beta.2-single";
       try{
         if("serviceWorker" in navigator){
           const registrations=await navigator.serviceWorker.getRegistrations();
