@@ -40,7 +40,7 @@ function fatalDiagnostic313(step,error,extra={}){
     const box=document.getElementById("fatalLoginDiagnostic");
     const text=document.getElementById("fatalLoginDiagnosticText");
     const lines=[
-      `VERSÃO: 5.0.0-beta.7`,
+      `VERSÃO: 5.0.0-beta.8`,
       `ETAPA: ${step}`,
       `MENSAGEM: ${error?.message||String(error||"Erro desconhecido")}`
     ];
@@ -2090,8 +2090,9 @@ $("confirmVaultWithdrawV4").onclick=async()=>{
 };
 
 
-const APP_VERSION="5.0.0-beta.7";
+const APP_VERSION="5.0.0-beta.8";
 const RELEASE_NOTES=[
+  {version:"5.0.0-beta.8",date:"06/08/2026",title:"Resumo semanal limpo e abertura no dia atual",changes:["Card duplicado Cancelados removido do resumo semanal.","Cancelados do mês mostram valor total e quantidade de clientes.","Botão Mostrar mais ficou mais fino e discreto.","A Rota sempre abre na semana atual e no dia de hoje."]},
   {version:"5.0.0-beta.7",date:"06/08/2026",title:"Rota mais limpa e recebimentos separados",changes:["Botão Mostrar mais reduzido.","Resumo mensal mostra dinheiro e cartão.","Atrasados e cancelados abaixo do resumo semanal.","Barra de filtros removida."]},
   {version:"5.0.0-beta.6",date:"06/08/2026",title:"Rota compacta e resumo mensal",changes:["Atrasados e cancelados lado a lado.","Busca e filtros dentro de Mostrar mais.","Resumo mensal adicionado.","Nova frequência Somente uma vez.","Scroll mais suave."]},
   {version:"5.0.0-beta.5",date:"06/08/2026",title:"Sequência automática e filtros aprimorados",changes:["Sequência automática quando o campo fica vazio.","Data alterada permite escolher a sequência no novo dia.","Atraso começa somente no dia seguinte à limpeza.","Busca redesenhada e continua consultando todos os clientes.","Filtros de pagos, pendentes, atrasados e cancelados ganharam contadores, totais e visual próprio."]},
@@ -3440,7 +3441,6 @@ boot();
     const hours=active.reduce((s,x)=>s+x.hours,0),worked=active.filter(x=>x.paid).reduce((s,x)=>s+x.hours,0);
     R.$("routeHoursV5").textContent=`${hours.toFixed(hours%1?1:0)}h`;
     R.$("routeWorkedHoursV5").textContent=`${worked.toFixed(worked%1?1:0)}h concluídas`;
-    R.$("routeCancelledV5").textContent=String(items.filter(x=>x.cancelled).length);
     const end=R.addDays(R.ui.week,6);
     R.$("routeWeekLabelV5").textContent=R.ui.week.getTime()===R.weekStart(new Date()).getTime()?"Esta semana":"Semana selecionada";
     R.$("routeWeekRangeV5").textContent=`${R.pad(R.ui.week.getDate())}/${R.pad(R.ui.week.getMonth()+1)} — ${R.pad(end.getDate())}/${R.pad(end.getMonth()+1)}`;
@@ -3487,7 +3487,12 @@ boot();
     R.$("routeMonthCashV57").textContent=R.money(cash);
     R.$("routeMonthCardV57").textContent=R.money(card);
     R.$("routeMonthHoursV56").textContent=`${hours.toFixed(hours%1?1:0)}h`;
-    R.$("routeMonthCancelledV56").textContent=String(items.filter(x=>x.cancelled).length);
+    const cancelledItems=items.filter(x=>x.cancelled);
+    const cancelledAmount=cancelledItems.reduce((sum,item)=>sum+item.amount,0);
+    const cancelledClients=new Set(cancelledItems.map(item=>item.clientId)).size;
+    R.$("routeMonthCancelledAmountV58").textContent=R.money(cancelledAmount);
+    R.$("routeMonthCancelledCountV58").textContent=
+      `${cancelledClients} ${cancelledClients===1?"cliente":"clientes"}`;
   };
 
   R.renderDays = () => {
@@ -3794,6 +3799,8 @@ boot();
     if(nav&&!nav.dataset.routeBound){
       nav.dataset.routeBound="1";
       nav.onclick=()=>{
+        R.ui.week=R.weekStart(new Date());
+        R.ui.selectedDay=Math.max(0,Math.min(6,R.mondayIndex(new Date().getDay())));
         document.querySelectorAll(".app-section").forEach(x=>x.classList.remove("active-section"));
         R.$("routeView").classList.add("active-section");
         document.querySelectorAll(".nav-item").forEach(x=>x.classList.remove("active"));
@@ -3810,5 +3817,10 @@ boot();
   }
 
   document.addEventListener("DOMContentLoaded",()=>setTimeout(()=>{bind();R.render();},60));
-  window.addEventListener("pageshow",()=>setTimeout(()=>{bind();R.render();},100));
+  window.addEventListener("pageshow",()=>setTimeout(()=>{
+    R.ui.week=R.weekStart(new Date());
+    R.ui.selectedDay=Math.max(0,Math.min(6,R.mondayIndex(new Date().getDay())));
+    bind();
+    R.render();
+  },100));
 })();
