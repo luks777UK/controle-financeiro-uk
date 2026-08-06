@@ -40,7 +40,7 @@ function fatalDiagnostic313(step,error,extra={}){
     const box=document.getElementById("fatalLoginDiagnostic");
     const text=document.getElementById("fatalLoginDiagnosticText");
     const lines=[
-      `VERSÃO: 5.0.0-beta.5`,
+      `VERSÃO: 5.0.0-beta.6`,
       `ETAPA: ${step}`,
       `MENSAGEM: ${error?.message||String(error||"Erro desconhecido")}`
     ];
@@ -2090,8 +2090,9 @@ $("confirmVaultWithdrawV4").onclick=async()=>{
 };
 
 
-const APP_VERSION="5.0.0-beta.5";
+const APP_VERSION="5.0.0-beta.6";
 const RELEASE_NOTES=[
+  {version:"5.0.0-beta.6",date:"06/08/2026",title:"Rota compacta e resumo mensal",changes:["Atrasados e cancelados lado a lado.","Busca e filtros dentro de Mostrar mais.","Resumo mensal adicionado.","Nova frequência Somente uma vez.","Scroll mais suave."]},
   {version:"5.0.0-beta.5",date:"06/08/2026",title:"Sequência automática e filtros aprimorados",changes:["Sequência automática quando o campo fica vazio.","Data alterada permite escolher a sequência no novo dia.","Atraso começa somente no dia seguinte à limpeza.","Busca redesenhada e continua consultando todos os clientes.","Filtros de pagos, pendentes, atrasados e cancelados ganharam contadores, totais e visual próprio."]},
   {version:"5.0.0-beta.4",date:"06/08/2026",title:"Cadastro e busca de clientes corrigidos",changes:["Salvar cliente corrigido com validação da sequência.","Busca passa a consultar todos os clientes cadastrados.","Favoritos e observações removidos.","Exclusão permanente remove cliente, visitas e receitas vinculadas.","Resultados de busca permitem abrir perfil ou editar cliente."]},
   {version:"5.0.0-beta.3",date:"06/08/2026",title:"Menu compacto e sequência do cliente",changes:["Sequência obrigatória e visível ao cadastrar ou editar clientes.","Menu do número reduzido para quatro opções principais.","Botão Mostrar mais revela cancelamento, restauração, perfil e edição do cadastro.","Menu ocupa menos espaço na tela."]},
@@ -3067,6 +3068,7 @@ boot();
   R.isScheduled = (client,date) => {
     if(client.active===false || Number(client.day)!==date.getDay())return false;
     const anchor=R.date(client.anchorDate||R.key(date));
+    if(client.frequency==="once")return R.key(date)===R.key(anchor);
     if(date<R.weekStart(anchor))return false;
     return client.frequency!=="fortnightly" || Math.abs(R.weekDiff(date,anchor))%2===0;
   };
@@ -3481,23 +3483,44 @@ boot();
     R.$("routeWeekLabelV5").textContent=R.ui.week.getTime()===R.weekStart(new Date()).getTime()?"Esta semana":"Semana selecionada";
     R.$("routeWeekRangeV5").textContent=`${R.pad(R.ui.week.getDate())}/${R.pad(R.ui.week.getMonth()+1)} — ${R.pad(end.getDate())}/${R.pad(end.getMonth()+1)}`;
     R.renderOverdue();
+    R.renderMonthSummaryV56();
     R.renderDays();
     R.renderSelectedDay();
   };
 
   R.renderOverdue = () => {
-    const items=R.overdueItems();
-    const total=items.reduce((s,x)=>s+x.amount,0);
-    R.$("routeOverdueAmountV5").textContent=R.money(total);
-    R.$("routeOverdueCountV5").textContent=String(items.length);
-    R.$("routeOverdueSubtitleV5").textContent=items.length?`${items.length} ${items.length===1?"cliente":"clientes"} aguardando pagamento`:"Nenhum cliente em atraso";
-    const list=R.$("routeOverdueListV5");
-    list.innerHTML=items.length?items.map(item=>`
-      <article class="route-overdue-item-v5">
-        <div><strong>${R.escape(item.client.name)}</strong><span>${R.formatDate(item.actualDate)} · ${R.daysLate(item.actualDate)} dias de atraso</span></div>
-        <div class="route-overdue-action-v5"><b>${R.money(item.amount)}</b><button type="button" data-overdue-pay="${item.key}">Confirmar pago</button></div>
-      </article>`).join(""):'<div class="route-empty-v5"><b>Nenhum pagamento atrasado</b><span>Tudo em dia.</span></div>';
-    list.querySelectorAll("[data-overdue-pay]").forEach(btn=>btn.onclick=()=>R.openPayment(R.fromKey(btn.dataset.overduePay)));
+    const overdue=R.overdueItems();
+    R.$("routeOverdueAmountV5").textContent=R.money(overdue.reduce((s,x)=>s+x.amount,0));
+    R.$("routeOverdueCountV5").textContent=String(overdue.length);
+    R.$("routeOverdueSubtitleV5").textContent=overdue.length?`${overdue.length} ${overdue.length===1?"cliente":"clientes"}`:"Nenhum cliente";
+    const overdueList=R.$("routeOverdueListV5");
+    overdueList.innerHTML=overdue.length?overdue.map(item=>`<article class="route-overdue-item-v5"><div><strong>${R.escape(item.client.name)}</strong><span>${R.formatDate(item.actualDate)} · ${R.daysLate(item.actualDate)} dias de atraso</span></div><div class="route-overdue-action-v5"><b>${R.money(item.amount)}</b><button type="button" data-overdue-pay="${item.key}">Confirmar pago</button></div></article>`).join(""):'<div class="route-empty-v5"><b>Nenhum pagamento atrasado</b><span>Tudo em dia.</span></div>';
+    overdueList.querySelectorAll("[data-overdue-pay]").forEach(btn=>btn.onclick=()=>R.openPayment(R.fromKey(btn.dataset.overduePay)));
+
+    const cancelled=R.weekItems().filter(item=>item.cancelled);
+    R.$("routeCancelledAmountV56").textContent=R.money(cancelled.reduce((s,x)=>s+x.amount,0));
+    R.$("routeCancelledCountV56").textContent=String(cancelled.length);
+    R.$("routeCancelledSubtitleV56").textContent=cancelled.length?`${cancelled.length} ${cancelled.length===1?"limpeza":"limpezas"}`:"Nenhum nesta semana";
+    const cancelledList=R.$("routeCancelledListV56");
+    cancelledList.innerHTML=cancelled.length?cancelled.map(item=>`<article class="route-overdue-item-v5 route-cancelled-item-v56"><div><strong>${R.escape(item.client.name)}</strong><span>${R.formatDate(item.actualDate)} · ${item.hours}h</span></div><div class="route-overdue-action-v5"><b>${R.money(item.amount)}</b><button type="button" data-cancelled-manage="${item.key}">Abrir opções</button></div></article>`).join(""):'<div class="route-empty-v5"><b>Nenhuma limpeza cancelada</b><span>Nada foi removido desta semana.</span></div>';
+    cancelledList.querySelectorAll("[data-cancelled-manage]").forEach(btn=>btn.onclick=()=>R.openManage(R.fromKey(btn.dataset.cancelledManage)));
+  };
+
+
+  R.renderMonthSummaryV56 = () => {
+    const reference=R.addDays(R.ui.week,3);
+    const start=new Date(reference.getFullYear(),reference.getMonth(),1,12);
+    const end=new Date(reference.getFullYear(),reference.getMonth()+1,0,12);
+    const items=R.instances(start,end),active=items.filter(x=>!x.cancelled);
+    const expected=active.reduce((s,x)=>s+x.amount,0);
+    const received=active.filter(x=>x.paid).reduce((s,x)=>s+x.amountReceived,0);
+    const hours=active.reduce((s,x)=>s+x.hours,0);
+    R.$("routeMonthLabelV56").textContent=new Intl.DateTimeFormat("pt-BR",{month:"long",year:"numeric"}).format(reference);
+    R.$("routeMonthRangeV56").textContent=`${R.pad(start.getDate())}/${R.pad(start.getMonth()+1)} — ${R.pad(end.getDate())}/${R.pad(end.getMonth()+1)}`;
+    R.$("routeMonthExpectedV56").textContent=R.money(expected);
+    R.$("routeMonthReceivedV56").textContent=R.money(received);
+    R.$("routeMonthHoursV56").textContent=`${hours.toFixed(hours%1?1:0)}h`;
+    R.$("routeMonthCancelledV56").textContent=String(items.filter(x=>x.cancelled).length);
   };
 
   R.renderDays = () => {
@@ -3514,7 +3537,7 @@ boot();
     if(item.cancelled)return ["cancelled","Cancelado"];
     if(item.paid)return ["paid",item.paymentMethod==="cash"?"Pago em dinheiro":"Pago no cartão"];
     if(R.isOverdue(item))return ["overdue",`${R.daysLate(item.actualDate)}d atrasado`];
-    return ["pending",item.client.frequency==="fortnightly"?"Quinzenal":"Pendente"];
+    return ["pending",item.client.frequency==="fortnightly"?"Quinzenal":item.client.frequency==="once"?"Somente uma vez":"Pendente"];
   };
 
   R.searchClients = () => {
@@ -3549,7 +3572,7 @@ boot();
         <button class="route-order-v5" type="button" data-search-edit="${client.id}">${Number(client.order||1)}º</button>
         <div class="route-client-main-v5">
           <strong>${R.escape(client.name)}</strong>
-          <span>${R.DAY_NAMES[Number(client.day)]} · ${client.frequency==="fortnightly"?"Quinzenal":"Semanal"}</span>
+          <span>${R.DAY_NAMES[Number(client.day)]} · ${client.frequency==="fortnightly"?"Quinzenal":client.frequency==="once"?"Somente uma vez":"Semanal"}</span>
           <small>${Number(client.hours||0)}h × ${R.money(Number(client.hourlyRate||0))}/h</small>
         </div>
         <div class="route-client-value-v5">
@@ -3724,7 +3747,7 @@ boot();
     const paid=visits.filter(x=>x.paid),monthPaid=paid.filter(x=>R.date(x.paymentDate||x.actualDate).getMonth()===month&&R.date(x.paymentDate||x.actualDate).getFullYear()===year);
     const yearPaid=paid.filter(x=>R.date(x.paymentDate||x.actualDate).getFullYear()===year);
     R.$("routeProfileNameV5").textContent=client.name;
-    R.$("routeProfileScheduleV5").textContent=`${R.DAY_NAMES[Number(client.day)]} · ${client.frequency==="fortnightly"?"quinzenal":"semanal"} · ${client.hours}h`;
+    R.$("routeProfileScheduleV5").textContent=`${R.DAY_NAMES[Number(client.day)]} · ${client.frequency==="fortnightly"?"quinzenal":client.frequency==="once"?"somente uma vez":"semanal"} · ${client.hours}h`;
     R.$("routeProfileMonthV5").textContent=R.money(monthPaid.reduce((s,x)=>s+x.amountReceived,0));
     R.$("routeProfileYearV5").textContent=R.money(yearPaid.reduce((s,x)=>s+x.amountReceived,0));
     R.$("routeProfileHoursV5").textContent=`${paid.reduce((s,x)=>s+x.hours,0).toFixed(1)}h`;
@@ -3757,7 +3780,18 @@ boot();
     once("openRouteClientV5","click",()=>R.openClient());
     once("routePrevWeekV5","click",()=>{R.ui.week=R.addDays(R.ui.week,-7);R.render();});
     once("routeNextWeekV5","click",()=>{R.ui.week=R.addDays(R.ui.week,7);R.render();});
-    once("toggleRouteOverdueV5","click",()=>R.$("routeOverdueListV5").classList.toggle("hidden"));
+    once("toggleRouteOverdueV5","click",()=>{R.$("routeOverduePanelV56").classList.toggle("hidden");R.$("routeCancelledPanelV56").classList.add("hidden");});
+    once("toggleRouteCancelledV56","click",()=>{R.$("routeCancelledPanelV56").classList.toggle("hidden");R.$("routeOverduePanelV56").classList.add("hidden");});
+    once("closeRouteOverdueV56","click",()=>R.$("routeOverduePanelV56").classList.add("hidden"));
+    once("closeRouteCancelledV56","click",()=>R.$("routeCancelledPanelV56").classList.add("hidden"));
+    once("toggleRouteToolsV56","click",()=>{
+      const panel=R.$("routeExtraToolsV56"),button=R.$("toggleRouteToolsV56"),opening=panel.classList.contains("hidden");
+      panel.classList.toggle("hidden");
+      button.querySelector("strong").textContent=opening?"Mostrar menos":"Mostrar mais";
+      button.querySelector("small").textContent=opening?"Ocultar busca, filtros e resumo":"Busca, filtros e resumo mensal";
+      button.querySelector("em").textContent=opening?"⌃":"⌄";
+      if(opening)setTimeout(()=>panel.scrollIntoView({behavior:"smooth",block:"nearest"}),80);
+    });
     once("routeSearchV5","input",e=>{
       R.ui.search=e.target.value;
       R.$("clearRouteSearchV55").classList.toggle("hidden",!R.ui.search);
@@ -3812,7 +3846,7 @@ boot();
         R.$("routeView").classList.add("active-section");
         document.querySelectorAll(".nav-item").forEach(x=>x.classList.remove("active"));
         nav.classList.add("active");
-        window.scrollTo({top:0});
+        window.scrollTo({top:0,behavior:"smooth"});
         R.render();
       };
     }

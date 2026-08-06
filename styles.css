@@ -1698,3 +1698,24 @@ body.settings-open-310{
 .route-client-card-v5.paid{
   background:linear-gradient(145deg,#151b21,#151925);
 }
+
+html{scroll-behavior:smooth}
+.route-status-pair-v56{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.route-status-card-v56{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:78px;padding:11px;border-radius:18px;text-align:left;color:#fff}
+.route-status-card-v56.overdue{border:1px solid rgba(255,112,132,.17);background:linear-gradient(145deg,rgba(255,112,132,.075),#151622)}
+.route-status-card-v56.cancelled{border:1px solid rgba(255,177,95,.17);background:linear-gradient(145deg,rgba(255,177,95,.07),#151622)}
+.route-status-card-v56 span,.route-status-card-v56 strong,.route-status-card-v56 small{display:block}
+.route-status-card-v56 span{font-size:6px;font-weight:900;letter-spacing:.8px}.route-status-card-v56 strong{margin-top:4px;font-size:14px}.route-status-card-v56 small{margin-top:3px;color:#868a9c;font-size:6px}
+.route-status-card-v56.overdue span,.route-status-card-v56.overdue strong{color:#ff7890}.route-status-card-v56.cancelled span,.route-status-card-v56.cancelled strong{color:#ffb15f}
+.route-status-card-v56 em{min-width:27px;height:27px;display:grid;place-items:center;border-radius:9px;background:#252738;font-style:normal;font-size:9px}
+.route-status-panel-v56{margin-bottom:10px;padding:11px;border-radius:18px;background:#11131f;border:1px solid rgba(255,255,255,.07);animation:routeSlideV56 .22s ease both}
+.route-status-panel-head-v56{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:9px}.route-status-panel-head-v56 strong,.route-status-panel-head-v56 small{display:block}.route-status-panel-head-v56 strong{font-size:10px}.route-status-panel-head-v56 small{margin-top:3px;color:#85899a;font-size:6px}.route-status-panel-head-v56 button{width:30px;height:30px;border:0;border-radius:10px;background:#232536;color:#fff}
+.route-tools-toggle-v56{width:100%;display:grid;grid-template-columns:34px 1fr 24px;align-items:center;gap:9px;margin-bottom:10px;padding:10px 12px;border:1px solid rgba(139,92,246,.13);border-radius:15px;background:linear-gradient(145deg,rgba(139,92,246,.07),#151725);color:#fff;text-align:left}
+.route-tools-toggle-v56>span{width:34px;height:34px;display:grid;place-items:center;border-radius:11px;background:rgba(139,92,246,.12);color:#b79aff}.route-tools-toggle-v56 strong,.route-tools-toggle-v56 small{display:block}.route-tools-toggle-v56 strong{font-size:9px}.route-tools-toggle-v56 small{margin-top:3px;color:#85899a;font-size:6px}.route-tools-toggle-v56 em{color:#a98cff;font-style:normal;text-align:center}
+.route-extra-tools-v56{margin-bottom:11px;animation:routeSlideV56 .22s ease both}
+.route-month-summary-v56{margin-top:9px;padding:12px;border-radius:18px;background:linear-gradient(145deg,rgba(46,190,163,.055),rgba(139,92,246,.075));border:1px solid rgba(97,173,255,.11)}
+.route-month-summary-head-v56{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:9px}.route-month-summary-head-v56 span,.route-month-summary-head-v56 strong,.route-month-summary-head-v56 small{display:block}.route-month-summary-head-v56 span{color:#61adff;font-size:6px;font-weight:900;letter-spacing:.8px}.route-month-summary-head-v56 strong{margin-top:3px;text-transform:capitalize;font-size:10px}.route-month-summary-head-v56 small{color:#85899a;font-size:6px}
+.route-month-grid-v56{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.route-month-grid-v56 article{padding:9px 7px;border-radius:13px;background:#151725;border:1px solid rgba(255,255,255,.05)}.route-month-grid-v56 span,.route-month-grid-v56 strong{display:block}.route-month-grid-v56 span{color:#85899a;font-size:5.7px}.route-month-grid-v56 strong{margin-top:4px;font-size:11px}
+.route-cancelled-item-v56{border-left:3px solid #ffb15f}
+@keyframes routeSlideV56{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:430px){.route-status-pair-v56{gap:6px}.route-status-card-v56{min-height:74px;padding:9px}.route-month-grid-v56{grid-template-columns:repeat(2,1fr)}}
