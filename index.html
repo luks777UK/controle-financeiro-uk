@@ -7,13 +7,13 @@
   <meta http-equiv="Expires" content="0">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
   <meta name="theme-color" content="#080914">
-  <meta name="application-name" content="Nosso Controle 5.0.0-beta.4">
+  <meta name="application-name" content="Nosso Controle 5.0.0-beta.5">
   <meta name="apple-mobile-web-app-title" content="Nosso Controle">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="styles.css?v=5.0.0-beta.4-fresh">
-  <title>Nosso Controle 5.0.0-beta.4</title>
+  <link rel="stylesheet" href="styles.css?v=5.0.0-beta.5-fresh">
+  <title>Nosso Controle 5.0.0-beta.5</title>
 </head>
 <body>
   <section id="authView" class="auth-screen">
@@ -479,18 +479,41 @@
         </article>
       </section>
 
-      <section class="route-tools-v5">
-        <label class="route-search-v5">
-          <span>⌕</span>
-          <input id="routeSearchV5" type="search" placeholder="Buscar cliente">
-        </label>
-        <select id="routeStatusFilterV5" aria-label="Filtrar clientes">
-          <option value="all">Todos</option>
-          <option value="pending">Pendentes</option>
-          <option value="paid">Pagos</option>
-          <option value="overdue">Atrasados</option>
-          <option value="cancelled">Cancelados</option>
-        </select>
+      <section class="route-tools-v5 route-tools-v55">
+        <div class="route-search-box-v55">
+          <span class="route-search-icon-v55">⌕</span>
+          <div>
+            <label for="routeSearchV5">Buscar cliente</label>
+            <input id="routeSearchV5" type="search" placeholder="Digite qualquer nome cadastrado">
+          </div>
+          <button id="clearRouteSearchV55" class="route-search-clear-v55 hidden" type="button">×</button>
+        </div>
+
+        <div class="route-filter-bar-v55" id="routeFilterBarV55">
+          <button type="button" data-route-filter="all" class="active">
+            <span>Todos</span><strong id="routeFilterAllCountV55">0</strong>
+          </button>
+          <button type="button" data-route-filter="pending">
+            <span>Pendentes</span><strong id="routeFilterPendingCountV55">0</strong>
+          </button>
+          <button type="button" data-route-filter="paid">
+            <span>Pagos</span><strong id="routeFilterPaidCountV55">0</strong>
+          </button>
+          <button type="button" data-route-filter="overdue">
+            <span>Atrasados</span><strong id="routeFilterOverdueCountV55">0</strong>
+          </button>
+          <button type="button" data-route-filter="cancelled">
+            <span>Cancelados</span><strong id="routeFilterCancelledCountV55">0</strong>
+          </button>
+        </div>
+
+        <section id="routeFilterSummaryV55" class="route-filter-summary-v55">
+          <div>
+            <span id="routeFilterSummaryLabelV55">TODOS DA SEMANA</span>
+            <strong id="routeFilterSummaryTitleV55">Visão completa</strong>
+          </div>
+          <strong id="routeFilterSummaryAmountV55">£0,00</strong>
+        </section>
       </section>
 
       <div class="route-week-nav-v5">
@@ -552,7 +575,7 @@
         <button id="resetFinance" class="sheet-action danger">Zerar reservas e depósitos</button>
         
       <div id="buildMarker403" class="build-marker-403">
-        Versão carregada: 5.0.0-beta.4 · Single Deploy
+        Versão carregada: 5.0.0-beta.5 · Single Deploy
       </div>
 
       <button id="logoutBtn" class="sheet-action">Sair da conta</button>
@@ -1074,7 +1097,7 @@
           <option value="5">Sexta</option><option value="6">Sábado</option>
           <option value="0">Domingo</option>
         </select></label>
-        <label>Sequência no dia<input id="routeClientOrderV5" type="number" min="1" max="30" value="1" required><small class="route-field-help-v53">Ex.: 1 para o primeiro cliente, 2 para o segundo.</small></label>
+        <label>Sequência no dia<input id="routeClientOrderV5" type="number" min="1" max="30" inputmode="numeric" placeholder="Automática"><small class="route-field-help-v53">Deixe vazio para o sistema colocar na próxima posição disponível.</small></label>
         <label>Frequência<select id="routeClientFrequencyV5">
           <option value="weekly">Semanal</option><option value="fortnightly">Quinzenal</option>
         </select></label>
@@ -1133,6 +1156,10 @@
       <input id="routeQuickEditKeyV5" type="hidden">
       <input id="routeQuickEditTypeV5" type="hidden">
       <label id="routeQuickEditFieldWrapV5">Novo valor<input id="routeQuickEditValueV5" type="text"></label>
+      <label id="routeQuickEditOrderWrapV55" class="hidden">Sequência na nova data
+        <input id="routeQuickEditOrderV55" type="number" min="1" max="30" inputmode="numeric" placeholder="Automática">
+        <small class="route-field-help-v53">Vazio = última posição disponível naquele dia.</small>
+      </label>
       <div id="routeQuickEditFeedbackV5" class="feedback"></div>
       <button id="saveRouteQuickEditV5" class="primary-button" type="button">Salvar alteração</button>
     </form>
@@ -1198,10 +1225,10 @@
 <div id="toast" class="toast"></div>
   <canvas id="confetti"></canvas>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=5.0.0-beta.4-fresh"></script>
+  <script src="app.js?v=5.0.0-beta.5-fresh"></script>
   <script>
     (async()=>{
-      const BUILD="5.0.0-beta.4-single";
+      const BUILD="5.0.0-beta.5-single";
       try{
         if("serviceWorker" in navigator){
           const registrations=await navigator.serviceWorker.getRegistrations();
