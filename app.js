@@ -40,7 +40,7 @@ function fatalDiagnostic313(step,error,extra={}){
     const box=document.getElementById("fatalLoginDiagnostic");
     const text=document.getElementById("fatalLoginDiagnosticText");
     const lines=[
-      `VERSÃO: 5.0.0-beta.10.1`,
+      `VERSÃO: 5.0.0-beta.11.1`,
       `ETAPA: ${step}`,
       `MENSAGEM: ${error?.message||String(error||"Erro desconhecido")}`
     ];
@@ -2090,8 +2090,9 @@ $("confirmVaultWithdrawV4").onclick=async()=>{
 };
 
 
-const APP_VERSION="5.0.0-beta.10";
+const APP_VERSION="5.0.0-beta.11";
 const RELEASE_NOTES=[
+  {version:"5.0.0-beta.11",date:"06/08/2026",title:"Extras nos resumos e primeira data obrigatória",changes:["Extras aparecem no resumo semanal.","Extras aparecem no resumo mensal.","Todo cliente precisa de uma primeira data.","Cliente Extra já é agendado na data escolhida e continua disponível para futuros serviços."]},
   {version:"5.0.0-beta.10",date:"06/08/2026",title:"Clientes extras e lista geral",changes:["Novo tipo Extra · sem data fixa.","Clientes extras são adicionados pelo calendário somente nos dias escolhidos.","Selo Extra identifica esses serviços.","Lista alfabética de clientes adicionada ao lado de Mostrar mais.","Lista permite abrir perfil, editar e excluir clientes."]},
   {version:"5.0.0-beta.9.1",date:"06/08/2026",title:"Correção do resumo mensal",changes:["Corrigido erro overdueAmount ao abrir dados após login.","Valor e quantidade de clientes em atraso voltaram a carregar no resumo mensal.","Calendário e demais funções da Rota foram preservados."]},
   {version:"5.0.0-beta.9.1",date:"06/08/2026",title:"Calendário da Rota e atrasos mensais",changes:["Calendário ao lado de Rota.","Datas mostram clientes.","Cancelamento de um ou vários dias.","Resumo mensal mostra atrasos.","Dinheiro e Cartão agrupados."]},
@@ -3239,7 +3240,8 @@ boot();
 
   R.toggleExtraClientFieldsV510 = () => {
     const extra=R.$("routeClientFrequencyV5").value==="extra";
-    ["routeClientDayWrapV510","routeClientOrderWrapV510","routeClientAnchorWrapV510"].forEach(id=>R.$(id)?.classList.toggle("hidden",extra));
+    ["routeClientDayWrapV510","routeClientOrderWrapV510"].forEach(id=>R.$(id)?.classList.toggle("hidden",extra));
+    R.$("routeClientAnchorWrapV510")?.classList.remove("hidden");
   };
 
   R.openClient = client => {
@@ -3269,26 +3271,89 @@ boot();
     const name=R.$("routeClientNameV5").value.trim();
     const frequency=R.$("routeClientFrequencyV5").value;
     const isExtra=frequency==="extra";
-    const day=isExtra?null:Number(R.$("routeClientDayV5").value);
+    const anchorDate=R.$("routeClientAnchorV5").value;
+    const anchorDay=anchorDate?R.date(anchorDate).getDay():null;
+    const day=isExtra?anchorDay:Number(R.$("routeClientDayV5").value);
     const rate=Number(R.$("routeClientRateV5").value||0);
     const hours=Number(R.$("routeClientHoursV5").value||0);
     const sequenceText=R.$("routeClientOrderV5").value.trim();
     const clientId=R.$("routeClientIdV5").value;
     const existing=clientId?R.client(clientId):null;
-    const oldDay=existing?.frequency==="extra"?null:Number(existing?.day);
+    const oldDay=existing?.day==null?null:Number(existing.day);
+
     if(!name)return R.feedback("routeClientFeedbackV5","Digite o nome do cliente.");
     if(rate<=0||hours<=0)return R.feedback("routeClientFeedbackV5","Informe valor/hora e horas.");
-    let sequence=isExtra?0:(sequenceText?Number(sequenceText):R.nextClientOrder(day,clientId));
-    if(!isExtra&&(!Number.isInteger(sequence)||sequence<1))return R.feedback("routeClientFeedbackV5","Digite uma sequência válida ou deixe vazio.");
-    const payload={name,day,order:sequence,frequency,anchorDate:isExtra?"":(R.$("routeClientAnchorV5").value||R.today()),hourlyRate:rate,hours,costPerHour:Number(R.$("routeClientCostV5").value||0),extraCost:Number(R.$("routeClientExtraCostV5").value||0),active:true,updatedAt:new Date().toISOString()};
+    if(!anchorDate)return R.feedback("routeClientFeedbackV5","Escolha a primeira data do serviço.");
+
+    let sequence=isExtra
+      ? R.nextVisitOrder(anchorDate)
+      : (sequenceText?Number(sequenceText):R.nextClientOrder(day,clientId));
+
+    if(!Number.isInteger(sequence)||sequence<1){
+      return R.feedback("routeClientFeedbackV5","Digite uma sequência válida ou deixe vazio.");
+    }
+
+    const payload={
+      name,
+      day,
+      order:isExtra?0:sequence,
+      frequency,
+      anchorDate,
+      hourlyRate:rate,
+      hours,
+      costPerHour:Number(R.$("routeClientCostV5").value||0),
+      extraCost:Number(R.$("routeClientExtraCostV5").value||0),
+      active:true,
+      updatedAt:new Date().toISOString()
+    };
+
     try{
-      if(!isExtra)R.clients().filter(c=>Number(c.day)===day&&String(c.id)!==String(clientId)&&Number(c.order||0)>=sequence).forEach(c=>c.order=Number(c.order||0)+1);
-      if(existing)Object.assign(existing,payload);else R.ensure().clients.push({id:R.id(),createdAt:new Date().toISOString(),...payload});
-      if(oldDay!==null&&oldDay!==day)R.normalizeClientOrders(oldDay);
-      if(!isExtra)R.normalizeClientOrders(day);
+      let savedClient=existing;
+      if(existing){
+        Object.assign(existing,payload);
+      }else{
+        savedClient={
+          id:R.id(),
+          createdAt:new Date().toISOString(),
+          ...payload
+        };
+        R.ensure().clients.push(savedClient);
+      }
+
+      if(!isExtra){
+        R.clients()
+          .filter(client=>
+            Number(client.day)===Number(day) &&
+            String(client.id)!==String(savedClient.id) &&
+            Number(client.order||0)>=sequence
+          )
+          .forEach(client=>client.order=Number(client.order||0)+1);
+        if(oldDay!==null&&oldDay!==day)R.normalizeClientOrders(oldDay);
+        R.normalizeClientOrders(day);
+      }else{
+        const existingVisit=(R.ensure().visits||[]).find(visit=>
+          String(visit.clientId)===String(savedClient.id)&&
+          visit.actualDate===anchorDate
+        );
+        if(!existingVisit){
+          const item=R.instance(savedClient,anchorDate);
+          R.upsertVisit(item,{
+            actualDate:anchorDate,
+            order:sequence,
+            extra:true,
+            cancelled:false
+          });
+        }
+      }
+
       R.$("routeClientDialogV5").close();
       await persist(clientId?"Cliente atualizado":"Cliente adicionado à rota");
-    }catch(error){R.feedback("routeClientFeedbackV5",error?.message||"Não foi possível salvar o cliente.");}
+    }catch(error){
+      R.feedback("routeClientFeedbackV5",error?.message||"Não foi possível salvar o cliente.");
+      if(typeof fatalDiagnostic313==="function"){
+        fatalDiagnostic313("Salvar cliente da Rota 5.0.0-beta.11",error);
+      }
+    }
   };
   R.duplicateClient = async () => {
     const client=R.client(R.$("routeClientIdV5").value);
@@ -3405,8 +3470,12 @@ boot();
     R.ensure();
     const items=R.weekItems();
     const active=items.filter(x=>!x.cancelled);
+    const weeklyExtra=active.filter(item=>item.client?.frequency==="extra"||item.visit?.extra);
     R.$("routeExpectedV5").textContent=R.money(active.reduce((s,x)=>s+x.amount,0));
     R.$("routeReceivedV5").textContent=R.money(active.filter(x=>x.paid).reduce((s,x)=>s+x.amountReceived,0));
+    R.$("routeExtraWeeklyV511").textContent=R.money(weeklyExtra.reduce((sum,item)=>sum+item.amount,0));
+    R.$("routeExtraWeeklyCountV511").textContent=
+      `${weeklyExtra.length} ${weeklyExtra.length===1?"serviço":"serviços"}`;
     const hours=active.reduce((s,x)=>s+x.hours,0),worked=active.filter(x=>x.paid).reduce((s,x)=>s+x.hours,0);
     R.$("routeHoursV5").textContent=`${hours.toFixed(hours%1?1:0)}h`;
     R.$("routeWorkedHoursV5").textContent=`${worked.toFixed(worked%1?1:0)}h concluídas`;
@@ -3443,6 +3512,7 @@ boot();
     const start=new Date(reference.getFullYear(),reference.getMonth(),1,12);
     const end=new Date(reference.getFullYear(),reference.getMonth()+1,0,12);
     const items=R.instances(start,end),active=items.filter(x=>!x.cancelled);
+    const monthlyExtra=active.filter(item=>item.client?.frequency==="extra"||item.visit?.extra);
     const expected=active.reduce((s,x)=>s+x.amount,0);
     const paid=active.filter(x=>x.paid);
     const received=paid.reduce((s,x)=>s+x.amountReceived,0);
@@ -3456,6 +3526,9 @@ boot();
     R.$("routeMonthRangeV56").textContent=`${R.pad(start.getDate())}/${R.pad(start.getMonth()+1)} — ${R.pad(end.getDate())}/${R.pad(end.getMonth()+1)}`;
     R.$("routeMonthExpectedV56").textContent=R.money(expected);
     R.$("routeMonthReceivedV56").textContent=R.money(received);
+    R.$("routeMonthExtraV511").textContent=R.money(monthlyExtra.reduce((sum,item)=>sum+item.amount,0));
+    R.$("routeMonthExtraCountV511").textContent=
+      `${monthlyExtra.length} ${monthlyExtra.length===1?"serviço":"serviços"}`;
     R.$("routeMonthCashV57").textContent=R.money(cash);
     R.$("routeMonthCardV57").textContent=R.money(card);
     R.$("routeMonthHoursV56").textContent=`${hours.toFixed(hours%1?1:0)}h`;
@@ -3483,7 +3556,7 @@ boot();
     if(item.cancelled)return ["cancelled","Cancelado"];
     if(item.paid)return ["paid",item.paymentMethod==="cash"?"Pago em dinheiro":"Pago no cartão"];
     if(R.isOverdue(item))return ["overdue",`${R.daysLate(item.actualDate)}d atrasado`];
-    return ["pending",item.client.frequency==="fortnightly"?"Quinzenal":item.client.frequency==="once"?"Somente uma vez":"Pendente"];
+    return ["pending",item.client.frequency==="fortnightly"?"Quinzenal":item.client.frequency==="once"?"Somente uma vez":item.client.frequency==="extra"?"Extra":"Pendente"];
   };
 
   R.searchClients = () => {
