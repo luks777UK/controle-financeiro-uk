@@ -1520,3 +1520,19 @@ body.settings-open-310{
 .route-more-options-v53.hidden{
   display:none;
 }
+
+
+/* Nosso Controle 5.0.0-beta.4 */
+.route-search-result-v54{
+  border-left:3px solid #61adff;
+}
+
+.route-search-result-v54 .route-order-v5{
+  background:rgba(97,173,255,.11);
+  color:#78baff;
+}
+
+.route-client-admin-actions-v5:has(.hidden + .danger-outline-v5),
+.route-client-admin-actions-v5:has(.secondary-button.hidden){
+  grid-template-columns:1fr;
+}
