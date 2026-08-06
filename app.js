@@ -40,7 +40,7 @@ function fatalDiagnostic313(step,error,extra={}){
     const box=document.getElementById("fatalLoginDiagnostic");
     const text=document.getElementById("fatalLoginDiagnosticText");
     const lines=[
-      `VERSÃO: 5.0.0-beta.6`,
+      `VERSÃO: 5.0.0-beta.7`,
       `ETAPA: ${step}`,
       `MENSAGEM: ${error?.message||String(error||"Erro desconhecido")}`
     ];
@@ -2090,8 +2090,9 @@ $("confirmVaultWithdrawV4").onclick=async()=>{
 };
 
 
-const APP_VERSION="5.0.0-beta.6";
+const APP_VERSION="5.0.0-beta.7";
 const RELEASE_NOTES=[
+  {version:"5.0.0-beta.7",date:"06/08/2026",title:"Rota mais limpa e recebimentos separados",changes:["Botão Mostrar mais reduzido.","Resumo mensal mostra dinheiro e cartão.","Atrasados e cancelados abaixo do resumo semanal.","Barra de filtros removida."]},
   {version:"5.0.0-beta.6",date:"06/08/2026",title:"Rota compacta e resumo mensal",changes:["Atrasados e cancelados lado a lado.","Busca e filtros dentro de Mostrar mais.","Resumo mensal adicionado.","Nova frequência Somente uma vez.","Scroll mais suave."]},
   {version:"5.0.0-beta.5",date:"06/08/2026",title:"Sequência automática e filtros aprimorados",changes:["Sequência automática quando o campo fica vazio.","Data alterada permite escolher a sequência no novo dia.","Atraso começa somente no dia seguinte à limpeza.","Busca redesenhada e continua consultando todos os clientes.","Filtros de pagos, pendentes, atrasados e cancelados ganharam contadores, totais e visual próprio."]},
   {version:"5.0.0-beta.4",date:"06/08/2026",title:"Cadastro e busca de clientes corrigidos",changes:["Salvar cliente corrigido com validação da sequência.","Busca passa a consultar todos os clientes cadastrados.","Favoritos e observações removidos.","Exclusão permanente remove cliente, visitas e receitas vinculadas.","Resultados de busca permitem abrir perfil ou editar cliente."]},
@@ -3426,52 +3427,13 @@ boot();
     .filter(R.isOverdue)
     .sort((a,b)=>a.actualDate.localeCompare(b.actualDate));
 
-  R.filtered = items => items.filter(item=>{
-    if(R.ui.filter==="paid")return item.paid&&!item.cancelled;
-    if(R.ui.filter==="pending")return !item.paid&&!item.cancelled&&!R.isOverdue(item);
-    if(R.ui.filter==="overdue")return R.isOverdue(item);
-    if(R.ui.filter==="cancelled")return item.cancelled;
-    return true;
-  });
+  R.filtered = items => items;
 
-  R.filterInfo = items => {
-    const map={
-      all:["TODOS DA SEMANA","Visão completa",items.filter(x=>!x.cancelled).reduce((s,x)=>s+x.amount,0)],
-      pending:["PENDENTES","Aguardando pagamento",items.filter(x=>!x.paid&&!x.cancelled&&!R.isOverdue(x)).reduce((s,x)=>s+x.amount,0)],
-      paid:["PAGOS","Pagamentos confirmados",items.filter(x=>x.paid&&!x.cancelled).reduce((s,x)=>s+x.amountReceived,0)],
-      overdue:["ATRASADOS","Vencidos desde o dia seguinte",items.filter(R.isOverdue).reduce((s,x)=>s+x.amount,0)],
-      cancelled:["CANCELADOS","Fora da previsão",items.filter(x=>x.cancelled).reduce((s,x)=>s+x.amount,0)]
-    };
-    return map[R.ui.filter]||map.all;
-  };
-
-  R.renderFilterBar = items => {
-    const counts={
-      all:items.length,
-      pending:items.filter(x=>!x.paid&&!x.cancelled&&!R.isOverdue(x)).length,
-      paid:items.filter(x=>x.paid&&!x.cancelled).length,
-      overdue:items.filter(R.isOverdue).length,
-      cancelled:items.filter(x=>x.cancelled).length
-    };
-    R.$("routeFilterAllCountV55").textContent=String(counts.all);
-    R.$("routeFilterPendingCountV55").textContent=String(counts.pending);
-    R.$("routeFilterPaidCountV55").textContent=String(counts.paid);
-    R.$("routeFilterOverdueCountV55").textContent=String(counts.overdue);
-    R.$("routeFilterCancelledCountV55").textContent=String(counts.cancelled);
-    document.querySelectorAll("[data-route-filter]").forEach(button=>
-      button.classList.toggle("active",button.dataset.routeFilter===R.ui.filter)
-    );
-    const [label,title,amount]=R.filterInfo(items);
-    R.$("routeFilterSummaryLabelV55").textContent=label;
-    R.$("routeFilterSummaryTitleV55").textContent=title;
-    R.$("routeFilterSummaryAmountV55").textContent=R.money(amount);
-  };
 
   R.render = () => {
     if(!state||!R.$("routeView"))return;
     R.ensure();
     const items=R.weekItems();
-    R.renderFilterBar(items);
     const active=items.filter(x=>!x.cancelled);
     R.$("routeExpectedV5").textContent=R.money(active.reduce((s,x)=>s+x.amount,0));
     R.$("routeReceivedV5").textContent=R.money(active.filter(x=>x.paid).reduce((s,x)=>s+x.amountReceived,0));
@@ -3513,12 +3475,17 @@ boot();
     const end=new Date(reference.getFullYear(),reference.getMonth()+1,0,12);
     const items=R.instances(start,end),active=items.filter(x=>!x.cancelled);
     const expected=active.reduce((s,x)=>s+x.amount,0);
-    const received=active.filter(x=>x.paid).reduce((s,x)=>s+x.amountReceived,0);
+    const paid=active.filter(x=>x.paid);
+    const received=paid.reduce((s,x)=>s+x.amountReceived,0);
+    const cash=paid.filter(x=>x.paymentMethod==="cash").reduce((s,x)=>s+x.amountReceived,0);
+    const card=paid.filter(x=>x.paymentMethod!=="cash").reduce((s,x)=>s+x.amountReceived,0);
     const hours=active.reduce((s,x)=>s+x.hours,0);
     R.$("routeMonthLabelV56").textContent=new Intl.DateTimeFormat("pt-BR",{month:"long",year:"numeric"}).format(reference);
     R.$("routeMonthRangeV56").textContent=`${R.pad(start.getDate())}/${R.pad(start.getMonth()+1)} — ${R.pad(end.getDate())}/${R.pad(end.getMonth()+1)}`;
     R.$("routeMonthExpectedV56").textContent=R.money(expected);
     R.$("routeMonthReceivedV56").textContent=R.money(received);
+    R.$("routeMonthCashV57").textContent=R.money(cash);
+    R.$("routeMonthCardV57").textContent=R.money(card);
     R.$("routeMonthHoursV56").textContent=`${hours.toFixed(hours%1?1:0)}h`;
     R.$("routeMonthCancelledV56").textContent=String(items.filter(x=>x.cancelled).length);
   };
@@ -3597,15 +3564,8 @@ boot();
     const date=R.addDays(R.ui.week,R.ui.selectedDay),key=R.key(date);
     const items=R.filtered(R.weekItems().filter(x=>x.actualDate===key));
     const active=items.filter(x=>!x.cancelled);
-    const titles={
-      all:R.DAY_NAMES[date.getDay()],
-      pending:`Pendentes · ${R.DAY_NAMES[date.getDay()]}`,
-      paid:`Pagos · ${R.DAY_NAMES[date.getDay()]}`,
-      overdue:`Atrasados · ${R.DAY_NAMES[date.getDay()]}`,
-      cancelled:`Cancelados · ${R.DAY_NAMES[date.getDay()]}`
-    };
-    R.$("routeSelectedDayTitleV5").textContent=titles[R.ui.filter]||titles.all;
-    R.$("routeSelectedDaySubtitleV5").textContent=`${items.length} ${items.length===1?"cliente exibido":"clientes exibidos"}`;
+    R.$("routeSelectedDayTitleV5").textContent=R.DAY_NAMES[date.getDay()];
+    R.$("routeSelectedDaySubtitleV5").textContent=`${items.length} ${items.length===1?"cliente programado":"clientes programados"}`;
     R.$("routeSelectedDayTotalV5").textContent=R.money(active.reduce((s,x)=>s+x.amount,0));
     const list=R.$("routeClientListV5");
     if(!items.length){
@@ -3788,7 +3748,7 @@ boot();
       const panel=R.$("routeExtraToolsV56"),button=R.$("toggleRouteToolsV56"),opening=panel.classList.contains("hidden");
       panel.classList.toggle("hidden");
       button.querySelector("strong").textContent=opening?"Mostrar menos":"Mostrar mais";
-      button.querySelector("small").textContent=opening?"Ocultar busca, filtros e resumo":"Busca, filtros e resumo mensal";
+      button.querySelector("small").textContent=opening?"Ocultar busca e resumo":"Busca e resumo mensal";
       button.querySelector("em").textContent=opening?"⌃":"⌄";
       if(opening)setTimeout(()=>panel.scrollIntoView({behavior:"smooth",block:"nearest"}),80);
     });
@@ -3802,14 +3762,6 @@ boot();
       R.$("routeSearchV5").value="";
       R.$("clearRouteSearchV55").classList.add("hidden");
       R.render();
-    });
-    document.querySelectorAll("[data-route-filter]").forEach(button=>{
-      if(button.dataset.routeBound)return;
-      button.dataset.routeBound="1";
-      button.addEventListener("click",()=>{
-        R.ui.filter=button.dataset.routeFilter;
-        R.render();
-      });
     });
 
     ["routeClientRateV5","routeClientHoursV5","routeClientCostV5","routeClientExtraCostV5"].forEach(id=>once(id,"input",R.previewClient));

@@ -1719,3 +1719,14 @@ html{scroll-behavior:smooth}
 .route-cancelled-item-v56{border-left:3px solid #ffb15f}
 @keyframes routeSlideV56{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
 @media(max-width:430px){.route-status-pair-v56{gap:6px}.route-status-card-v56{min-height:74px;padding:9px}.route-month-grid-v56{grid-template-columns:repeat(2,1fr)}}
+
+/* Nosso Controle 5.0.0-beta.7 */
+.route-tools-toggle-v56{width:auto;min-width:180px;margin:0 auto 10px;grid-template-columns:26px 1fr 18px;padding:7px 10px;border-radius:12px}
+.route-tools-toggle-v56>span{width:26px;height:26px;border-radius:9px;font-size:11px}
+.route-tools-toggle-v56 strong{font-size:8px}.route-tools-toggle-v56 small{font-size:5.5px}
+.route-status-pair-v56{margin-top:10px}
+.route-filter-bar-v55,.route-filter-summary-v55{display:none!important}
+.route-month-grid-v56{grid-template-columns:repeat(3,1fr)}
+.route-month-grid-v56 article:nth-child(3) strong{color:#42e5a4}
+.route-month-grid-v56 article:nth-child(4) strong{color:#61adff}
+@media(max-width:430px){.route-tools-toggle-v56{min-width:165px}.route-month-grid-v56{grid-template-columns:repeat(2,1fr)}}
