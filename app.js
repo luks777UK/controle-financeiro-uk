@@ -40,7 +40,7 @@ function fatalDiagnostic313(step,error,extra={}){
     const box=document.getElementById("fatalLoginDiagnostic");
     const text=document.getElementById("fatalLoginDiagnosticText");
     const lines=[
-      `VERSÃO: 5.0.0-beta.9.1.1`,
+      `VERSÃO: 5.0.0-beta.10.1`,
       `ETAPA: ${step}`,
       `MENSAGEM: ${error?.message||String(error||"Erro desconhecido")}`
     ];
@@ -2090,8 +2090,9 @@ $("confirmVaultWithdrawV4").onclick=async()=>{
 };
 
 
-const APP_VERSION="5.0.0-beta.9.1";
+const APP_VERSION="5.0.0-beta.10";
 const RELEASE_NOTES=[
+  {version:"5.0.0-beta.10",date:"06/08/2026",title:"Clientes extras e lista geral",changes:["Novo tipo Extra · sem data fixa.","Clientes extras são adicionados pelo calendário somente nos dias escolhidos.","Selo Extra identifica esses serviços.","Lista alfabética de clientes adicionada ao lado de Mostrar mais.","Lista permite abrir perfil, editar e excluir clientes."]},
   {version:"5.0.0-beta.9.1",date:"06/08/2026",title:"Correção do resumo mensal",changes:["Corrigido erro overdueAmount ao abrir dados após login.","Valor e quantidade de clientes em atraso voltaram a carregar no resumo mensal.","Calendário e demais funções da Rota foram preservados."]},
   {version:"5.0.0-beta.9.1",date:"06/08/2026",title:"Calendário da Rota e atrasos mensais",changes:["Calendário ao lado de Rota.","Datas mostram clientes.","Cancelamento de um ou vários dias.","Resumo mensal mostra atrasos.","Dinheiro e Cartão agrupados."]},
   {version:"5.0.0-beta.8",date:"06/08/2026",title:"Resumo semanal limpo e abertura no dia atual",changes:["Card duplicado Cancelados removido do resumo semanal.","Cancelados do mês mostram valor total e quantidade de clientes.","Botão Mostrar mais ficou mais fino e discreto.","A Rota sempre abre na semana atual e no dia de hoje."]},
@@ -3072,6 +3073,7 @@ boot();
   R.isScheduled = (client,date) => {
     if(client.active===false || Number(client.day)!==date.getDay())return false;
     const anchor=R.date(client.anchorDate||R.key(date));
+    if(client.frequency==="extra")return false;
     if(client.frequency==="once")return R.key(date)===R.key(anchor);
     if(date<R.weekStart(anchor))return false;
     return client.frequency!=="fortnightly" || Math.abs(R.weekDiff(date,anchor))%2===0;
@@ -3235,6 +3237,11 @@ boot();
     R.$("routeClientProfitPreviewV5").textContent=R.money(rate*hours-(cost*hours+extra));
   };
 
+  R.toggleExtraClientFieldsV510 = () => {
+    const extra=R.$("routeClientFrequencyV5").value==="extra";
+    ["routeClientDayWrapV510","routeClientOrderWrapV510","routeClientAnchorWrapV510"].forEach(id=>R.$(id)?.classList.toggle("hidden",extra));
+  };
+
   R.openClient = client => {
     R.ensure();
     const day=client?.day ?? R.weekday(R.ui.selectedDay);
@@ -3245,6 +3252,7 @@ boot();
     R.$("routeClientOrderV5").value=client?.order?String(client.order):"";
     R.$("routeClientFrequencyV5").value=client?.frequency||"weekly";
     R.$("routeClientAnchorV5").value=client?.anchorDate||R.key(R.addDays(R.ui.week,R.ui.selectedDay));
+    R.toggleExtraClientFieldsV510();
     R.$("routeClientRateV5").value=client?.hourlyRate??"";
     R.$("routeClientHoursV5").value=client?.hours??"";
     R.$("routeClientCostV5").value=client?.costPerHour??"";
@@ -3259,69 +3267,28 @@ boot();
   R.saveClient = async () => {
     R.feedback("routeClientFeedbackV5","");
     const name=R.$("routeClientNameV5").value.trim();
-    const day=Number(R.$("routeClientDayV5").value);
+    const frequency=R.$("routeClientFrequencyV5").value;
+    const isExtra=frequency==="extra";
+    const day=isExtra?null:Number(R.$("routeClientDayV5").value);
     const rate=Number(R.$("routeClientRateV5").value||0);
     const hours=Number(R.$("routeClientHoursV5").value||0);
     const sequenceText=R.$("routeClientOrderV5").value.trim();
     const clientId=R.$("routeClientIdV5").value;
     const existing=clientId?R.client(clientId):null;
-    const oldDay=existing?Number(existing.day):null;
-
+    const oldDay=existing?.frequency==="extra"?null:Number(existing?.day);
     if(!name)return R.feedback("routeClientFeedbackV5","Digite o nome do cliente.");
     if(rate<=0||hours<=0)return R.feedback("routeClientFeedbackV5","Informe valor/hora e horas.");
-
-    let sequence=sequenceText?Number(sequenceText):R.nextClientOrder(day,clientId);
-    if(!Number.isInteger(sequence)||sequence<1){
-      return R.feedback("routeClientFeedbackV5","Digite uma sequência válida ou deixe o campo vazio.");
-    }
-
-    const payload={
-      name,
-      day,
-      order:sequence,
-      frequency:R.$("routeClientFrequencyV5").value,
-      anchorDate:R.$("routeClientAnchorV5").value||R.today(),
-      hourlyRate:rate,
-      hours,
-      costPerHour:Number(R.$("routeClientCostV5").value||0),
-      extraCost:Number(R.$("routeClientExtraCostV5").value||0),
-      active:true,
-      updatedAt:new Date().toISOString()
-    };
-
+    let sequence=isExtra?0:(sequenceText?Number(sequenceText):R.nextClientOrder(day,clientId));
+    if(!isExtra&&(!Number.isInteger(sequence)||sequence<1))return R.feedback("routeClientFeedbackV5","Digite uma sequência válida ou deixe vazio.");
+    const payload={name,day,order:sequence,frequency,anchorDate:isExtra?"":(R.$("routeClientAnchorV5").value||R.today()),hourlyRate:rate,hours,costPerHour:Number(R.$("routeClientCostV5").value||0),extraCost:Number(R.$("routeClientExtraCostV5").value||0),active:true,updatedAt:new Date().toISOString()};
     try{
-      // Abre espaço na posição escolhida.
-      R.clients()
-        .filter(client=>
-          Number(client.day)===day &&
-          String(client.id)!==String(clientId) &&
-          Number(client.order||0)>=sequence
-        )
-        .forEach(client=>client.order=Number(client.order||0)+1);
-
-      if(existing){
-        Object.assign(existing,payload);
-        delete existing.favorite;
-        delete existing.note;
-      }else{
-        R.ensure().clients.push({
-          id:R.id(),
-          createdAt:new Date().toISOString(),
-          ...payload
-        });
-      }
-
-      if(oldDay!==null && oldDay!==day)R.normalizeClientOrders(oldDay);
-      R.normalizeClientOrders(day);
-
+      if(!isExtra)R.clients().filter(c=>Number(c.day)===day&&String(c.id)!==String(clientId)&&Number(c.order||0)>=sequence).forEach(c=>c.order=Number(c.order||0)+1);
+      if(existing)Object.assign(existing,payload);else R.ensure().clients.push({id:R.id(),createdAt:new Date().toISOString(),...payload});
+      if(oldDay!==null&&oldDay!==day)R.normalizeClientOrders(oldDay);
+      if(!isExtra)R.normalizeClientOrders(day);
       R.$("routeClientDialogV5").close();
       await persist(clientId?"Cliente atualizado":"Cliente adicionado à rota");
-    }catch(error){
-      R.feedback("routeClientFeedbackV5",error?.message||"Não foi possível salvar o cliente.");
-      if(typeof fatalDiagnostic313==="function"){
-        fatalDiagnostic313("Salvar cliente da Rota 5.0.0-beta.5",error);
-      }
-    }
+    }catch(error){R.feedback("routeClientFeedbackV5",error?.message||"Não foi possível salvar o cliente.");}
   };
   R.duplicateClient = async () => {
     const client=R.client(R.$("routeClientIdV5").value);
@@ -3458,7 +3425,7 @@ boot();
     R.$("routeOverdueCountV5").textContent=String(overdue.length);
     R.$("routeOverdueSubtitleV5").textContent=overdue.length?`${overdue.length} ${overdue.length===1?"cliente":"clientes"}`:"Nenhum cliente";
     const overdueList=R.$("routeOverdueListV5");
-    overdueList.innerHTML=overdue.length?overdue.map(item=>`<article class="route-overdue-item-v5"><div><strong>${R.escape(item.client.name)}</strong><span>${R.formatDate(item.actualDate)} · ${R.daysLate(item.actualDate)} dias de atraso</span></div><div class="route-overdue-action-v5"><b>${R.money(item.amount)}</b><button type="button" data-overdue-pay="${item.key}">Confirmar pago</button></div></article>`).join(""):'<div class="route-empty-v5"><b>Nenhum pagamento atrasado</b><span>Tudo em dia.</span></div>';
+    overdueList.innerHTML=overdue.length?overdue.map(item=>`<article class="route-overdue-item-v5"><div><strong>${R.escape(item.client.name)}${item.client.frequency==="extra"?' <i class="route-extra-inline-v510">EXTRA</i>':''}</strong><span>${R.formatDate(item.actualDate)} · ${R.daysLate(item.actualDate)} dias de atraso</span></div><div class="route-overdue-action-v5"><b>${R.money(item.amount)}</b><button type="button" data-overdue-pay="${item.key}">Confirmar pago</button></div></article>`).join(""):'<div class="route-empty-v5"><b>Nenhum pagamento atrasado</b><span>Tudo em dia.</span></div>';
     overdueList.querySelectorAll("[data-overdue-pay]").forEach(btn=>btn.onclick=()=>R.openPayment(R.fromKey(btn.dataset.overduePay)));
 
     const cancelled=R.weekItems().filter(item=>item.cancelled);
@@ -3551,7 +3518,7 @@ boot();
         <button class="route-order-v5" type="button" data-search-edit="${client.id}">${Number(client.order||1)}º</button>
         <div class="route-client-main-v5">
           <strong>${R.escape(client.name)}</strong>
-          <span>${R.DAY_NAMES[Number(client.day)]} · ${client.frequency==="fortnightly"?"Quinzenal":client.frequency==="once"?"Somente uma vez":"Semanal"}</span>
+          <span>${R.DAY_NAMES[Number(client.day)]} · ${client.frequency==="fortnightly"?"Quinzenal":client.frequency==="once"?"Somente uma vez":client.frequency==="extra"?"Extra · sem data fixa":"Semanal"}</span>
           <small>${Number(client.hours||0)}h × ${R.money(Number(client.hourlyRate||0))}/h</small>
         </div>
         <div class="route-client-value-v5">
@@ -3719,7 +3686,7 @@ boot();
     const paid=visits.filter(x=>x.paid),monthPaid=paid.filter(x=>R.date(x.paymentDate||x.actualDate).getMonth()===month&&R.date(x.paymentDate||x.actualDate).getFullYear()===year);
     const yearPaid=paid.filter(x=>R.date(x.paymentDate||x.actualDate).getFullYear()===year);
     R.$("routeProfileNameV5").textContent=client.name;
-    R.$("routeProfileScheduleV5").textContent=`${R.DAY_NAMES[Number(client.day)]} · ${client.frequency==="fortnightly"?"quinzenal":client.frequency==="once"?"somente uma vez":"semanal"} · ${client.hours}h`;
+    R.$("routeProfileScheduleV5").textContent=`${R.DAY_NAMES[Number(client.day)]} · ${client.frequency==="fortnightly"?"quinzenal":client.frequency==="once"?"somente uma vez":client.frequency==="extra"?"extra · sem data fixa":"semanal"} · ${client.hours}h`;
     R.$("routeProfileMonthV5").textContent=R.money(monthPaid.reduce((s,x)=>s+x.amountReceived,0));
     R.$("routeProfileYearV5").textContent=R.money(yearPaid.reduce((s,x)=>s+x.amountReceived,0));
     R.$("routeProfileHoursV5").textContent=`${paid.reduce((s,x)=>s+x.hours,0).toFixed(1)}h`;
@@ -3746,12 +3713,42 @@ boot();
   R.monthCellsV59=month=>{const f=new Date(month.getFullYear(),month.getMonth(),1,12),l=new Date(month.getFullYear(),month.getMonth()+1,0,12),cells=[];for(let i=0;i<(f.getDay()+6)%7;i++)cells.push(null);for(let d=1;d<=l.getDate();d++)cells.push(new Date(month.getFullYear(),month.getMonth(),d,12));while(cells.length%7)cells.push(null);return cells};
   R.openCalendarV59=()=>{const n=new Date();R.calendarV59.month=new Date(n.getFullYear(),n.getMonth(),1,12);R.calendarV59.selectedDate=R.today();R.renderCalendarV59();R.$("routeCalendarDialogV59").showModal()};
   R.renderCalendarV59=()=>{const m=R.calendarV59.month,s=new Date(m.getFullYear(),m.getMonth(),1,12),e=new Date(m.getFullYear(),m.getMonth()+1,0,12),items=R.instances(s,e);R.$("routeCalendarMonthLabelV59").textContent=new Intl.DateTimeFormat("pt-BR",{month:"long",year:"numeric"}).format(m);const g=R.$("routeCalendarGridV59");g.innerHTML=R.monthCellsV59(m).map(d=>{if(!d)return '<span></span>';const k=R.key(d),its=items.filter(x=>x.actualDate===k),c=['route-calendar-day-v59',k===R.today()?'today':'',k===R.calendarV59.selectedDate?'selected':'',its.length?'has-clients':''].filter(Boolean).join(' ');return `<button type="button" class="${c}" data-calendar-date="${k}"><span>${d.getDate()}</span>${its.length?`<small>${its.length}</small>`:''}</button>`}).join('');g.querySelectorAll('[data-calendar-date]').forEach(b=>b.onclick=()=>{R.calendarV59.selectedDate=b.dataset.calendarDate;R.renderCalendarV59()});R.renderCalendarDayClientsV59()};
-  R.renderCalendarDayClientsV59=()=>{const k=R.calendarV59.selectedDate,d=R.date(k),w=R.weekStart(d),items=R.instances(w,R.addDays(w,6)).filter(x=>x.actualDate===k).sort((a,b)=>a.order-b.order);R.$("routeCalendarDayLabelV59").textContent=new Intl.DateTimeFormat("pt-BR",{weekday:"long",day:"2-digit",month:"long"}).format(d);R.$("routeCalendarDayTotalV59").textContent=R.money(items.filter(x=>!x.cancelled).reduce((s,x)=>s+x.amount,0));const l=R.$("routeCalendarClientsV59");l.innerHTML=items.length?items.map(x=>`<button type="button" class="route-calendar-client-v59 ${x.cancelled?'cancelled':x.paid?'paid':R.isOverdue(x)?'overdue':''}" data-calendar-client="${x.key}"><span>${x.order}º</span><div><strong>${R.escape(x.client.name)}</strong><small>${x.hours}h · ${R.money(x.amount)}</small></div><em>${x.cancelled?'Cancelado':x.paid?'Pago':'Abrir'}</em></button>`).join(''):'<div class="route-empty-v5"><b>Nenhum cliente neste dia</b></div>';l.querySelectorAll('[data-calendar-client]').forEach(b=>b.onclick=()=>{const x=R.fromKey(b.dataset.calendarClient);R.$("routeCancelVisitKeyV59").value=x.key;R.$("routeCancelClientLabelV59").textContent=`${x.client.name} · ${R.formatDate(x.actualDate)}`;R.$("routeCancelModeDialogV59").showModal()})};
+  R.renderCalendarDayClientsV59=()=>{const k=R.calendarV59.selectedDate,d=R.date(k),w=R.weekStart(d),items=R.instances(w,R.addDays(w,6)).filter(x=>x.actualDate===k).sort((a,b)=>a.order-b.order);R.$("routeCalendarDayLabelV59").textContent=new Intl.DateTimeFormat("pt-BR",{weekday:"long",day:"2-digit",month:"long"}).format(d);R.$("routeCalendarDayTotalV59").textContent=R.money(items.filter(x=>!x.cancelled).reduce((s,x)=>s+x.amount,0));const l=R.$("routeCalendarClientsV59");l.innerHTML=items.length?items.map(x=>`<button type="button" class="route-calendar-client-v59 ${x.cancelled?'cancelled':x.paid?'paid':R.isOverdue(x)?'overdue':''}" data-calendar-client="${x.key}"><span>${x.order}º</span><div><strong>${R.escape(x.client.name)}${x.client.frequency==='extra'?' <i class="route-extra-inline-v510">EXTRA</i>':''}</strong><small>${x.hours}h · ${R.money(x.amount)}</small></div><em>${x.cancelled?'Cancelado':x.paid?'Pago':'Abrir'}</em></button>`).join(''):'<div class="route-empty-v5"><b>Nenhum cliente neste dia</b></div>';l.querySelectorAll('[data-calendar-client]').forEach(b=>b.onclick=()=>{const x=R.fromKey(b.dataset.calendarClient);R.$("routeCancelVisitKeyV59").value=x.key;R.$("routeCancelClientLabelV59").textContent=`${x.client.name} · ${R.formatDate(x.actualDate)}`;R.$("routeCancelModeDialogV59").showModal()})};
   R.cancelSingleV59=async()=>{const x=R.fromKey(R.$("routeCancelVisitKeyV59").value);if(!x)return;if(x.paid)return alert("Desmarque o pagamento antes de cancelar.");R.upsertVisit(x,{cancelled:true});R.$("routeCancelModeDialogV59").close();await persist("Limpeza cancelada");R.renderCalendarV59()};
   R.openMultiCancelV59=()=>{const x=R.fromKey(R.$("routeCancelVisitKeyV59").value);if(!x)return;R.$("routeCancelModeDialogV59").close();R.$("routeMultiCancelClientIdV59").value=x.clientId;R.$("routeMultiCancelClientV59").textContent=x.client.name;const d=R.date(x.actualDate);R.calendarV59.multiMonth=new Date(d.getFullYear(),d.getMonth(),1,12);R.calendarV59.selectedKeys=new Set();R.renderMultiCancelV59();R.$("routeMultiCancelDialogV59").showModal()};
   R.clientScheduledDatesInMonthV59=(c,m)=>{const s=new Date(m.getFullYear(),m.getMonth(),1,12),e=new Date(m.getFullYear(),m.getMonth()+1,0,12),a=[];for(let d=new Date(s);d<=e;d=R.addDays(d,1))if(R.isScheduled(c,d))a.push(R.key(d));return [...new Set(a)]};
   R.renderMultiCancelV59=()=>{const c=R.client(R.$("routeMultiCancelClientIdV59").value),m=R.calendarV59.multiMonth;if(!c)return;const sched=new Set(R.clientScheduledDatesInMonthV59(c,m));R.$("routeMultiCancelMonthV59").textContent=new Intl.DateTimeFormat("pt-BR",{month:"long",year:"numeric"}).format(m);const g=R.$("routeMultiCancelGridV59");g.innerHTML=R.monthCellsV59(m).map(d=>{if(!d)return '<span></span>';const k=R.key(d),on=sched.has(k),sel=R.calendarV59.selectedKeys.has(k);return `<button type="button" class="route-calendar-day-v59 multi ${on?'scheduled':''} ${sel?'selected-cancel':''}" data-multi-date="${k}" ${on?'':'disabled'}><span>${d.getDate()}</span></button>`}).join('');g.querySelectorAll('[data-multi-date]').forEach(b=>b.onclick=()=>{const k=b.dataset.multiDate;R.calendarV59.selectedKeys.has(k)?R.calendarV59.selectedKeys.delete(k):R.calendarV59.selectedKeys.add(k);R.renderMultiCancelV59()});const n=R.calendarV59.selectedKeys.size;R.$("routeMultiCancelCountV59").textContent=`${n} ${n===1?'dia selecionado':'dias selecionados'}`};
   R.saveMultiCancelV59=async()=>{const c=R.client(R.$("routeMultiCancelClientIdV59").value),keys=[...R.calendarV59.selectedKeys];if(!c||!keys.length)return alert("Selecione pelo menos um dia.");for(const k of keys){const x=R.instance(c,k);if(!x.paid)R.upsertVisit(x,{actualDate:k,cancelled:true})}R.$("routeMultiCancelDialogV59").close();await persist(`${keys.length} limpezas canceladas`);R.renderCalendarV59()};
+
+  R.openClientDirectoryV510 = () => { R.$("routeClientListSearchV510").value=""; R.renderClientDirectoryV510(); R.$("routeClientListDialogV510").showModal(); };
+  R.renderClientDirectoryV510 = () => {
+    const q=(R.$("routeClientListSearchV510")?.value||"").trim().toLowerCase();
+    const clients=R.clients().filter(c=>!q||c.name.toLowerCase().includes(q)).sort((a,b)=>a.name.localeCompare(b.name,"pt-BR"));
+    const box=R.$("routeClientDirectoryV510");
+    box.innerHTML=clients.length?clients.map(c=>`<article class="route-directory-client-v510"><div class="route-directory-badge-v510 ${c.frequency==='extra'?'extra':''}">${c.frequency==='extra'?'EX':'▦'}</div><div><strong>${R.escape(c.name)}</strong><small>${c.frequency==='extra'?'Extra · sem data fixa':`${R.DAY_NAMES[Number(c.day)]} · ${c.frequency==='fortnightly'?'Quinzenal':c.frequency==='once'?'Somente uma vez':'Semanal'}`}</small></div><div class="route-directory-actions-v510"><button data-directory-profile="${c.id}" type="button">Perfil</button><button data-directory-edit="${c.id}" type="button">Editar</button><button data-directory-delete="${c.id}" class="danger" type="button">Excluir</button></div></article>`).join(''):'<div class="route-empty-v5"><b>Nenhum cliente encontrado</b></div>';
+    box.querySelectorAll('[data-directory-profile]').forEach(b=>b.onclick=()=>R.openProfile(R.client(b.dataset.directoryProfile)));
+    box.querySelectorAll('[data-directory-edit]').forEach(b=>b.onclick=()=>{R.$("routeClientListDialogV510").close();R.openClient(R.client(b.dataset.directoryEdit))});
+    box.querySelectorAll('[data-directory-delete]').forEach(b=>b.onclick=()=>{const c=R.client(b.dataset.directoryDelete);R.$("routeClientListDialogV510").close();R.openClient(c);setTimeout(()=>R.deleteClient(),80)});
+  };
+  R.openAddExtraV510 = () => {
+    const extras=R.clients().filter(c=>c.frequency==='extra').sort((a,b)=>a.name.localeCompare(b.name,"pt-BR"));
+    if(!extras.length){alert('Cadastre primeiro um cliente com a frequência “Extra · sem data fixa”.');return;}
+    const dateKey=R.calendarV59.selectedDate;
+    R.$("routeExtraDateV510").value=dateKey;R.$("routeExtraDateLabelV510").textContent=R.formatDate(dateKey);
+    R.$("routeExtraClientSelectV510").innerHTML=extras.map(c=>`<option value="${c.id}">${R.escape(c.name)}</option>`).join('');
+    R.$("routeExtraOrderV510").value="";R.feedback("routeExtraFeedbackV510","");R.$("routeAddExtraDialogV510").showModal();
+  };
+  R.saveExtraVisitV510 = async () => {
+    const client=R.client(R.$("routeExtraClientSelectV510").value),dateKey=R.$("routeExtraDateV510").value;
+    if(!client||!dateKey)return;
+    const exists=(R.ensure().visits||[]).some(v=>String(v.clientId)===String(client.id)&&v.actualDate===dateKey);
+    if(exists)return R.feedback("routeExtraFeedbackV510","Este cliente já foi adicionado nessa data.");
+    const text=R.$("routeExtraOrderV510").value.trim();const order=text?Number(text):R.nextVisitOrder(dateKey);
+    if(!Number.isInteger(order)||order<1)return R.feedback("routeExtraFeedbackV510","Digite uma sequência válida ou deixe vazio.");
+    const item=R.instance(client,dateKey);R.upsertVisit(item,{actualDate:dateKey,order,extra:true,cancelled:false});
+    R.$("routeAddExtraDialogV510").close();await persist("Cliente extra adicionado");R.renderCalendarV59();
+  };
+
   function bind(){
     const once=(id,event,fn)=>{
       const node=R.$(id);if(!node)return;
@@ -3761,6 +3758,12 @@ boot();
     };
 
     once("openRouteClientV5","click",()=>R.openClient());
+    once("openRouteClientListV510","click",R.openClientDirectoryV510);
+    once("closeRouteClientListV510","click",()=>R.$("routeClientListDialogV510").close());
+    once("routeClientListSearchV510","input",R.renderClientDirectoryV510);
+    once("routeClientFrequencyV5","change",R.toggleExtraClientFieldsV510);
+    once("openAddExtraV510","click",R.openAddExtraV510);
+    once("saveRouteExtraVisitV510","click",R.saveExtraVisitV510);
     once("openRouteCalendarV59","click",R.openCalendarV59);
     once("closeRouteCalendarV59","click",()=>R.$("routeCalendarDialogV59").close());
     once("routeCalendarPrevV59","click",()=>{R.calendarV59.month=new Date(R.calendarV59.month.getFullYear(),R.calendarV59.month.getMonth()-1,1,12);R.renderCalendarV59()});

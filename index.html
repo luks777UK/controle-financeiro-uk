@@ -7,13 +7,13 @@
   <meta http-equiv="Expires" content="0">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
   <meta name="theme-color" content="#080914">
-  <meta name="application-name" content="Nosso Controle 5.0.0-beta.9.1">
+  <meta name="application-name" content="Nosso Controle 5.0.0-beta.10">
   <meta name="apple-mobile-web-app-title" content="Nosso Controle">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="styles.css?v=5.0.0-beta.9.1-fresh">
-  <title>Nosso Controle 5.0.0-beta.9.1</title>
+  <link rel="stylesheet" href="styles.css?v=5.0.0-beta.10-fresh">
+  <title>Nosso Controle 5.0.0-beta.10</title>
 </head>
 <body>
   <section id="authView" class="auth-screen">
@@ -480,9 +480,14 @@
         <div id="routeCancelledListV56" class="route-overdue-list-v5"></div>
       </section>
 
-      <button id="toggleRouteToolsV56" class="route-tools-toggle-v56" type="button">
-        <span>•••</span><div><strong>Mostrar mais</strong><small>Busca, filtros e resumo mensal</small></div><em>⌄</em>
-      </button>
+      <div class="route-compact-actions-v510">
+        <button id="toggleRouteToolsV56" class="route-tools-toggle-v56" type="button">
+          <span>•••</span><div><strong>Mostrar mais</strong><small>Busca e resumo</small></div><em>⌄</em>
+        </button>
+        <button id="openRouteClientListV510" class="route-client-list-button-v510" type="button">
+          <span>☷</span><div><strong>Lista de clientes</strong><small>Editar e excluir</small></div>
+        </button>
+      </div>
       <section id="routeExtraToolsV56" class="route-extra-tools-v56 hidden">
       <section class="route-tools-v5 route-tools-v55">
         <div class="route-search-box-v55">
@@ -566,7 +571,7 @@
         <button id="resetFinance" class="sheet-action danger">Zerar reservas e depósitos</button>
         
       <div id="buildMarker403" class="build-marker-403">
-        Versão carregada: 5.0.0-beta.9.1 · Single Deploy
+        Versão carregada: 5.0.0-beta.10 · Single Deploy
       </div>
 
       <button id="logoutBtn" class="sheet-action">Sair da conta</button>
@@ -1082,17 +1087,17 @@
       <input id="routeClientIdV5" type="hidden">
       <label>Nome do cliente<input id="routeClientNameV5" type="text" maxlength="80"></label>
       <div class="route-form-grid-v5">
-        <label>Dia padrão<select id="routeClientDayV5">
+        <label id="routeClientDayWrapV510">Dia padrão<select id="routeClientDayV5">
           <option value="1">Segunda</option><option value="2">Terça</option>
           <option value="3">Quarta</option><option value="4">Quinta</option>
           <option value="5">Sexta</option><option value="6">Sábado</option>
           <option value="0">Domingo</option>
         </select></label>
-        <label>Sequência no dia<input id="routeClientOrderV5" type="number" min="1" max="30" inputmode="numeric" placeholder="Automática"><small class="route-field-help-v53">Deixe vazio para o sistema colocar na próxima posição disponível.</small></label>
+        <label id="routeClientOrderWrapV510">Sequência no dia<input id="routeClientOrderV5" type="number" min="1" max="30" inputmode="numeric" placeholder="Automática"><small class="route-field-help-v53">Deixe vazio para o sistema colocar na próxima posição disponível.</small></label>
         <label>Frequência<select id="routeClientFrequencyV5">
-          <option value="weekly">Semanal</option><option value="fortnightly">Quinzenal</option><option value="once">Somente uma vez</option>
+          <option value="weekly">Semanal</option><option value="fortnightly">Quinzenal</option><option value="once">Somente uma vez</option><option value="extra">Extra · sem data fixa</option>
         </select></label>
-        <label>Data inicial<input id="routeClientAnchorV5" type="date"></label>
+        <label id="routeClientAnchorWrapV510">Data inicial<input id="routeClientAnchorV5" type="date"></label>
         <label>Valor por hora<input id="routeClientRateV5" type="number" min="0" step="0.01" inputmode="decimal"></label>
         <label>Horas previstas<input id="routeClientHoursV5" type="number" min="0.25" step="0.25" inputmode="decimal"></label>
         <label>Custo estimado/h<input id="routeClientCostV5" type="number" min="0" step="0.01" inputmode="decimal"></label>
@@ -1214,16 +1219,39 @@
   </dialog>
 
 
-  <dialog id="routeCalendarDialogV59"><section class="route-calendar-panel-v59"><div class="calendar-top"><div><span class="calendar-overline">CALENDÁRIO DA ROTA</span><h2 id="routeCalendarMonthLabelV59">Mês</h2><p>Toque em uma data para ver os clientes.</p></div><button id="closeRouteCalendarV59" class="round-button" type="button">×</button></div><div class="route-calendar-nav-v59"><button id="routeCalendarPrevV59" type="button">‹</button><button id="routeCalendarTodayV59" type="button">Hoje</button><button id="routeCalendarNextV59" type="button">›</button></div><div class="route-calendar-weekdays-v59"><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span><span>Dom</span></div><div id="routeCalendarGridV59" class="route-calendar-grid-v59"></div><section class="route-calendar-day-clients-v59"><div class="route-calendar-day-head-v59"><div><span>CLIENTES DO DIA</span><strong id="routeCalendarDayLabelV59">Selecione uma data</strong></div><small id="routeCalendarDayTotalV59">£0,00</small></div><div id="routeCalendarClientsV59" class="route-calendar-clients-v59"></div></section></section></dialog>
+  <dialog id="routeCalendarDialogV59"><section class="route-calendar-panel-v59"><div class="calendar-top"><div><span class="calendar-overline">CALENDÁRIO DA ROTA</span><h2 id="routeCalendarMonthLabelV59">Mês</h2><p>Toque em uma data para ver os clientes.</p></div><button id="closeRouteCalendarV59" class="round-button" type="button">×</button></div><div class="route-calendar-nav-v59"><button id="routeCalendarPrevV59" type="button">‹</button><button id="routeCalendarTodayV59" type="button">Hoje</button><button id="routeCalendarNextV59" type="button">›</button></div><div class="route-calendar-weekdays-v59"><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span><span>Dom</span></div><div id="routeCalendarGridV59" class="route-calendar-grid-v59"></div><section class="route-calendar-day-clients-v59"><div class="route-calendar-day-head-v59"><div><span>CLIENTES DO DIA</span><strong id="routeCalendarDayLabelV59">Selecione uma data</strong></div><small id="routeCalendarDayTotalV59">£0,00</small></div><button id="openAddExtraV510" class="route-add-extra-day-v510" type="button">＋ Adicionar cliente extra neste dia</button><div id="routeCalendarClientsV59" class="route-calendar-clients-v59"></div></section></section></dialog>
   <dialog id="routeCancelModeDialogV59"><form method="dialog" class="dialog-card route-dialog-v5"><div class="dialog-heading"><div><h2>Cancelar limpeza</h2><p id="routeCancelClientLabelV59">Cliente</p></div><button value="cancel" class="round-button">×</button></div><input id="routeCancelVisitKeyV59" type="hidden"><button id="cancelSingleVisitV59" class="route-cancel-choice-v59" type="button"><span>1</span><div><b>Cancelar somente este dia</b><small>Afeta apenas a limpeza selecionada</small></div></button><button id="cancelMultipleVisitsV59" class="route-cancel-choice-v59" type="button"><span>▦</span><div><b>Cancelar vários dias</b><small>Escolha as datas no calendário</small></div></button></form></dialog>
   <dialog id="routeMultiCancelDialogV59"><section class="route-calendar-panel-v59"><div class="calendar-top"><div><span class="calendar-overline">CANCELAR VÁRIOS DIAS</span><h2 id="routeMultiCancelClientV59">Cliente</h2><p>Os dias de limpeza ficam vermelhos. Toque para selecionar.</p></div><button id="closeRouteMultiCancelV59" class="round-button" type="button">×</button></div><input id="routeMultiCancelClientIdV59" type="hidden"><div class="route-calendar-nav-v59"><button id="routeMultiCancelPrevV59" type="button">‹</button><strong id="routeMultiCancelMonthV59">Mês</strong><button id="routeMultiCancelNextV59" type="button">›</button></div><div class="route-calendar-weekdays-v59"><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span><span>Dom</span></div><div id="routeMultiCancelGridV59" class="route-calendar-grid-v59"></div><div class="route-multi-cancel-footer-v59"><span id="routeMultiCancelCountV59">0 dias selecionados</span><button id="saveRouteMultiCancelV59" class="primary-button" type="button">Confirmar cancelamentos</button></div></section></dialog>
+
+  <dialog id="routeClientListDialogV510">
+    <section class="route-client-directory-v510">
+      <div class="calendar-top">
+        <div><span class="calendar-overline">CADASTRO DA ROTA</span><h2>Lista de clientes</h2><p>Todos em ordem alfabética.</p></div>
+        <button id="closeRouteClientListV510" class="round-button" type="button">×</button>
+      </div>
+      <label class="route-directory-search-v510"><span>⌕</span><input id="routeClientListSearchV510" type="search" placeholder="Buscar na lista"></label>
+      <div id="routeClientDirectoryV510" class="route-client-directory-list-v510"></div>
+    </section>
+  </dialog>
+
+  <dialog id="routeAddExtraDialogV510">
+    <form method="dialog" class="dialog-card route-dialog-v5">
+      <div class="dialog-heading"><div><h2>Adicionar cliente extra</h2><p id="routeExtraDateLabelV510">Data selecionada</p></div><button value="cancel" class="round-button">×</button></div>
+      <input id="routeExtraDateV510" type="hidden">
+      <label>Cliente extra<select id="routeExtraClientSelectV510"></select></label>
+      <label>Sequência neste dia<input id="routeExtraOrderV510" type="number" min="1" max="30" placeholder="Automática"></label>
+      <div id="routeExtraFeedbackV510" class="feedback"></div>
+      <button id="saveRouteExtraVisitV510" class="primary-button" type="button">Adicionar neste dia</button>
+    </form>
+  </dialog>
+
 <div id="toast" class="toast"></div>
   <canvas id="confetti"></canvas>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=5.0.0-beta.9.1-fresh"></script>
+  <script src="app.js?v=5.0.0-beta.10-fresh"></script>
   <script>
     (async()=>{
-      const BUILD="5.0.0-beta.9.1-single";
+      const BUILD="5.0.0-beta.10-single";
       try{
         if("serviceWorker" in navigator){
           const registrations=await navigator.serviceWorker.getRegistrations();
