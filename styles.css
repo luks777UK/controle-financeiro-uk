@@ -1863,3 +1863,267 @@ html{scroll-behavior:smooth}
     font-size:6.4px!important;
   }
 }
+
+
+/* =========================================================
+   NOSSO CONTROLE 6.0 BETA — FINANCE & BUSINESS DASHBOARD
+   ========================================================= */
+
+.money-map-v6,
+.spending-intelligence-v6{
+  margin:12px 0;
+  padding:14px;
+  border-radius:22px;
+  background:#11131f;
+  border:1px solid rgba(255,255,255,.065);
+}
+
+.money-map-head-v6,
+.spending-head-v6{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:11px;
+}
+
+.money-map-head-v6 span,
+.spending-head-v6 span{
+  color:#a98cff;
+  font-size:6.5px;
+  font-weight:900;
+  letter-spacing:.8px;
+}
+
+.money-map-head-v6 h3,
+.spending-head-v6 h3{
+  margin:4px 0 0;
+  font-size:13px;
+}
+
+.money-map-head-v6 p{
+  margin:4px 0 0;
+  color:#7f8395;
+  font-size:6.5px;
+}
+
+.money-map-head-v6>strong,
+.spending-head-v6>strong{
+  color:#d9ccff;
+  font-size:15px;
+}
+
+.money-map-grid-v6{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:7px;
+}
+
+.money-map-grid-v6 article{
+  min-height:74px;
+  padding:10px;
+  border-radius:15px;
+  background:#171927;
+  border:1px solid rgba(255,255,255,.05);
+}
+
+.money-map-grid-v6 span,
+.money-map-grid-v6 strong,
+.money-map-grid-v6 small{
+  display:block;
+}
+
+.money-map-grid-v6 span{
+  color:#85899a;
+  font-size:6.3px;
+}
+
+.money-map-grid-v6 strong{
+  margin-top:5px;
+  font-size:13px;
+}
+
+.money-map-grid-v6 small{
+  margin-top:4px;
+  color:#737789;
+  font-size:5.7px;
+}
+
+.money-map-grid-v6 .route-income strong{color:#42e5a4}
+.money-map-grid-v6 .other-income strong{color:#61adff}
+.money-map-grid-v6 .bills strong{color:#b79aff}
+.money-map-grid-v6 .expenses strong{color:#ff7890}
+.money-map-grid-v6 .vault strong{color:#ffb15f}
+.money-map-grid-v6 .free strong{color:#8de7cc}
+
+.money-map-track-v6{
+  display:flex;
+  height:8px;
+  margin-top:11px;
+  overflow:hidden;
+  border-radius:999px;
+  background:#202231;
+}
+
+.money-map-track-v6 i{
+  display:block;
+  height:100%;
+  transition:width .35s ease;
+}
+
+.money-map-track-v6 .bills{background:#9670f1}
+.money-map-track-v6 .expenses{background:#ef6c87}
+.money-map-track-v6 .vault{background:#e8a254}
+.money-map-track-v6 .free{background:#53cdaa}
+
+.spending-insight-grid-v6{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:7px;
+  margin-bottom:10px;
+}
+
+.spending-insight-grid-v6 article{
+  padding:10px;
+  border-radius:14px;
+  background:#171927;
+  border:1px solid rgba(255,255,255,.05);
+}
+
+.spending-insight-grid-v6 span,
+.spending-insight-grid-v6 strong,
+.spending-insight-grid-v6 small{
+  display:block;
+}
+
+.spending-insight-grid-v6 span{color:#85899a;font-size:6px}
+.spending-insight-grid-v6 strong{margin-top:5px;font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.spending-insight-grid-v6 small{margin-top:4px;color:#ff879a;font-size:6.3px}
+
+.spending-category-list-v6{
+  display:grid;
+  gap:7px;
+}
+
+.spending-category-list-v6 article{
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:4px 10px;
+  align-items:center;
+  padding:9px 10px;
+  border-radius:13px;
+  background:#151725;
+}
+
+.spending-category-list-v6 article>div:first-child{
+  display:flex;
+  align-items:center;
+  gap:7px;
+}
+
+.spending-category-list-v6 strong{font-size:8px}
+.spending-cat-value-v6{text-align:right}
+.spending-cat-value-v6 b{display:block;font-size:8px}
+.spending-cat-value-v6 small{display:block;margin-top:2px;color:#85899a;font-size:5.5px}
+
+.spending-category-list-v6 article>i{
+  grid-column:1/-1;
+  height:4px;
+  overflow:hidden;
+  border-radius:999px;
+  background:#232637;
+}
+
+.spending-category-list-v6 article>i em{
+  display:block;
+  height:100%;
+  border-radius:inherit;
+  background:#9a73f2;
+}
+
+.business-analytics-v6{
+  margin-top:10px;
+  padding:12px;
+  border-radius:18px;
+  background:linear-gradient(145deg,rgba(97,173,255,.055),rgba(139,92,246,.07));
+  border:1px solid rgba(97,173,255,.11);
+}
+
+.business-analytics-head-v6{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:10px;
+  margin-bottom:9px;
+}
+
+.business-analytics-head-v6 span{
+  color:#61adff;
+  font-size:6px;
+  font-weight:900;
+  letter-spacing:.8px;
+}
+
+.business-analytics-head-v6 h3{
+  margin:4px 0 0;
+  font-size:11px;
+}
+
+.business-analytics-head-v6>strong{
+  color:#61adff;
+  font-size:14px;
+}
+
+.business-analytics-grid-v6{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:6px;
+}
+
+.business-analytics-grid-v6 article{
+  padding:9px 7px;
+  border-radius:13px;
+  background:#151725;
+  border:1px solid rgba(255,255,255,.045);
+}
+
+.business-analytics-grid-v6 span,
+.business-analytics-grid-v6 strong{
+  display:block;
+}
+
+.business-analytics-grid-v6 span{color:#85899a;font-size:5.7px}
+.business-analytics-grid-v6 strong{margin-top:5px;font-size:10px}
+
+.route-address-field-v6{
+  grid-column:1/-1;
+}
+
+.route-income-v6{
+  border-left:3px solid #42e5a4;
+}
+
+.route-sync-badge-v6{
+  display:inline-block;
+  margin-top:5px;
+  padding:4px 6px;
+  border-radius:8px;
+  background:rgba(66,229,164,.08);
+  color:#42e5a4;
+  font-size:5.5px;
+  font-weight:800;
+}
+
+@media(max-width:430px){
+  .money-map-grid-v6{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+
+  .spending-insight-grid-v6{
+    grid-template-columns:1fr;
+  }
+
+  .business-analytics-grid-v6{
+    grid-template-columns:repeat(2,1fr);
+  }
+}

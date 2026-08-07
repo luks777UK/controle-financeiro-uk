@@ -40,7 +40,7 @@ function fatalDiagnostic313(step,error,extra={}){
     const box=document.getElementById("fatalLoginDiagnostic");
     const text=document.getElementById("fatalLoginDiagnosticText");
     const lines=[
-      `VERSÃO: 5.0.0-beta.14.1`,
+      `VERSÃO: 6.0.0-beta.1.1`,
       `ETAPA: ${step}`,
       `MENSAGEM: ${error?.message||String(error||"Erro desconhecido")}`
     ];
@@ -1083,17 +1083,97 @@ function renderOverview(){
   else $("overviewStatus").textContent=`Depois de bills, gastos e cofre, restam ${money(free)} livres.`;
 
   const list=[...state.incomes].sort((a,b)=>new Date(b.date)-new Date(a.date));
-  $("incomeList").innerHTML=list.length?list.map(x=>`<article class="income-item">
-    <div class="income-icon">💷</div>
-    <div class="income-info"><b>${x.description||"Receita"}</b><small>${x.person==="lucas"?"Lucas":x.person==="namorada"?"Namorada":"Casal"} · ${new Date(x.date+"T12:00:00").toLocaleDateString("pt-BR")}</small></div>
-    <div class="income-value"><strong>+${money(x.amount)}</strong><div class="row-actions"><button data-income-edit="${x.id}">Editar</button><button data-income-delete="${x.id}">Excluir</button></div></div>
-  </article>`).join(""):'<div class="empty-state">Nenhuma receita registrada ainda.</div>';
+  $("incomeList").innerHTML=list.length?list.map(x=>{
+    const fromRoute=x.source==="route"||x.source==="cleaning";
+    return `<article class="income-item ${fromRoute?"route-income-v6":""}">
+      <div class="income-icon">${fromRoute?"▦":"💷"}</div>
+      <div class="income-info"><b>${x.description||"Receita"}</b><small>${fromRoute?"Rota · ":x.person==="lucas"?"Lucas · ":x.person==="namorada"?"Namorada · ":"Casal · "}${new Date(x.date+"T12:00:00").toLocaleDateString("pt-BR")}${fromRoute?` · ${x.paymentMethod==="cash"?"Dinheiro":"Cartão"}`:""}</small></div>
+      <div class="income-value"><strong>+${money(x.amount)}</strong>${fromRoute?'<span class="route-sync-badge-v6">Sincronizado</span>':`<div class="row-actions"><button data-income-edit="${x.id}">Editar</button><button data-income-delete="${x.id}">Excluir</button></div>`}</div>
+    </article>`;
+  }).join(""):'<div class="empty-state">Nenhuma receita registrada ainda.</div>';
   document.querySelectorAll("[data-income-edit]").forEach(button=>button.onclick=()=>editIncome(button.dataset.incomeEdit));
   document.querySelectorAll("[data-income-delete]").forEach(button=>button.onclick=()=>deleteIncome(button.dataset.incomeDelete));
+  renderOverviewV6();
 }
+function renderOverviewV6(){
+  if(!state)return;
+  const today=new Date();
+  const monthKey=`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}`;
+  const incomes=(state.incomes||[]).filter(x=>String(x.date||"").slice(0,7)===monthKey);
+  const expenses=(state.expenses||[]).filter(x=>String(x.date||"").slice(0,7)===monthKey);
+  const vaultEntries=(state.vaultEntries||[]).filter(x=>String(x.date||"").slice(0,7)===monthKey);
+
+  const income=incomes.reduce((s,x)=>s+Number(x.amount||0),0);
+  const routeIncome=incomes.filter(x=>x.source==="route"||x.source==="cleaning").reduce((s,x)=>s+Number(x.amount||0),0);
+  const otherIncome=income-routeIncome;
+  const expenseTotal=expenses.reduce((s,x)=>s+Number(x.amount||0),0);
+  const vaultTotal=vaultEntries.reduce((s,x)=>s+Number(x.amount||0),0);
+  const billsReserved=(state.bills||[]).filter(b=>!b.paid).reduce((s,b)=>s+Number(b.reserved||0),0);
+  const free=income-billsReserved-expenseTotal-vaultTotal;
+  const safe=Math.max(income,0.0001);
+
+  const setMoney=(id,value)=>{const node=$(id);if(node)node.textContent=money(value);};
+  const setText=(id,value)=>{const node=$(id);if(node)node.textContent=value;};
+
+  setMoney("moneyMapIncomeV6",income);
+  setMoney("moneyMapRouteIncomeV6",routeIncome);
+  setMoney("moneyMapOtherIncomeV6",otherIncome);
+  setMoney("moneyMapBillsV6",billsReserved);
+  setMoney("moneyMapExpensesV6",expenseTotal);
+  setMoney("moneyMapVaultV6",vaultTotal);
+  setMoney("moneyMapFreeV6",free);
+
+  const pct=v=>income>0?Math.max(0,Math.min(100,v/safe*100)):0;
+  setText("moneyMapRoutePctV6",`${pct(routeIncome).toFixed(0)}% das receitas`);
+  setText("moneyMapOtherPctV6",`${pct(otherIncome).toFixed(0)}% das receitas`);
+  setText("moneyMapExpensesPctV6",`${pct(expenseTotal).toFixed(0)}% das receitas`);
+  setText("moneyMapVaultPctV6",`${pct(vaultTotal).toFixed(0)}% das receitas`);
+  setText("moneyMapFreePctV6",`${pct(Math.max(0,free)).toFixed(0)}% das receitas`);
+
+  const bars=[
+    ["moneyMapBillsBarV6",billsReserved],
+    ["moneyMapExpensesBarV6",expenseTotal],
+    ["moneyMapVaultBarV6",vaultTotal],
+    ["moneyMapFreeBarV6",Math.max(0,free)]
+  ];
+  bars.forEach(([id,value])=>{const node=$(id);if(node)node.style.width=`${pct(value)}%`;});
+
+  setMoney("spendingTotalV6",expenseTotal);
+  const cats={};
+  for(const item of expenses){
+    const key=item.category||"outros";
+    cats[key]=(cats[key]||0)+Number(item.amount||0);
+  }
+  const sortedCats=Object.entries(cats).sort((a,b)=>b[1]-a[1]);
+  const top=sortedCats[0];
+  setText("spendingTopCategoryV6",top?(expenseNames[top[0]]||"Outros"):"—");
+  setMoney("spendingTopCategoryAmountV6",top?top[1]:0);
+
+  const largest=[...expenses].sort((a,b)=>Number(b.amount||0)-Number(a.amount||0))[0];
+  setText("spendingLargestNameV6",largest?(largest.description||expenseNames[largest.category]||"Gasto"):"—");
+  setMoney("spendingLargestAmountV6",largest?largest.amount:0);
+  setMoney("spendingDailyAverageV6",expenseTotal/Math.max(1,today.getDate()));
+
+  const list=$("spendingCategoriesV6");
+  if(list){
+    list.innerHTML=sortedCats.length?sortedCats.slice(0,6).map(([key,value])=>{
+      const share=expenseTotal>0?value/expenseTotal*100:0;
+      return `<article>
+        <div><span>${expenseIcons[key]||"🧾"}</span><strong>${expenseNames[key]||"Outros"}</strong></div>
+        <div class="spending-cat-value-v6"><b>${money(value)}</b><small>${share.toFixed(0)}%</small></div>
+        <i><em style="width:${share}%"></em></i>
+      </article>`;
+    }).join(""):'<div class="empty-state">Nenhum gasto registrado neste mês.</div>';
+  }
+}
+
 function editIncome(id){
   const item=state.incomes.find(x=>x.id===id);
   if(!item)return;
+  if(item.source==="route"||item.source==="cleaning"){
+    toast("Edite este pagamento pela aba Rota.");
+    return;
+  }
   $("incomeEditId").value=id;
   $("incomeDialogTitle").textContent="Editar receita";
   $("incomeAmount").value=item.amount;
@@ -1103,6 +1183,11 @@ function editIncome(id){
   $("incomeDialog").showModal();
 }
 async function deleteIncome(id){
+  const item=state.incomes.find(x=>x.id===id);
+  if(item&&(item.source==="route"||item.source==="cleaning")){
+    toast("Desmarque o pagamento pela aba Rota.");
+    return;
+  }
   if(!confirm("Excluir esta receita?"))return;
   state.incomes=state.incomes.filter(x=>x.id!==id);
   await persist("Receita excluída");
@@ -2090,8 +2175,9 @@ $("confirmVaultWithdrawV4").onclick=async()=>{
 };
 
 
-const APP_VERSION="5.0.0-beta.14";
+const APP_VERSION="6.0.0-beta.1";
 const RELEASE_NOTES=[
+  {version:"6.0.0-beta.1",date:"07/08/2026",title:"Finance & Business Dashboard",changes:["Novo Mapa do Dinheiro na aba Geral.","Análise automática das categorias de gastos.","Receitas da Rota ficam protegidas e sincronizadas com a Geral.","Previsão financeira da Rota para 30 dias.","Média semanal, média por hora, cancelamentos perdidos e dia mais cheio.","Clientes agora podem guardar horário, postcode e endereço.","Painel Mostrar mais da Rota foi reconstruído e simplificado."]},
   {version:"5.0.0-beta.14",date:"07/08/2026",title:"Fontes maiores e integração com Receitas",changes:["Fontes dos cards principais aumentadas novamente.","Todo pagamento confirmado na Rota cria ou atualiza automaticamente uma Receita na aba Geral.","Alterações de valor, data ou forma de pagamento permanecem sincronizadas.","Ao desmarcar pagamento, a Receita vinculada é removida.","Receitas antigas da Rota são reconciliadas automaticamente sem duplicação."]},
   {version:"5.0.0-beta.13",date:"07/08/2026",title:"Route UI Polish",changes:["Fontes da aba Rota aumentadas para melhorar leitura.","Pesquisa removida de Mostrar mais por ser redundante com Lista de clientes.","Resumo mensal mantido como foco principal do painel expandido.","Botões e cards receberam ajustes de legibilidade sem alterar cálculos."]},
   {version:"5.0.0-beta.12",date:"06/08/2026",title:"Painel da Rota simétrico",changes:["Seis indicadores em grade 3 por 2.","Cards com a mesma largura e altura.","Esperado e Recebido exibem quantidades.","Mais ocupa 30% e Lista de clientes 70%."]},
@@ -3062,6 +3148,10 @@ boot();
 
   R.ensure = () => {
     if(!state)return null;
+    state.incomes=Array.isArray(state.incomes)?state.incomes:[];
+    state.expenses=Array.isArray(state.expenses)?state.expenses:[];
+    state.bills=Array.isArray(state.bills)?state.bills:[];
+    state.vaultEntries=Array.isArray(state.vaultEntries)?state.vaultEntries:[];
     state.route = state.route && typeof state.route==="object" ? state.route : {};
     state.route.clients = Array.isArray(state.route.clients) ? state.route.clients : [];
     state.route.visits = Array.isArray(state.route.visits) ? state.route.visits : [];
@@ -3309,6 +3399,9 @@ boot();
     R.$("routeClientHoursV5").value=client?.hours??"";
     R.$("routeClientCostV5").value=client?.costPerHour??"";
     R.$("routeClientExtraCostV5").value=client?.extraCost??"";
+    R.$("routeClientStartTimeV6").value=client?.startTime||"";
+    R.$("routeClientPostcodeV6").value=client?.postcode||"";
+    R.$("routeClientAddressV6").value=client?.address||"";
     R.$("duplicateRouteClientV5").classList.toggle("hidden",!client);
     R.$("deleteRouteClientV5").classList.toggle("hidden",!client);
     R.feedback("routeClientFeedbackV5","");
@@ -3353,6 +3446,9 @@ boot();
       hours,
       costPerHour:Number(R.$("routeClientCostV5").value||0),
       extraCost:Number(R.$("routeClientExtraCostV5").value||0),
+      startTime:R.$("routeClientStartTimeV6").value||"",
+      postcode:R.$("routeClientPostcodeV6").value.trim().toUpperCase(),
+      address:R.$("routeClientAddressV6").value.trim(),
       active:true,
       updatedAt:new Date().toISOString()
     };
@@ -3538,6 +3634,7 @@ boot();
     R.$("routeWeekRangeV5").textContent=`${R.pad(R.ui.week.getDate())}/${R.pad(R.ui.week.getMonth()+1)} — ${R.pad(end.getDate())}/${R.pad(end.getMonth()+1)}`;
     R.renderOverdue();
     R.renderMonthSummaryV56();
+    R.renderBusinessAnalyticsV6();
     R.renderDays();
     R.renderSelectedDay();
   };
@@ -3596,6 +3693,36 @@ boot();
     R.$("routeMonthCancelledCountV58").textContent=
       `${cancelledClients} ${cancelledClients===1?"cliente":"clientes"}`;
   };
+
+  R.renderBusinessAnalyticsV6 = () => {
+    const today=R.date(R.today());
+    const end=R.addDays(today,29);
+    const future=R.instances(today,end).filter(item=>!item.cancelled);
+    const forecast=future.reduce((sum,item)=>sum+item.amount,0);
+    const hours=future.reduce((sum,item)=>sum+item.hours,0);
+    const averageWeek=forecast/30*7;
+    const averageHour=hours>0?forecast/hours:0;
+
+    const currentMonthStart=new Date(today.getFullYear(),today.getMonth(),1,12);
+    const currentMonthEnd=new Date(today.getFullYear(),today.getMonth()+1,0,12);
+    const monthItems=R.instances(currentMonthStart,currentMonthEnd);
+    const lostCancelled=monthItems.filter(item=>item.cancelled).reduce((sum,item)=>sum+item.amount,0);
+
+    const activeClients=R.clients().filter(client=>client.active!==false).length;
+    const byDay=[0,0,0,0,0,0,0];
+    future.forEach(item=>byDay[R.date(item.actualDate).getDay()]++);
+    const max=Math.max(...byDay);
+    const busiest=max>0?R.DAY_NAMES[byDay.indexOf(max)]:"—";
+
+    R.$("routeForecast30V6").textContent=R.money(forecast);
+    R.$("routeAverageWeekV6").textContent=R.money(averageWeek);
+    R.$("routeAverageHourV6").textContent=R.money(averageHour);
+    R.$("routeLostCancelledV6").textContent=R.money(lostCancelled);
+    R.$("routeActiveClientsV6").textContent=String(activeClients);
+    R.$("routeBusiestDayV6").textContent=busiest;
+    R.$("routeForecastHoursV6").textContent=`${hours.toFixed(hours%1?1:0)}h`;
+  };
+
 
   R.renderDays = () => {
     const container=R.$("routeDayTabsV5");container.innerHTML="";
@@ -3681,7 +3808,7 @@ boot();
         <button class="route-order-v5" type="button" data-manage="${item.key}">${item.order}º</button>
         <div class="route-client-main-v5">
           <strong>${R.escape(item.client.name)}</strong>
-          <span>${item.hours}h × ${R.money(item.hourlyRate)}/h</span>
+          <span>${item.client.startTime?`${item.client.startTime} · `:""}${item.hours}h × ${R.money(item.hourlyRate)}/h${item.client.postcode?` · ${R.escape(item.client.postcode)}`:""}</span>
           <small>${label}</small>
         </div>
         <div class="route-client-value-v5">
