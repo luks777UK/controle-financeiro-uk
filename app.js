@@ -40,7 +40,7 @@ function fatalDiagnostic313(step,error,extra={}){
     const box=document.getElementById("fatalLoginDiagnostic");
     const text=document.getElementById("fatalLoginDiagnosticText");
     const lines=[
-      `VERSÃO: 5.0.0-beta.12.1`,
+      `VERSÃO: 5.0.0-beta.13.1`,
       `ETAPA: ${step}`,
       `MENSAGEM: ${error?.message||String(error||"Erro desconhecido")}`
     ];
@@ -2090,8 +2090,9 @@ $("confirmVaultWithdrawV4").onclick=async()=>{
 };
 
 
-const APP_VERSION="5.0.0-beta.12";
+const APP_VERSION="5.0.0-beta.13";
 const RELEASE_NOTES=[
+  {version:"5.0.0-beta.13",date:"07/08/2026",title:"Route UI Polish",changes:["Fontes da aba Rota aumentadas para melhorar leitura.","Pesquisa removida de Mostrar mais por ser redundante com Lista de clientes.","Resumo mensal mantido como foco principal do painel expandido.","Botões e cards receberam ajustes de legibilidade sem alterar cálculos."]},
   {version:"5.0.0-beta.12",date:"06/08/2026",title:"Painel da Rota simétrico",changes:["Seis indicadores em grade 3 por 2.","Cards com a mesma largura e altura.","Esperado e Recebido exibem quantidades.","Mais ocupa 30% e Lista de clientes 70%."]},
   {version:"5.0.0-beta.11",date:"06/08/2026",title:"Extras nos resumos e primeira data obrigatória",changes:["Extras aparecem no resumo semanal.","Extras aparecem no resumo mensal.","Todo cliente precisa de uma primeira data.","Cliente Extra já é agendado na data escolhida e continua disponível para futuros serviços."]},
   {version:"5.0.0-beta.10",date:"06/08/2026",title:"Clientes extras e lista geral",changes:["Novo tipo Extra · sem data fixa.","Clientes extras são adicionados pelo calendário somente nos dias escolhidos.","Selo Extra identifica esses serviços.","Lista alfabética de clientes adicionada ao lado de Mostrar mais.","Lista permite abrir perfil, editar e excluir clientes."]},
@@ -3614,10 +3615,6 @@ boot();
   };
 
   R.renderSelectedDay = () => {
-    if(R.ui.search.trim()){
-      R.renderClientSearch();
-      return;
-    }
     const date=R.addDays(R.ui.week,R.ui.selectedDay),key=R.key(date);
     const items=R.filtered(R.weekItems().filter(x=>x.actualDate===key));
     const active=items.filter(x=>!x.cancelled);
@@ -3863,20 +3860,9 @@ boot();
       const panel=R.$("routeExtraToolsV56"),button=R.$("toggleRouteToolsV56"),opening=panel.classList.contains("hidden");
       panel.classList.toggle("hidden");
       button.querySelector("strong").textContent=opening?"Menos":"Mais";
-      button.querySelector("small").textContent=opening?"Fechar":"Resumo";
+      button.querySelector("small").textContent=opening?"Fechar":"Resumo mensal";
       button.querySelector("em").textContent=opening?"⌃":"⌄";
       if(opening)setTimeout(()=>panel.scrollIntoView({behavior:"smooth",block:"nearest"}),80);
-    });
-    once("routeSearchV5","input",e=>{
-      R.ui.search=e.target.value;
-      R.$("clearRouteSearchV55").classList.toggle("hidden",!R.ui.search);
-      R.render();
-    });
-    once("clearRouteSearchV55","click",()=>{
-      R.ui.search="";
-      R.$("routeSearchV5").value="";
-      R.$("clearRouteSearchV55").classList.add("hidden");
-      R.render();
     });
 
     ["routeClientRateV5","routeClientHoursV5","routeClientCostV5","routeClientExtraCostV5"].forEach(id=>once(id,"input",R.previewClient));
