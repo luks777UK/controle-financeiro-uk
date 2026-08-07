@@ -40,7 +40,7 @@ function fatalDiagnostic313(step,error,extra={}){
     const box=document.getElementById("fatalLoginDiagnostic");
     const text=document.getElementById("fatalLoginDiagnosticText");
     const lines=[
-      `VERSÃO: 5.0.0-beta.13.1`,
+      `VERSÃO: 5.0.0-beta.14.1`,
       `ETAPA: ${step}`,
       `MENSAGEM: ${error?.message||String(error||"Erro desconhecido")}`
     ];
@@ -2090,8 +2090,9 @@ $("confirmVaultWithdrawV4").onclick=async()=>{
 };
 
 
-const APP_VERSION="5.0.0-beta.13";
+const APP_VERSION="5.0.0-beta.14";
 const RELEASE_NOTES=[
+  {version:"5.0.0-beta.14",date:"07/08/2026",title:"Fontes maiores e integração com Receitas",changes:["Fontes dos cards principais aumentadas novamente.","Todo pagamento confirmado na Rota cria ou atualiza automaticamente uma Receita na aba Geral.","Alterações de valor, data ou forma de pagamento permanecem sincronizadas.","Ao desmarcar pagamento, a Receita vinculada é removida.","Receitas antigas da Rota são reconciliadas automaticamente sem duplicação."]},
   {version:"5.0.0-beta.13",date:"07/08/2026",title:"Route UI Polish",changes:["Fontes da aba Rota aumentadas para melhorar leitura.","Pesquisa removida de Mostrar mais por ser redundante com Lista de clientes.","Resumo mensal mantido como foco principal do painel expandido.","Botões e cards receberam ajustes de legibilidade sem alterar cálculos."]},
   {version:"5.0.0-beta.12",date:"06/08/2026",title:"Painel da Rota simétrico",changes:["Seis indicadores em grade 3 por 2.","Cards com a mesma largura e altura.","Esperado e Recebido exibem quantidades.","Mais ocupa 30% e Lista de clientes 70%."]},
   {version:"5.0.0-beta.11",date:"06/08/2026",title:"Extras nos resumos e primeira data obrigatória",changes:["Extras aparecem no resumo semanal.","Extras aparecem no resumo mensal.","Todo cliente precisa de uma primeira data.","Cliente Extra já é agendado na data escolhida e continua disponível para futuros serviços."]},
@@ -3195,18 +3196,65 @@ boot();
 
   R.incomeId = item => `route-income:${item.key}`;
   R.syncIncome = (item,visit) => {
-    state.incomes=state.incomes.filter(x=>x.id!==R.incomeId(item));
-    if(!visit.paid)return;
+    R.ensure();
+    state.incomes=Array.isArray(state.incomes)?state.incomes:[];
+    const incomeId=R.incomeId(item);
+
+    // Nunca duplica: primeiro remove a receita antiga desta limpeza.
+    state.incomes=state.incomes.filter(income=>
+      String(income.id)!==String(incomeId) &&
+      String(income.routeVisitKey||"")!==String(item.key)
+    );
+
+    // Se o pagamento foi removido, a receita também desaparece da aba Geral.
+    if(!visit?.paid)return;
+
+    const amount=Number(visit.amountReceived ?? item.amount ?? 0);
+    const paymentDate=visit.paymentDate || visit.actualDate || item.actualDate || R.today();
+    const paymentMethod=visit.paymentMethod || "card";
+
     state.incomes.push({
-      id:R.incomeId(item),
-      amount:Number(visit.amountReceived||item.amount),
+      id:incomeId,
+      amount,
       description:`Limpeza · ${item.client.name}`,
       person:"casal",
-      date:visit.paymentDate||visit.actualDate||item.actualDate,
+      date:paymentDate,
       source:"route",
+      category:"Limpeza",
       routeVisitKey:item.key,
-      paymentMethod:visit.paymentMethod||"card"
+      routeClientId:item.clientId,
+      paymentMethod,
+      method:paymentMethod,
+      createdAt:visit.createdAt || new Date().toISOString(),
+      updatedAt:new Date().toISOString()
     });
+  };
+  R.reconcileRouteIncomesV514 = () => {
+    if(!state)return;
+    R.ensure();
+
+    const routeKeys=new Set();
+    for(const visit of R.ensure().visits||[]){
+      const client=R.client(visit.clientId);
+      if(!client)continue;
+      const item=R.instance(client,visit.originalDate);
+      routeKeys.add(item.key);
+      if(visit.paid)R.syncIncome(item,visit);
+      else{
+        const incomeId=R.incomeId(item);
+        state.incomes=(state.incomes||[]).filter(income=>
+          String(income.id)!==String(incomeId) &&
+          String(income.routeVisitKey||"")!==String(item.key)
+        );
+      }
+    }
+
+    // Remove receitas órfãs da Rota que não correspondem mais a visita existente.
+    state.incomes=(state.incomes||[]).filter(income=>
+      income.source!=="route" ||
+      !income.routeVisitKey ||
+      routeKeys.has(String(income.routeVisitKey))
+    );
   };
 
   R.clientHistory = clientId => {
@@ -3470,6 +3518,7 @@ boot();
   R.render = () => {
     if(!state||!R.$("routeView"))return;
     R.ensure();
+    R.reconcileRouteIncomesV514();
     const items=R.weekItems();
     const active=items.filter(x=>!x.cancelled);
     const weeklyExtra=active.filter(item=>item.client?.frequency==="extra"||item.visit?.extra);

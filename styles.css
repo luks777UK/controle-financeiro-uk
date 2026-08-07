@@ -1814,3 +1814,52 @@ html{scroll-behavior:smooth}
 @media(max-width:430px){.route-dashboard-grid-v512{gap:7px}.route-dashboard-card-v512{min-height:88px;padding:11px 9px;border-radius:16px}.route-dashboard-card-v512 strong{font-size:13px}.route-dashboard-card-v512 small{font-size:5.4px}}
 @media(max-width:350px){.route-dashboard-grid-v512{grid-template-columns:repeat(2,minmax(0,1fr))}.route-compact-actions-v510{grid-template-columns:1fr!important}}
 \n/* Nosso Controle 5.0.0-beta.13 — Route UI Polish */\n#routeView{font-size:1.06em}\n#routeView .page-overline{font-size:7.2px}\n#routeView .route-header-v5 h2{font-size:27px}\n#routeView .route-header-v5 p{font-size:8px}\n.route-dashboard-card-v512 span{font-size:6.8px}\n.route-dashboard-card-v512 strong{font-size:15.8px}\n.route-dashboard-card-v512 small{font-size:6.3px}\n.route-dashboard-card-v512 em{font-size:6.3px}\n.route-action-row-v512 .route-tools-toggle-v56 strong,.route-action-row-v512 #openRouteDirectoryV510 strong,.route-action-row-v512 #openRouteDirectoryV510 b{font-size:8.2px}\n.route-action-row-v512 .route-tools-toggle-v56 small,.route-action-row-v512 #openRouteDirectoryV510 small{font-size:5.8px}\n.route-week-button-v5 strong,.route-week-button-v5 b{font-size:9.8px}\n.route-week-button-v5 span,.route-week-button-v5 small{font-size:6.5px}\n.route-day-button-v5 strong,.route-day-button-v5 b{font-size:10.8px}\n.route-day-button-v5 span,.route-day-button-v5 small{font-size:6.8px}\n.route-client-card-v5 strong{font-size:10.4px}\n.route-client-card-v5 small,.route-client-card-v5 span{font-size:6.9px}\n.route-client-value-v5 strong{font-size:11.8px}\n.route-pay-button-v5{font-size:7.6px}\n.route-month-summary-head-v56 strong{font-size:11.2px}\n.route-month-summary-head-v56 span{font-size:6.8px}\n.route-month-grid-v56 span{font-size:6.4px}\n.route-month-grid-v56 strong{font-size:12.3px}\n.route-month-grid-v56 small{font-size:6.1px}\n.route-status-panel-head-v56 strong{font-size:11px}\n.route-status-panel-head-v56 small{font-size:6.5px}\n.route-extra-tools-v56 .route-tools-v55{display:none!important}\n#openRouteDirectoryV510{border-color:rgba(97,173,255,.13);background:linear-gradient(145deg,rgba(97,173,255,.06),#151725)}\n#openRouteDirectoryV510:active{transform:scale(.99)}\n@media(max-width:430px){#routeView{font-size:1.04em}.route-dashboard-card-v512 strong{font-size:15px}.route-client-card-v5 strong{font-size:10px}}\n
+
+/* Nosso Controle 5.0.0-beta.14 — cards maiores */
+.route-dashboard-card-v512{
+  min-height:98px;
+  padding:13px 11px;
+}
+
+.route-dashboard-card-v512 span{
+  font-size:7.4px!important;
+  line-height:1.15;
+}
+
+.route-dashboard-card-v512 strong{
+  margin-top:7px;
+  font-size:17px!important;
+  line-height:1.05;
+  letter-spacing:-.15px;
+}
+
+.route-dashboard-card-v512 small{
+  margin-top:7px;
+  font-size:6.8px!important;
+  line-height:1.25;
+}
+
+.route-dashboard-card-v512 em{
+  min-width:20px;
+  height:20px;
+  font-size:6.6px!important;
+}
+
+@media(max-width:430px){
+  .route-dashboard-card-v512{
+    min-height:95px;
+    padding:12px 9px;
+  }
+
+  .route-dashboard-card-v512 span{
+    font-size:7px!important;
+  }
+
+  .route-dashboard-card-v512 strong{
+    font-size:16px!important;
+  }
+
+  .route-dashboard-card-v512 small{
+    font-size:6.4px!important;
+  }
+}
