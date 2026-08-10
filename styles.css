@@ -2592,3 +2592,26 @@ html{scroll-behavior:smooth}
 .brazil72-result{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.brazil72-result article{padding:10px;border-radius:14px;background:#151725}.brazil72-result span,.brazil72-result strong{display:block}.brazil72-result span{font-size:8px;color:#858a9b}.brazil72-result strong{margin-top:4px;font-size:13px}.brazil72-result .brl{grid-column:1/-1;background:linear-gradient(135deg,rgba(66,229,164,.10),rgba(62,115,154,.09))}.brazil72-result .brl strong{font-size:21px;color:#4ce3ac}
 .brazil72-note{margin:10px 0;padding:9px 10px;border-radius:11px;background:rgba(255,177,95,.07);color:#9e927f;font-size:8px;line-height:1.4}
 @media(max-width:390px){.vault72-goals-grid{grid-template-columns:1fr}.vault72-balance strong{font-size:27px}}
+
+/* v7.2.0-beta.2 — Live Exchange Rate */
+.brazil72-live-quote{
+  display:grid!important;
+  grid-template-columns:1fr auto;
+  gap:8px 12px!important;
+}
+.brazil72-rate-main{min-width:0}
+.brazil72-rate-meta{
+  grid-column:1/-1;
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  padding-top:8px;
+  border-top:1px solid rgba(255,255,255,.055);
+  color:#777d8f;
+  font-size:8px;
+}
+#brazilRateStatusV72.live{color:#4ce3ac!important}
+#brazilRateStatusV72.stale{color:#ffb15f!important}
+#refreshBrazilRateV72:disabled{opacity:.45}
+.brazil72-result article:nth-child(3) strong{color:#6aa9ff}
+.brazil72-result article:nth-child(4) strong{color:#ffb15f}
