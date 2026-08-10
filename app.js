@@ -40,7 +40,7 @@ function fatalDiagnostic313(step,error,extra={}){
     const box=document.getElementById("fatalLoginDiagnostic");
     const text=document.getElementById("fatalLoginDiagnosticText");
     const lines=[
-      `VERSÃO: 7.1.0-beta.1`,
+      `VERSÃO: 7.2.0-beta.1`,
       `ETAPA: ${step}`,
       `MENSAGEM: ${error?.message||String(error||"Erro desconhecido")}`
     ];
@@ -1301,6 +1301,7 @@ function renderVault(){
     });
   if(!entries.length){
     list.innerHTML='<div class="vault-empty-v4">O Cofre ainda está vazio.</div>';
+    if(window.BrazilVaultV72)window.BrazilVaultV72.render();
     return;
   }
 
@@ -1324,6 +1325,7 @@ function renderVault(){
   list.querySelectorAll("[data-vault-delete-v4]").forEach(button=>{
     button.onclick=()=>deleteVaultEntryV4(button.dataset.vaultDeleteV4);
   });
+  if(window.BrazilVaultV72)window.BrazilVaultV72.render();
 }
 
 async function deleteVaultEntryV4(id){
@@ -2469,7 +2471,218 @@ $("confirmVaultWithdrawV4").onclick=async()=>{
   window.FinancialPlannerV71=P;
 })();
 
-const APP_VERSION="7.1.0-beta.1";
+
+/* =========================================================
+   v7.2 Vault & Brazil Box
+   ========================================================= */
+(function(){
+  "use strict";
+  const B={fallbackRate:6.807,defaultWisePct:0.951};
+
+  B.$=id=>document.getElementById(id);
+  B.num=v=>Number.isFinite(Number(v))?Number(v):0;
+  B.moneyGBP=v=>new Intl.NumberFormat("pt-BR",{style:"currency",currency:"GBP"}).format(B.num(v));
+  B.moneyBRL=v=>new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL"}).format(B.num(v));
+  B.monthKey=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
+
+  B.ensure=()=>{
+    if(!state)return null;
+    state.vaultEntries=Array.isArray(state.vaultEntries)?state.vaultEntries:[];
+    state.brazilBox=state.brazilBox&&typeof state.brazilBox==="object"?state.brazilBox:{};
+    state.brazilBox.transfers=Array.isArray(state.brazilBox.transfers)?state.brazilBox.transfers:[];
+    state.brazilBox.emergencyTarget=Math.max(0,B.num(state.brazilBox.emergencyTarget));
+    state.brazilBox.lastRate=Math.max(0,B.num(state.brazilBox.lastRate||B.fallbackRate));
+    state.brazilBox.wiseFeePct=Math.max(0,B.num(state.brazilBox.wiseFeePct||B.defaultWisePct));
+    state.brazilBox.wiseFeeFixed=Math.max(0,B.num(state.brazilBox.wiseFeeFixed||0));
+    return state.brazilBox;
+  };
+
+  B.cardBalance=()=>{
+    try{return typeof vaultLocationBalanceV4==="function"?Math.max(0,B.num(vaultLocationBalanceV4("card"))):0}catch{return 0}
+  };
+  B.totalVault=()=>{
+    try{return Math.max(0,B.num(vaultLocationBalanceV4("card"))+B.num(vaultLocationBalanceV4("envelope")))}catch{return 0}
+  };
+
+  B.quote=()=>{
+    const box=B.ensure();
+    const amount=Math.max(0,B.num(B.$("brazilTransferAmountV72")?.value));
+    const rate=Math.max(0,B.num(B.$("brazilRateV72")?.textContent?.replace(",","."))||box.lastRate||B.fallbackRate);
+    const pct=Math.max(0,B.num(B.$("wiseFeePctV72")?.value));
+    const fixed=Math.max(0,B.num(B.$("wiseFeeFixedV72")?.value));
+    const fee=Math.min(amount,amount*(pct/100)+fixed);
+    const netGBP=Math.max(0,amount-fee);
+    const brl=netGBP*rate;
+    if(B.$("wiseFeeValueV72"))B.$("wiseFeeValueV72").textContent=B.moneyGBP(fee);
+    if(B.$("wiseNetGBPV72"))B.$("wiseNetGBPV72").textContent=B.moneyGBP(netGBP);
+    if(B.$("brazilNetBRLV72"))B.$("brazilNetBRLV72").textContent=B.moneyBRL(brl);
+    return {amount,rate,pct,fixed,fee,netGBP,brl};
+  };
+
+  B.fetchRate=async()=>{
+    const status=B.$("brazilRateStatusV72");
+    if(status)status.textContent="Atualizando…";
+    try{
+      const response=await fetch("https://api.frankfurter.app/latest?from=GBP&to=BRL",{cache:"no-store"});
+      if(!response.ok)throw new Error("Cotação indisponível");
+      const data=await response.json();
+      const rate=B.num(data?.rates?.BRL);
+      if(rate<=0)throw new Error("Cotação inválida");
+      const box=B.ensure(); box.lastRate=rate; box.lastRateAt=new Date().toISOString();
+      if(B.$("brazilRateV72"))B.$("brazilRateV72").textContent=rate.toFixed(4).replace(".",",");
+      if(status)status.textContent="Cotação de mercado atualizada";
+      B.quote();
+      return rate;
+    }catch(error){
+      const box=B.ensure();
+      const rate=box.lastRate||B.fallbackRate;
+      if(B.$("brazilRateV72"))B.$("brazilRateV72").textContent=rate.toFixed(4).replace(".",",");
+      if(status)status.textContent="Usando última cotação salva";
+      B.quote();
+      return rate;
+    }
+  };
+
+  B.openTransfer=()=>{
+    const box=B.ensure();
+    if(B.$("brazilTransferAvailableV72"))B.$("brazilTransferAvailableV72").textContent=B.moneyGBP(B.cardBalance());
+    if(B.$("brazilTransferAmountV72"))B.$("brazilTransferAmountV72").value="";
+    if(B.$("wiseFeePctV72"))B.$("wiseFeePctV72").value=box.wiseFeePct||B.defaultWisePct;
+    if(B.$("wiseFeeFixedV72"))B.$("wiseFeeFixedV72").value=box.wiseFeeFixed||0;
+    if(B.$("brazilRateV72"))B.$("brazilRateV72").textContent=(box.lastRate||B.fallbackRate).toFixed(4).replace(".",",");
+    if(B.$("brazilTransferDateV72"))B.$("brazilTransferDateV72").value=typeof currentLocalDate==="function"?currentLocalDate():new Date().toISOString().slice(0,10);
+    if(B.$("brazilTransferFeedbackV72"))B.$("brazilTransferFeedbackV72").textContent="";
+    B.quote();
+    B.$("brazilTransferDialogV72")?.showModal();
+    B.fetchRate();
+  };
+
+  B.confirmTransfer=async()=>{
+    const q=B.quote(),available=B.cardBalance();
+    if(q.amount<=0){
+      if(B.$("brazilTransferFeedbackV72"))B.$("brazilTransferFeedbackV72").textContent="Digite um valor válido.";
+      return;
+    }
+    if(q.amount>available){
+      if(B.$("brazilTransferFeedbackV72"))B.$("brazilTransferFeedbackV72").textContent=`Saldo insuficiente no Cartão. Disponível: ${B.moneyGBP(available)}`;
+      return;
+    }
+    const date=B.$("brazilTransferDateV72")?.value||(typeof currentLocalDate==="function"?currentLocalDate():new Date().toISOString().slice(0,10));
+    const box=B.ensure();
+    box.wiseFeePct=q.pct; box.wiseFeeFixed=q.fixed; box.lastRate=q.rate;
+
+    const id=crypto.randomUUID?.()||`br-${Date.now()}`;
+
+    state.vaultEntries.push({
+      id:`vault-${id}`,
+      type:"withdrawal",
+      location:"card",
+      amount:q.amount,
+      description:"Enviado para o Brasil via Wise",
+      date,
+      createdAt:new Date().toISOString(),
+      brazilTransferId:id
+    });
+
+    box.transfers.push({
+      id,
+      provider:"Wise",
+      source:"card",
+      gbpSent:q.amount,
+      wiseFeeGBP:q.fee,
+      netGBP:q.netGBP,
+      rate:q.rate,
+      brlReceived:q.brl,
+      date,
+      createdAt:new Date().toISOString()
+    });
+
+    state.financialPlanner=state.financialPlanner&&typeof state.financialPlanner==="object"?state.financialPlanner:{};
+    state.financialPlanner.brazilSentByMonth=state.financialPlanner.brazilSentByMonth&&typeof state.financialPlanner.brazilSentByMonth==="object"?state.financialPlanner.brazilSentByMonth:{};
+    const d=new Date(date+"T12:00:00");
+    const key=B.monthKey(d);
+    state.financialPlanner.brazilSentByMonth[key]=B.num(state.financialPlanner.brazilSentByMonth[key])+q.amount;
+
+    state.history=Array.isArray(state.history)?state.history:[];
+    state.history.push({
+      id:`history-${id}`,
+      type:"brazil_transfer",
+      text:`Brasil via Wise · ${B.moneyBRL(q.brl)}`,
+      amount:q.amount,
+      brl:q.brl,
+      rate:q.rate,
+      fee:q.fee,
+      date:new Date(date+"T12:00:00").toISOString()
+    });
+
+    B.$("brazilTransferDialogV72")?.close();
+    B.render();
+    if(window.FinancialPlannerV71)window.FinancialPlannerV71.render();
+    await persist("Envio ao Brasil registrado");
+  };
+
+  B.render=()=>{
+    if(!state)return;
+    const box=B.ensure(),total=B.totalVault();
+    const target=box.emergencyTarget;
+    const covered=Math.min(total,target);
+    const pct=target>0?Math.max(0,Math.min(100,covered/target*100)):0;
+    if(B.$("emergencyTargetV72"))B.$("emergencyTargetV72").textContent=B.moneyGBP(target);
+    if(B.$("emergencyCoveredV72"))B.$("emergencyCoveredV72").textContent=`${B.moneyGBP(covered)} cobertos`;
+    if(B.$("emergencyPctV72"))B.$("emergencyPctV72").textContent=`${pct.toFixed(0)}%`;
+    if(B.$("emergencyProgressV72"))B.$("emergencyProgressV72").style.width=`${pct}%`;
+
+    const transfers=box.transfers;
+    const brl=transfers.reduce((s,t)=>s+B.num(t.brlReceived),0);
+    const gbp=transfers.reduce((s,t)=>s+B.num(t.gbpSent),0);
+    if(B.$("brazilBoxBRLV72"))B.$("brazilBoxBRLV72").textContent=B.moneyBRL(brl);
+    if(B.$("brazilBoxGBPEquivalentV72"))B.$("brazilBoxGBPEquivalentV72").textContent=`${B.moneyGBP(gbp)} enviados`;
+    if(B.$("brazilBoxTransfersV72"))B.$("brazilBoxTransfersV72").textContent=`${transfers.length} ${transfers.length===1?"envio":"envios"}`;
+    const last=[...transfers].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt))[0];
+    if(B.$("brazilBoxLastRateV72"))B.$("brazilBoxLastRateV72").textContent=last?`Última cotação ${B.num(last.rate).toFixed(4).replace(".",",")}`:"Cotação —";
+
+    const history=B.$("brazilBoxHistoryV72");
+    if(history){
+      history.innerHTML=transfers.length?[...transfers].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt)).map(t=>`
+        <article>
+          <div class="brazil72-history-icon">🇧🇷</div>
+          <div><strong>${B.moneyBRL(t.brlReceived)}</strong><small>${new Date(t.date+"T12:00:00").toLocaleDateString("pt-BR")} · Wise · 1 GBP = ${B.num(t.rate).toFixed(4).replace(".",",")} BRL</small></div>
+          <div><b>−${B.moneyGBP(t.gbpSent)}</b><small>taxa ${B.moneyGBP(t.wiseFeeGBP)}</small></div>
+        </article>`).join(""):'<div class="vault-empty-v4">Nenhum envio ao Brasil ainda.</div>';
+    }
+  };
+
+  B.openEmergency=()=>{
+    const box=B.ensure();
+    if(B.$("emergencyTargetInputV72"))B.$("emergencyTargetInputV72").value=box.emergencyTarget||"";
+    B.$("emergencyTargetDialogV72")?.showModal();
+  };
+
+  B.saveEmergency=async()=>{
+    const box=B.ensure();
+    box.emergencyTarget=Math.max(0,B.num(B.$("emergencyTargetInputV72")?.value));
+    B.$("emergencyTargetDialogV72")?.close();
+    B.render();
+    await persist("Meta da reserva atualizada");
+  };
+
+  B.bind=()=>{
+    B.$("openBrazilTransferV72")?.addEventListener("click",B.openTransfer);
+    B.$("refreshBrazilRateV72")?.addEventListener("click",B.fetchRate);
+    B.$("confirmBrazilTransferV72")?.addEventListener("click",B.confirmTransfer);
+    B.$("editEmergencyTargetV72")?.addEventListener("click",B.openEmergency);
+    B.$("saveEmergencyTargetV72")?.addEventListener("click",B.saveEmergency);
+    ["brazilTransferAmountV72","wiseFeePctV72","wiseFeeFixedV72"].forEach(id=>B.$(id)?.addEventListener("input",B.quote));
+  };
+
+  document.addEventListener("DOMContentLoaded",()=>{
+    B.bind();
+    setTimeout(B.render,500);
+  });
+  window.BrazilVaultV72=B;
+})();
+
+const APP_VERSION="7.2.0-beta.1";
 
 /* v7 expense intelligence */
 (function(){const A={weekOffset:0};
@@ -2502,10 +2715,11 @@ x=document.getElementById("vaultForecastWeekV7");if(x)x.textContent=`${A.money(v
 document.addEventListener("DOMContentLoaded",()=>{document.getElementById("expensePrevWeekV7")?.addEventListener("click",()=>{A.weekOffset--;A.render()});document.getElementById("expenseNextWeekV7")?.addEventListener("click",()=>{A.weekOffset++;A.render()});document.getElementById("expenseCurrentWeekV7")?.addEventListener("click",()=>{A.weekOffset=0;A.render()});setTimeout(A.render,350)});setInterval(A.render,5000);window.FinanceAIv7=A})(); 
 
 const RELEASE_NOTES=[
-  {version:"7.1.0-beta.1",date:"10/08/2026",title:"Financial Planner",changes:["Novo fluxo financeiro unificado: Ganhos → Bills + Gastos → Meta Brasil → Lazer.","Receitas da Rota e outras receitas alimentam automaticamente a previsão.","Bills entram como despesa geral sem serem duplicadas em Gastos variáveis.","Novo comparativo Realizado x Previsto.","Meta Brasil mensal configurável com valor já enviado.","Cálculo automático de Livre previsto e Lazer disponível.","Insights mostram falta para a meta, renda extra semanal necessária e limite diário de lazer.","Previsões usam agenda da Rota, gastos atuais e histórico mensal recente."]},
-{version:"7.1.0-beta.1",date:"10/08/2026",title:"Historical Data Recognition Fix",changes:["A inteligência financeira agora lê diretamente state.expenses e reconhece todo o histórico já salvo.","Semanas anteriores passam a mostrar automaticamente os gastos antigos, sem recadastro.","Histórico antigo também entra no cálculo da média e das previsões.","Cofre passa a usar a mesma fonte real de dados do app."]},
-{version:"7.1.0-beta.1",date:"10/08/2026",title:"Expenses Legacy DOM Cleanup",changes:["Corrigido expenseCategoryStrip ausente.","Protegidas as referências de renderExpenses a elementos visuais removidos.","Evita a sequência de erros null causada pela limpeza do layout antigo."]},
-  {version:"7.1.0-beta.1",date:"10/08/2026",title:"Expense Render Compatibility Fix",changes:["Corrigido erro ao abrir os dados após remover o card mensal antigo.","renderExpenses agora ignora elementos legados que não existem mais.","Resumo financeiro e navegação semanal da beta.2 foram preservados."]},
+  {version:"7.2.0-beta.1",date:"10/08/2026",title:"Vault & Brazil Box",changes:["Cofre totalmente reorganizado para representar o dinheiro realmente separado.","Nova Caixinha Brasil com histórico em BRL.","Envio ao Brasil retira automaticamente do Cartão do Cofre e atualiza a Meta Brasil.","Cotação GBP/BRL atualizável pela internet com fallback salvo.","Estimativa de tarifa Wise com percentual e taxa fixa editáveis.","Nova meta editável de Reserva de emergência.","Fontes do Planejador Financeiro na aba Geral aumentadas para melhor leitura."]},
+  {version:"7.2.0-beta.1",date:"10/08/2026",title:"Financial Planner",changes:["Novo fluxo financeiro unificado: Ganhos → Bills + Gastos → Meta Brasil → Lazer.","Receitas da Rota e outras receitas alimentam automaticamente a previsão.","Bills entram como despesa geral sem serem duplicadas em Gastos variáveis.","Novo comparativo Realizado x Previsto.","Meta Brasil mensal configurável com valor já enviado.","Cálculo automático de Livre previsto e Lazer disponível.","Insights mostram falta para a meta, renda extra semanal necessária e limite diário de lazer.","Previsões usam agenda da Rota, gastos atuais e histórico mensal recente."]},
+{version:"7.2.0-beta.1",date:"10/08/2026",title:"Historical Data Recognition Fix",changes:["A inteligência financeira agora lê diretamente state.expenses e reconhece todo o histórico já salvo.","Semanas anteriores passam a mostrar automaticamente os gastos antigos, sem recadastro.","Histórico antigo também entra no cálculo da média e das previsões.","Cofre passa a usar a mesma fonte real de dados do app."]},
+{version:"7.2.0-beta.1",date:"10/08/2026",title:"Expenses Legacy DOM Cleanup",changes:["Corrigido expenseCategoryStrip ausente.","Protegidas as referências de renderExpenses a elementos visuais removidos.","Evita a sequência de erros null causada pela limpeza do layout antigo."]},
+  {version:"7.2.0-beta.1",date:"10/08/2026",title:"Expense Render Compatibility Fix",changes:["Corrigido erro ao abrir os dados após remover o card mensal antigo.","renderExpenses agora ignora elementos legados que não existem mais.","Resumo financeiro e navegação semanal da beta.2 foram preservados."]},
 {version:"7.0.0-beta.2",date:"10/08/2026",title:"Expenses Layout & Week Navigation",changes:["Adicionar gasto movido para o topo.","Resumo mensal grande duplicado removido.","Navegação entre semanas anteriores e futuras adicionada.","Resumo e previsão acompanham a semana selecionada."]},
   {version:"7.0.0-beta.2",date:"10/08/2026",title:"Financial Intelligence",changes:["Gastos agora mostra resumo semanal e mensal.","Previsão adaptativa estima os gastos da semana e do mês a partir do histórico e ritmo atual.","Cofre ganhou visão semanal, mensal, comparação e projeção.","O indicador informa quando ainda há poucos dados para uma previsão confiável."]},
   {version:"6.0.0-beta.6",date:"10/08/2026",title:"Client List Readability",changes:["Rota voltou para o centro da navegação inferior, entre Bills e Gastos.","Nomes, informações e botões da Lista de clientes ficaram maiores e mais legíveis.","Nenhuma lógica dos clientes foi alterada."]},

@@ -2530,3 +2530,65 @@ html{scroll-behavior:smooth}
   .planner-flow-v71 article strong{font-size:13px}
   .planner-flow-v71 article small{font-size:6px}
 }
+
+/* v7.2 General planner readability */
+.financial-planner-v71 .planner-flow-v71 article span{font-size:10px!important}
+.financial-planner-v71 .planner-flow-v71 article strong{font-size:18px!important}
+.financial-planner-v71 .planner-flow-v71 article small{font-size:9px!important;line-height:1.35!important}
+.financial-planner-v71 .planner-breakdown-v71 span{font-size:9px!important}
+.financial-planner-v71 .planner-breakdown-v71 strong{font-size:15px!important}
+.financial-planner-v71 .planner-breakdown-v71 small{font-size:8px!important}
+.financial-planner-v71 .planner-brazil-head-v71 span{font-size:10px!important}
+.financial-planner-v71 .planner-brazil-head-v71 strong{font-size:21px!important}
+.financial-planner-v71 .planner-brazil-sent-v71 small{font-size:9px!important}
+.financial-planner-v71 .planner-brazil-sent-v71 b{font-size:14px!important}
+.financial-planner-v71 .planner-brazil-foot-v71{font-size:9px!important}
+.financial-planner-v71 .planner-result-grid-v71 span{font-size:9px!important}
+.financial-planner-v71 .planner-result-grid-v71 strong{font-size:20px!important}
+.financial-planner-v71 .planner-result-grid-v71 small{font-size:8px!important}
+.financial-planner-v71 .planner-ai-title-v71 b{font-size:11px!important}
+.financial-planner-v71 .planner-ai-title-v71 small{font-size:8px!important}
+.financial-planner-v71 .planner-insights-v71 p{font-size:9px!important;line-height:1.45!important}
+
+/* =========================================================
+   v7.2 Vault & Brazil Box
+   ========================================================= */
+.vault72-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:14px}
+.vault72-head h2{margin:5px 0 0;font-size:30px}
+.vault72-head p{margin:5px 0 0;color:#8d92a4;font-size:12px}
+.vault72-balance{display:flex;justify-content:space-between;align-items:center;gap:15px;padding:18px;border-radius:24px;background:linear-gradient(135deg,#123c33,#102f2c 55%,#123043);border:1px solid rgba(72,224,171,.22)}
+.vault72-balance span{display:block;color:#72dfb8;font-size:10px;font-weight:850;letter-spacing:.14em}
+.vault72-balance strong{display:block;margin-top:7px;font-size:31px;color:#4ce3ac}
+.vault72-balance small{display:block;margin-top:6px;color:#8ea69f;font-size:10px}
+.vault72-shield{width:58px;height:58px;border-radius:18px;display:grid;place-items:center;background:rgba(62,225,168,.08);color:#51dca9;font-size:24px}
+.vault72-locations{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:10px}
+.vault72-locations article{display:flex;align-items:center;gap:10px;padding:12px;border-radius:18px;background:#151725;border:1px solid rgba(255,255,255,.06)}
+.vault72-locations span,.vault72-locations strong,.vault72-locations small{display:block}
+.vault72-locations span{font-size:10px;color:#9296a8}.vault72-locations strong{margin-top:4px;font-size:17px}.vault72-locations small{margin-top:3px;font-size:8px;color:#73788b}
+.vault72-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:10px}
+.vault72-action{display:flex;align-items:center;gap:10px;padding:13px;border-radius:18px;background:#171927;border:1px solid rgba(255,255,255,.06);color:#fff;text-align:left}
+.vault72-action>span{width:38px;height:38px;border-radius:13px;display:grid;place-items:center;font-size:19px}
+.vault72-action b,.vault72-action small{display:block}.vault72-action b{font-size:12px}.vault72-action small{margin-top:3px;font-size:8px;color:#7f8497}
+.vault72-action.withdraw>span{background:rgba(255,107,133,.10);color:#ff7895}.vault72-action.brazil>span{background:rgba(66,229,164,.10)}
+.vault72-goals-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:10px}
+.vault72-goals-grid article{padding:13px;border-radius:19px;background:#151725;border:1px solid rgba(255,255,255,.06)}
+.vault72-emergency{border-color:rgba(97,173,255,.13)!important}.vault72-brazilbox{border-color:rgba(66,229,164,.13)!important}
+.vault72-card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.vault72-card-head span{display:block;font-size:8px;font-weight:850;letter-spacing:.06em;color:#8f94a6}
+.vault72-card-head strong{display:block;margin-top:6px;font-size:17px}
+.vault72-card-head button{border:0;background:rgba(255,255,255,.05);color:#bdaaff;padding:6px 8px;border-radius:9px;font-size:8px}
+.vault72-card-head>small{font-size:8px;color:#74dcb7;text-align:right}
+.vault72-progress{height:7px;margin:10px 0 6px;border-radius:999px;overflow:hidden;background:#242637}.vault72-progress i{display:block;width:0;height:100%;background:linear-gradient(90deg,#5c9eff,#8abaff);border-radius:inherit}
+.vault72-card-foot,.vault72-brazil-meta{display:flex;justify-content:space-between;gap:8px;color:#7e8497;font-size:8px}
+.vault72-summary{margin-top:10px!important}
+.brazil72-history{display:grid;gap:8px}
+.brazil72-history article{display:grid;grid-template-columns:42px 1fr auto;gap:10px;align-items:center;padding:12px;border-radius:17px;background:#151725;border:1px solid rgba(66,229,164,.09)}
+.brazil72-history-icon{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;background:rgba(66,229,164,.08);font-size:20px}
+.brazil72-history strong,.brazil72-history small,.brazil72-history b{display:block}.brazil72-history strong{font-size:14px;color:#58dfa9}.brazil72-history small{margin-top:3px;font-size:8px;color:#7e8497}.brazil72-history>article>div:last-child{text-align:right}.brazil72-history b{font-size:12px;color:#ff7e98}
+.brazil72-available{display:flex;justify-content:space-between;align-items:center;margin:8px 0 12px;padding:10px 12px;border-radius:13px;background:rgba(66,229,164,.07);color:#8fa19b;font-size:10px}.brazil72-available strong{font-size:15px;color:#52dba8}
+.brazil72-quote{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:11px;padding:12px;border-radius:16px;background:#151725;border:1px solid rgba(255,255,255,.06)}
+.brazil72-quote span,.brazil72-quote strong,.brazil72-quote small{display:block}.brazil72-quote span{font-size:9px;color:#8e93a4}.brazil72-quote strong{margin-top:4px;font-size:18px}.brazil72-quote small{margin-top:3px;font-size:8px;color:#6fdcaf}.brazil72-quote button{border:0;border-radius:10px;background:#29214f;color:#c3b1ff;padding:8px 10px;font-size:9px}
+.brazil72-fee-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.brazil72-result{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.brazil72-result article{padding:10px;border-radius:14px;background:#151725}.brazil72-result span,.brazil72-result strong{display:block}.brazil72-result span{font-size:8px;color:#858a9b}.brazil72-result strong{margin-top:4px;font-size:13px}.brazil72-result .brl{grid-column:1/-1;background:linear-gradient(135deg,rgba(66,229,164,.10),rgba(62,115,154,.09))}.brazil72-result .brl strong{font-size:21px;color:#4ce3ac}
+.brazil72-note{margin:10px 0;padding:9px 10px;border-radius:11px;background:rgba(255,177,95,.07);color:#9e927f;font-size:8px;line-height:1.4}
+@media(max-width:390px){.vault72-goals-grid{grid-template-columns:1fr}.vault72-balance strong{font-size:27px}}

@@ -7,13 +7,13 @@
   <meta http-equiv="Expires" content="0">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
   <meta name="theme-color" content="#080914">
-  <meta name="application-name" content="Nosso Controle 7.1.0-beta.1">
+  <meta name="application-name" content="Nosso Controle 7.2.0-beta.1">
   <meta name="apple-mobile-web-app-title" content="Nosso Controle">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="styles.css?v=7.1.0-beta.1-fresh">
-  <title>Nosso Controle 7.1.0-beta.1</title>
+  <link rel="stylesheet" href="styles.css?v=7.2.0-beta.1-fresh">
+  <title>Nosso Controle 7.2.0-beta.1</title>
 </head>
 <body>
   <section id="authView" class="auth-screen">
@@ -582,53 +582,133 @@
     </section>
 
     <section id="vaultView" class="app-section">
-<div class="v7-insights-shell" id="vaultInsightsV7"><div class="v7-period-head"><div><span class="v7-kicker">EVOLUÇÃO DO COFRE</span><h2>Resumo de reservas</h2></div><span class="v7-learning-badge">Semanal + mensal</span></div><div class="v7-summary-grid" id="vaultSummaryV7"></div><div class="v7-forecast-card v7-vault-forecast"><div class="v7-ai-icon">↗</div><div class="v7-forecast-copy"><span>TENDÊNCIA DE POUPANÇA</span><strong id="vaultForecastWeekV7">£0,00 esta semana</strong><small id="vaultForecastMonthV7">£0,00 neste mês</small></div><div class="v7-confidence" id="vaultTrendV7">Sem histórico</div></div></div>
-      <div class="section-page-header vault-page-header-v4">
+      <div class="vault72-head">
         <div>
-          <span class="page-overline">RESERVA EXTRA</span>
+          <span class="page-overline">DINHEIRO GUARDADO</span>
           <h2>Cofre</h2>
-          <p>Controle o dinheiro protegido sem misturar Envelope e Cartão.</p>
+          <p>O que realmente sobrou e foi separado para objetivos.</p>
         </div>
+        <button id="openVaultDeposit" class="page-add-button" type="button">＋</button>
       </div>
 
-      <section class="vault-total-v4">
+      <section class="vault72-balance">
         <div>
-          <span>SALDO TOTAL DO COFRE</span>
+          <span>SALDO DISPONÍVEL NO REINO UNIDO</span>
           <strong id="vaultBalance">£0,00</strong>
-          <small>Dinheiro protegido para emergências e objetivos.</small>
+          <small>Envelope + Cartão, já descontando retiradas e envios ao Brasil.</small>
         </div>
-        <div class="vault-lock-v4">◆</div>
+        <div class="vault72-shield">◆</div>
       </section>
 
-      <section class="vault-location-grid-v4">
+      <section class="vault72-locations">
         <article>
           <div class="vault-location-icon-v4 envelope">£</div>
-          <div><span>Envelope</span><strong id="vaultEnvelopeBalanceV4">£0,00</strong><small>Dinheiro físico guardado</small></div>
+          <div><span>Envelope</span><strong id="vaultEnvelopeBalanceV4">£0,00</strong><small>Dinheiro físico</small></div>
         </article>
         <article>
           <div class="vault-location-icon-v4 card">▰</div>
-          <div><span>Cartão</span><strong id="vaultCardBalanceV4">£0,00</strong><small>Dinheiro protegido no banco</small></div>
+          <div><span>Cartão</span><strong id="vaultCardBalanceV4">£0,00</strong><small>Disponível para Wise</small></div>
         </article>
       </section>
 
-      <section class="vault-actions-v4">
-        <button id="openVaultDeposit" class="vault-action-v4 add" type="button">
-          <span>＋</span><div><b>Adicionar</b><small>Guardar no Cofre</small></div>
+      <section class="vault72-actions">
+        <button id="openVaultWithdrawV4" class="vault72-action withdraw" type="button">
+          <span>−</span><div><b>Retirar</b><small>Usar no Reino Unido</small></div>
         </button>
-        <button id="openVaultWithdrawV4" class="vault-action-v4 remove" type="button">
-          <span>−</span><div><b>Retirar</b><small>Usar dinheiro guardado</small></div>
+        <button id="openBrazilTransferV72" class="vault72-action brazil" type="button">
+          <span>🇧🇷</span><div><b>Enviar ao Brasil</b><small>Simular via Wise</small></div>
         </button>
+      </section>
+
+      <section class="vault72-goals-grid">
+        <article class="vault72-emergency">
+          <div class="vault72-card-head">
+            <div><span>🛟 RESERVA DE EMERGÊNCIA</span><strong id="emergencyTargetV72">£0,00</strong></div>
+            <button id="editEmergencyTargetV72" type="button">Editar</button>
+          </div>
+          <div class="vault72-progress"><i id="emergencyProgressV72"></i></div>
+          <div class="vault72-card-foot"><span id="emergencyCoveredV72">£0,00 cobertos</span><span id="emergencyPctV72">0%</span></div>
+        </article>
+
+        <article class="vault72-brazilbox">
+          <div class="vault72-card-head">
+            <div><span>🇧🇷 CAIXINHA BRASIL</span><strong id="brazilBoxBRLV72">R$ 0,00</strong></div>
+            <small id="brazilBoxGBPEquivalentV72">£0,00 enviados</small>
+          </div>
+          <div class="vault72-brazil-meta">
+            <span id="brazilBoxTransfersV72">0 envios</span>
+            <span id="brazilBoxLastRateV72">Cotação —</span>
+          </div>
+        </article>
+      </section>
+
+      <section class="v7-insights-shell vault72-summary" id="vaultInsightsV7">
+        <div class="v7-period-head">
+          <div><span class="v7-kicker">EVOLUÇÃO DO COFRE</span><h2>Resumo de reservas</h2></div>
+          <span class="v7-learning-badge">Semanal + mensal</span>
+        </div>
+        <div class="v7-summary-grid" id="vaultSummaryV7"></div>
+        <div class="v7-forecast-card v7-vault-forecast">
+          <div class="v7-ai-icon">↗</div>
+          <div class="v7-forecast-copy"><span>TENDÊNCIA DE POUPANÇA</span><strong id="vaultForecastWeekV7">£0,00 esta semana</strong><small id="vaultForecastMonthV7">£0,00 neste mês</small></div>
+          <div class="v7-confidence" id="vaultTrendV7">Sem histórico</div>
+        </div>
       </section>
 
       <section class="vault-month-summary-v4">
         <article><span>Entradas no mês</span><strong id="vaultMonthAddedV4">£0,00</strong></article>
-        <article><span>Retiradas no mês</span><strong id="vaultMonthRemovedV4">£0,00</strong></article>
+        <article><span>Saídas no mês</span><strong id="vaultMonthRemovedV4">£0,00</strong></article>
       </section>
 
       <div class="section-heading compact-heading">
-        <div><h2>Movimentações</h2><p>Verde para adições e vermelho para retiradas.</p></div>
+        <div><h2>Movimentações</h2><p>Inclui depósitos, retiradas e transferências ao Brasil.</p></div>
       </div>
       <section id="vaultList" class="vault-list-v4"></section>
+
+      <div class="section-heading compact-heading">
+        <div><h2>Histórico Brasil</h2><p>Valores efetivamente enviados para a Caixinha Brasil.</p></div>
+      </div>
+      <section id="brazilBoxHistoryV72" class="brazil72-history"></section>
+
+      <dialog id="emergencyTargetDialogV72">
+        <form class="dialog-card" method="dialog">
+          <div class="dialog-heading"><div><span class="page-overline">COFRE</span><h2>Reserva de emergência</h2><p>Defina a meta que deseja manter protegida.</p></div><button value="cancel" class="round-button">×</button></div>
+          <label>Meta (£)<input id="emergencyTargetInputV72" type="number" min="0" step="0.01" inputmode="decimal"></label>
+          <button id="saveEmergencyTargetV72" class="primary-button" type="button">Salvar meta</button>
+        </form>
+      </dialog>
+
+      <dialog id="brazilTransferDialogV72">
+        <form class="dialog-card brazil72-dialog" method="dialog">
+          <div class="dialog-heading"><div><span class="page-overline">WISE → BRASIL</span><h2>Enviar para o Brasil</h2><p>O valor sai do Cartão do Cofre e entra na Caixinha Brasil.</p></div><button value="cancel" class="round-button">×</button></div>
+
+          <div class="brazil72-available">Disponível no Cartão <strong id="brazilTransferAvailableV72">£0,00</strong></div>
+
+          <label>Valor a enviar (£)<input id="brazilTransferAmountV72" type="number" min="0" step="0.01" inputmode="decimal"></label>
+
+          <section class="brazil72-quote">
+            <div><span>Cotação GBP → BRL</span><strong id="brazilRateV72">6,8070</strong><small id="brazilRateStatusV72">Aguardando atualização</small></div>
+            <button id="refreshBrazilRateV72" type="button">↻ Atualizar</button>
+          </section>
+
+          <div class="brazil72-fee-grid">
+            <label>Tarifa Wise estimada (%)<input id="wiseFeePctV72" type="number" min="0" step="0.001" inputmode="decimal" value="0.951"></label>
+            <label>Tarifa fixa (£)<input id="wiseFeeFixedV72" type="number" min="0" step="0.01" inputmode="decimal" value="0"></label>
+          </div>
+
+          <section class="brazil72-result">
+            <article><span>Tarifa estimada</span><strong id="wiseFeeValueV72">£0,00</strong></article>
+            <article><span>Convertido após tarifa</span><strong id="wiseNetGBPV72">£0,00</strong></article>
+            <article class="brl"><span>Chega na Caixinha</span><strong id="brazilNetBRLV72">R$ 0,00</strong></article>
+          </section>
+
+          <div class="brazil72-note">Estimativa: a Wise informa que a tarifa varia com valor, rota e método de pagamento. Confirme o valor final mostrado pela Wise antes de concluir a transferência.</div>
+
+          <label>Data<input id="brazilTransferDateV72" type="date"></label>
+          <div id="brazilTransferFeedbackV72" class="form-feedback"></div>
+          <button id="confirmBrazilTransferV72" class="primary-button" type="button">Confirmar envio</button>
+        </form>
+      </dialog>
     </section>
 
     <section id="routeView" class="app-section route-view-v5">
@@ -1457,10 +1537,10 @@
 <div id="toast" class="toast"></div>
   <canvas id="confetti"></canvas>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=7.1.0-beta.1-fresh"></script>
+  <script src="app.js?v=7.2.0-beta.1-fresh"></script>
   <script>
     (async()=>{
-      const BUILD="7.1.0-beta.1-single";
+      const BUILD="7.2.0-beta.1-single";
       try{
         if("serviceWorker" in navigator){
           const registrations=await navigator.serviceWorker.getRegistrations();
