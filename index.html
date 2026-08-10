@@ -7,13 +7,13 @@
   <meta http-equiv="Expires" content="0">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
   <meta name="theme-color" content="#080914">
-  <meta name="application-name" content="Nosso Controle 7.2.0-beta.2">
+  <meta name="application-name" content="Nosso Controle 7.2.0-beta.3">
   <meta name="apple-mobile-web-app-title" content="Nosso Controle">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="styles.css?v=7.2.0-beta.2-fresh">
-  <title>Nosso Controle 7.2.0-beta.2</title>
+  <link rel="stylesheet" href="styles.css?v=7.2.0-beta.3-fresh">
+  <title>Nosso Controle 7.2.0-beta.3</title>
 </head>
 <body>
   <section id="authView" class="auth-screen">
@@ -699,16 +699,28 @@
             </div>
           </section>
 
-          <div class="brazil72-fee-grid">
-            <label>Tarifa Wise estimada (%)<input id="wiseFeePctV72" type="number" min="0" step="0.001" inputmode="decimal" value="0.931"></label>
-            <label>Tarifa fixa (£)<input id="wiseFeeFixedV72" type="number" min="0" step="0.01" inputmode="decimal" value="0"></label>
-          </div>
+          <section class="wise-calibration-v723">
+            <div class="wise-calibration-head-v723">
+              <div><span>MODELO CALIBRADO</span><strong>Estimativa baseada nas suas cotações reais da Wise</strong></div>
+              <button id="toggleWiseManualV723" type="button">Ajustar</button>
+            </div>
+            <div class="wise-calibration-points-v723">
+              <span>£70 → £0,94</span><span>£100 → £1,21</span><span>£500 → £4,81</span>
+            </div>
+            <div id="wiseManualFieldsV723" class="wise-manual-fields-v723 hidden">
+              <label>Tarifa Wise fixa (£)<input id="wiseFeeBaseV723" type="number" min="0" step="0.001" inputmode="decimal" value="0.305"></label>
+              <label>Tarifa Wise variável (%)<input id="wiseFeeVariableV723" type="number" min="0" step="0.001" inputmode="decimal" value="0.525"></label>
+              <label>IOF estimado (%)<input id="wiseIofPctV723" type="number" min="0" step="0.001" inputmode="decimal" value="0.375"></label>
+            </div>
+          </section>
 
           <section class="brazil72-result">
-            <article><span>Tarifa estimada</span><strong id="wiseFeeValueV72">£0,00</strong></article>
-            <article><span>Convertido após tarifa</span><strong id="wiseNetGBPV72">£0,00</strong></article>
+            <article><span>Tarifa Wise</span><strong id="wiseOwnFeeV723">£0,00</strong></article>
+            <article><span>IOF</span><strong id="wiseIofValueV723">£0,00</strong></article>
+            <article><span>Total em tarifas</span><strong id="wiseFeeValueV72">£0,00</strong></article>
+            <article><span>Convertido após tarifas</span><strong id="wiseNetGBPV72">£0,00</strong></article>
             <article><span>Câmbio efetivo estimado</span><strong id="wiseEffectiveRateV72">—</strong></article>
-            <article><span>Diferença da cotação</span><strong id="wiseRateCostV72">—</strong></article>
+            <article><span>Custo efetivo</span><strong id="wiseRateCostV72">—</strong></article>
             <article class="brl"><span>Chega na Caixinha</span><strong id="brazilNetBRLV72">R$ 0,00</strong></article>
           </section>
 
@@ -1547,10 +1559,10 @@
 <div id="toast" class="toast"></div>
   <canvas id="confetti"></canvas>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=7.2.0-beta.2-fresh"></script>
+  <script src="app.js?v=7.2.0-beta.3-fresh"></script>
   <script>
     (async()=>{
-      const BUILD="7.2.0-beta.2-single";
+      const BUILD="7.2.0-beta.3-single";
       try{
         if("serviceWorker" in navigator){
           const registrations=await navigator.serviceWorker.getRegistrations();

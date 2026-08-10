@@ -2615,3 +2615,11 @@ html{scroll-behavior:smooth}
 #refreshBrazilRateV72:disabled{opacity:.45}
 .brazil72-result article:nth-child(3) strong{color:#6aa9ff}
 .brazil72-result article:nth-child(4) strong{color:#ffb15f}
+
+/* v7.2.0-beta.3 — Wise Fee Calibration */
+.wise-calibration-v723{margin-top:11px;padding:12px;border-radius:16px;background:linear-gradient(135deg,rgba(80,214,156,.07),rgba(97,120,255,.06));border:1px solid rgba(77,219,165,.12)}
+.wise-calibration-head-v723{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.wise-calibration-head-v723 span,.wise-calibration-head-v723 strong{display:block}.wise-calibration-head-v723 span{color:#58dba8;font-size:8px;font-weight:900;letter-spacing:.13em}.wise-calibration-head-v723 strong{margin-top:4px;font-size:10px;color:#b6bbc8}.wise-calibration-head-v723 button{border:0;border-radius:9px;padding:7px 9px;background:rgba(255,255,255,.05);color:#bda9ff;font-size:8px}
+.wise-calibration-points-v723{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:10px}.wise-calibration-points-v723 span{padding:7px 5px;border-radius:9px;text-align:center;background:rgba(255,255,255,.035);color:#8e94a6;font-size:8px}
+.wise-manual-fields-v723{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:10px}.wise-manual-fields-v723.hidden{display:none}.wise-manual-fields-v723 label{margin:0!important;font-size:8px!important}.wise-manual-fields-v723 input{margin-top:5px!important}
+.brazil72-result{grid-template-columns:repeat(2,1fr)!important}.brazil72-result .brl{grid-column:1/-1!important}
+@media(max-width:390px){.wise-manual-fields-v723{grid-template-columns:1fr}}
