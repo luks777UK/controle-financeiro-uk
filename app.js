@@ -40,7 +40,7 @@ function fatalDiagnostic313(step,error,extra={}){
     const box=document.getElementById("fatalLoginDiagnostic");
     const text=document.getElementById("fatalLoginDiagnosticText");
     const lines=[
-      `VERSÃO: 7.0.0-beta.2.1`,
+      `VERSÃO: 7.0.0-beta.2.2`,
       `ETAPA: ${step}`,
       `MENSAGEM: ${error?.message||String(error||"Erro desconhecido")}`
     ];
@@ -1212,11 +1212,11 @@ function renderExpenses(){
   if($("expenseMonthTotal"))$("expenseMonthTotal").textContent=money(total);
   const cats={gasolina:0,mercado:0,lanche:0,lazer:0,casa:0,carro:0,saude:0,outros:0};
   monthItems.forEach(x=>cats[x.category]=(cats[x.category]||0)+Number(x.amount||0));
-  $("expenseCategoryStrip").innerHTML=Object.entries(cats).filter(([,v])=>v>0)
+  if($("expenseCategoryStrip"))$("expenseCategoryStrip").innerHTML=Object.entries(cats).filter(([,v])=>v>0)
     .map(([k,v])=>`<span class="category-pill">${expenseIcons[k]} ${expenseNames[k]} <b>${money(v)}</b></span>`).join("")
     ||'<span class="category-pill">Nenhum gasto neste mês</span>';
   const list=[...state.expenses].sort((a,b)=>new Date(b.date)-new Date(a.date));
-  $("expenseList").innerHTML=list.length?list.map(x=>`<article class="expense-item">
+  if($("expenseList"))$("expenseList").innerHTML=list.length?list.map(x=>`<article class="expense-item">
     <div class="expense-icon ${x.category}">${expenseIcons[x.category]||"🧾"}</div>
     <div class="expense-info"><b>${x.description||expenseNames[x.category]||"Gasto"}</b><small>${expenseNames[x.category]||"Outros"} · ${new Date(x.date+"T12:00:00").toLocaleDateString("pt-BR")}</small></div>
     <div class="expense-value"><strong>−${money(x.amount)}</strong><div class="row-actions"><button data-expense-edit="${x.id}">Editar</button><button data-expense-delete="${x.id}">Excluir</button></div></div>
@@ -2175,7 +2175,7 @@ $("confirmVaultWithdrawV4").onclick=async()=>{
 };
 
 
-const APP_VERSION="7.0.0-beta.2.1";
+const APP_VERSION="7.0.0-beta.2.2";
 
 /* v7 expense intelligence */
 (function(){const A={weekOffset:0};
@@ -2199,7 +2199,8 @@ x=document.getElementById("vaultForecastWeekV7");if(x)x.textContent=`${A.money(v
 document.addEventListener("DOMContentLoaded",()=>{document.getElementById("expensePrevWeekV7")?.addEventListener("click",()=>{A.weekOffset--;A.render()});document.getElementById("expenseNextWeekV7")?.addEventListener("click",()=>{A.weekOffset++;A.render()});document.getElementById("expenseCurrentWeekV7")?.addEventListener("click",()=>{A.weekOffset=0;A.render()});setTimeout(A.render,350)});setInterval(A.render,5000);window.FinanceAIv7=A})(); 
 
 const RELEASE_NOTES=[
-  {version:"7.0.0-beta.2.1",date:"10/08/2026",title:"Expense Render Compatibility Fix",changes:["Corrigido erro ao abrir os dados após remover o card mensal antigo.","renderExpenses agora ignora elementos legados que não existem mais.","Resumo financeiro e navegação semanal da beta.2 foram preservados."]},
+{version:"7.0.0-beta.2.2",date:"10/08/2026",title:"Expenses Legacy DOM Cleanup",changes:["Corrigido expenseCategoryStrip ausente.","Protegidas as referências de renderExpenses a elementos visuais removidos.","Evita a sequência de erros null causada pela limpeza do layout antigo."]},
+  {version:"7.0.0-beta.2.2",date:"10/08/2026",title:"Expense Render Compatibility Fix",changes:["Corrigido erro ao abrir os dados após remover o card mensal antigo.","renderExpenses agora ignora elementos legados que não existem mais.","Resumo financeiro e navegação semanal da beta.2 foram preservados."]},
 {version:"7.0.0-beta.2",date:"10/08/2026",title:"Expenses Layout & Week Navigation",changes:["Adicionar gasto movido para o topo.","Resumo mensal grande duplicado removido.","Navegação entre semanas anteriores e futuras adicionada.","Resumo e previsão acompanham a semana selecionada."]},
   {version:"7.0.0-beta.2",date:"10/08/2026",title:"Financial Intelligence",changes:["Gastos agora mostra resumo semanal e mensal.","Previsão adaptativa estima os gastos da semana e do mês a partir do histórico e ritmo atual.","Cofre ganhou visão semanal, mensal, comparação e projeção.","O indicador informa quando ainda há poucos dados para uma previsão confiável."]},
   {version:"6.0.0-beta.6",date:"10/08/2026",title:"Client List Readability",changes:["Rota voltou para o centro da navegação inferior, entre Bills e Gastos.","Nomes, informações e botões da Lista de clientes ficaram maiores e mais legíveis.","Nenhuma lógica dos clientes foi alterada."]},
