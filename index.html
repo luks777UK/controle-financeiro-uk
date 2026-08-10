@@ -7,13 +7,13 @@
   <meta http-equiv="Expires" content="0">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
   <meta name="theme-color" content="#080914">
-  <meta name="application-name" content="Nosso Controle 6.0.0-beta.3">
+  <meta name="application-name" content="Nosso Controle 6.0.0-beta.4">
   <meta name="apple-mobile-web-app-title" content="Nosso Controle">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="styles.css?v=6.0.0-beta.3-fresh">
-  <title>Nosso Controle 6.0.0-beta.3</title>
+  <link rel="stylesheet" href="styles.css?v=6.0.0-beta.4-fresh">
+  <title>Nosso Controle 6.0.0-beta.4</title>
 </head>
 <body>
   <section id="authView" class="auth-screen">
@@ -1189,15 +1189,14 @@
         <label id="routeClientAnchorWrapV510">Primeira data do serviço<input id="routeClientAnchorV5" type="date" required><small class="route-field-help-v53">Obrigatória para semanal, quinzenal, uma vez e Extra.</small></label>
         <label>Valor por hora<input id="routeClientRateV5" type="number" min="0" step="0.01" inputmode="decimal"></label>
         <label>Horas previstas<input id="routeClientHoursV5" type="number" min="0.25" step="0.25" inputmode="decimal"></label>
-        <label>Custo estimado/h<input id="routeClientCostV5" type="number" min="0" step="0.01" inputmode="decimal"></label>
-        <label>Estacionamento/custos<input id="routeClientExtraCostV5" type="number" min="0" step="0.01" inputmode="decimal"></label>
         <label>Horário padrão<input id="routeClientStartTimeV6" type="time"></label>
         <label>Postcode<input id="routeClientPostcodeV6" type="text" maxlength="12" placeholder="HP11 2AA"></label>
-        <label class="route-address-field-v6">Endereço<input id="routeClientAddressV6" type="text" maxlength="160" placeholder="Rua / número / referência"></label>
       </div>
-      <section class="route-client-preview-v5 route-client-preview-grid-v5">
+      <label class="route-notes-v604">Notas
+        <textarea id="routeClientNotesV604" maxlength="1000" rows="4" placeholder="Ex.: chave fica atrás do vaso, cliente prefere cozinha primeiro..."></textarea>
+      </label>
+      <section class="route-client-preview-v5 route-client-preview-grid-v5 route-client-preview-single-v604">
         <div><span>RECEITA PREVISTA</span><strong id="routeClientAmountPreviewV5">£0,00</strong></div>
-        <div><span>LUCRO ESTIMADO</span><strong id="routeClientProfitPreviewV5">£0,00</strong></div>
       </section>
       <div id="routeClientFeedbackV5" class="feedback"></div>
       <button id="saveRouteClientV5" class="primary-button" type="button">Salvar cliente</button>
@@ -1340,10 +1339,10 @@
 <div id="toast" class="toast"></div>
   <canvas id="confetti"></canvas>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=6.0.0-beta.3-fresh"></script>
+  <script src="app.js?v=6.0.0-beta.4-fresh"></script>
   <script>
     (async()=>{
-      const BUILD="6.0.0-beta.1-single";
+      const BUILD="6.0.0-beta.4-single";
       try{
         if("serviceWorker" in navigator){
           const registrations=await navigator.serviceWorker.getRegistrations();

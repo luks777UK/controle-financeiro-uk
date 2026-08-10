@@ -2170,3 +2170,68 @@ html{scroll-behavior:smooth}
   #routeView .route-client-main-v5 small{font-size:8.7px}
   #routeView .route-client-value-v5>strong{font-size:14.5px}
 }
+
+
+/* Nosso Controle 6.0.0-beta.4 — Route Navigation & Client Notes */
+
+/* Rota permanece visualmente destacada mesmo quando não está ativa */
+.bottom-nav .nav-item[data-view="routeView"]{
+  color:#b99cff;
+  background:rgba(139,92,246,.075);
+  box-shadow:inset 0 0 0 1px rgba(167,139,250,.08);
+}
+
+.bottom-nav .nav-item[data-view="routeView"] span{
+  color:#b99cff;
+}
+
+.bottom-nav .nav-item[data-view="routeView"].active{
+  color:#fff;
+  background:linear-gradient(145deg,rgba(139,92,246,.5),rgba(79,48,170,.54));
+  box-shadow:
+    inset 0 0 0 1px rgba(200,181,255,.26),
+    0 8px 22px rgba(91,54,184,.22);
+}
+
+.bottom-nav .nav-item[data-view="routeView"].active span{
+  color:#fff;
+}
+
+/* Campo de notas */
+.route-notes-v604{
+  display:block;
+  margin-top:11px;
+}
+
+.route-notes-v604 textarea{
+  width:100%;
+  min-height:96px;
+  margin-top:7px;
+  padding:13px;
+  resize:vertical;
+  border-radius:15px;
+  border:1px solid var(--line);
+  background:#0d0f1b;
+  color:var(--ink);
+  outline:none;
+  font:inherit;
+  font-size:13px;
+  line-height:1.45;
+}
+
+.route-notes-v604 textarea:focus{
+  border-color:var(--purple);
+  box-shadow:0 0 0 4px rgba(118,87,232,.12);
+}
+
+.route-notes-v604 textarea::placeholder{
+  color:#686c7e;
+}
+
+.route-client-preview-single-v604{
+  grid-template-columns:1fr!important;
+}
+
+.route-client-preview-single-v604>div{
+  text-align:center;
+}

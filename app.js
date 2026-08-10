@@ -40,7 +40,7 @@ function fatalDiagnostic313(step,error,extra={}){
     const box=document.getElementById("fatalLoginDiagnostic");
     const text=document.getElementById("fatalLoginDiagnosticText");
     const lines=[
-      `VERSÃO: 6.0.0-beta.3`,
+      `VERSÃO: 6.0.0-beta.4`,
       `ETAPA: ${step}`,
       `MENSAGEM: ${error?.message||String(error||"Erro desconhecido")}`
     ];
@@ -2175,8 +2175,9 @@ $("confirmVaultWithdrawV4").onclick=async()=>{
 };
 
 
-const APP_VERSION="6.0.0-beta.1";
+const APP_VERSION="6.0.0-beta.4";
 const RELEASE_NOTES=[
+  {version:"6.0.0-beta.4",date:"10/08/2026",title:"Route Navigation & Client Notes",changes:["A aba Rota ganhou destaque permanente na navegação.","Campo Notas adicionado ao cadastro e edição de clientes.","Custos, estacionamento e endereço removidos do formulário.","Preview de cliente simplificado para Receita prevista."]},
   {version:"6.0.0-beta.1",date:"07/08/2026",title:"Finance & Business Dashboard",changes:["Novo Mapa do Dinheiro na aba Geral.","Análise automática das categorias de gastos.","Receitas da Rota ficam protegidas e sincronizadas com a Geral.","Previsão financeira da Rota para 30 dias.","Média semanal, média por hora, cancelamentos perdidos e dia mais cheio.","Clientes agora podem guardar horário, postcode e endereço.","Painel Mostrar mais da Rota foi reconstruído e simplificado."]},
   {version:"5.0.0-beta.14",date:"07/08/2026",title:"Fontes maiores e integração com Receitas",changes:["Fontes dos cards principais aumentadas novamente.","Todo pagamento confirmado na Rota cria ou atualiza automaticamente uma Receita na aba Geral.","Alterações de valor, data ou forma de pagamento permanecem sincronizadas.","Ao desmarcar pagamento, a Receita vinculada é removida.","Receitas antigas da Rota são reconciliadas automaticamente sem duplicação."]},
   {version:"5.0.0-beta.13",date:"07/08/2026",title:"Route UI Polish",changes:["Fontes da aba Rota aumentadas para melhorar leitura.","Pesquisa removida de Mostrar mais por ser redundante com Lista de clientes.","Resumo mensal mantido como foco principal do painel expandido.","Botões e cards receberam ajustes de legibilidade sem alterar cálculos."]},
@@ -3370,12 +3371,8 @@ boot();
 
   R.previewClient = () => {
     const rate=Number(R.$("routeClientRateV5").value||0);
-    const sequence=Math.max(1,Number(R.$("routeClientOrderV5").value||0));
     const hours=Number(R.$("routeClientHoursV5").value||0);
-    const cost=Number(R.$("routeClientCostV5").value||0);
-    const extra=Number(R.$("routeClientExtraCostV5").value||0);
     R.$("routeClientAmountPreviewV5").textContent=R.money(rate*hours);
-    R.$("routeClientProfitPreviewV5").textContent=R.money(rate*hours-(cost*hours+extra));
   };
 
   R.toggleExtraClientFieldsV510 = () => {
@@ -3397,11 +3394,9 @@ boot();
     R.toggleExtraClientFieldsV510();
     R.$("routeClientRateV5").value=client?.hourlyRate??"";
     R.$("routeClientHoursV5").value=client?.hours??"";
-    R.$("routeClientCostV5").value=client?.costPerHour??"";
-    R.$("routeClientExtraCostV5").value=client?.extraCost??"";
     R.$("routeClientStartTimeV6").value=client?.startTime||"";
     R.$("routeClientPostcodeV6").value=client?.postcode||"";
-    R.$("routeClientAddressV6").value=client?.address||"";
+    R.$("routeClientNotesV604").value=client?.notes||"";
     R.$("duplicateRouteClientV5").classList.toggle("hidden",!client);
     R.$("deleteRouteClientV5").classList.toggle("hidden",!client);
     R.feedback("routeClientFeedbackV5","");
@@ -3444,11 +3439,9 @@ boot();
       anchorDate,
       hourlyRate:rate,
       hours,
-      costPerHour:Number(R.$("routeClientCostV5").value||0),
-      extraCost:Number(R.$("routeClientExtraCostV5").value||0),
       startTime:R.$("routeClientStartTimeV6").value||"",
       postcode:R.$("routeClientPostcodeV6").value.trim().toUpperCase(),
-      address:R.$("routeClientAddressV6").value.trim(),
+      notes:R.$("routeClientNotesV604").value.trim(),
       active:true,
       updatedAt:new Date().toISOString()
     };
@@ -4041,7 +4034,7 @@ boot();
       if(opening)setTimeout(()=>panel.scrollIntoView({behavior:"smooth",block:"nearest"}),80);
     });
 
-    ["routeClientRateV5","routeClientHoursV5","routeClientCostV5","routeClientExtraCostV5"].forEach(id=>once(id,"input",R.previewClient));
+    ["routeClientRateV5","routeClientHoursV5"].forEach(id=>once(id,"input",R.previewClient));
     once("saveRouteClientV5","click",R.saveClient);
     once("duplicateRouteClientV5","click",R.duplicateClient);
     once("deleteRouteClientV5","click",R.deleteClient);
