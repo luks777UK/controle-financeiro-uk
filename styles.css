@@ -2271,3 +2271,262 @@ html{scroll-behavior:smooth}
 
 /* v7.0.0-beta.2 */
 .v7-expense-main-head{margin-bottom:14px}.v7-week-nav{display:grid;grid-template-columns:52px 1fr 52px;gap:10px;align-items:center;margin:4px 0 12px}.v7-week-nav>button{border:1px solid rgba(255,255,255,.08);background:rgba(22,24,41,.94);color:#fff;border-radius:17px;min-height:52px}.v7-week-nav>button:first-child,.v7-week-nav>button:last-child{font-size:30px}.v7-week-label{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:7px 12px}.v7-week-label strong{font-size:15px}.v7-week-label small{margin-top:3px;font-size:10px;color:#8e93a6}#expensesView .v7-insights-shell{margin-top:0}#expensesView .v7-period-head h2{font-size:20px}#expensesView .v7-summary-grid{gap:8px}#expensesView .v7-stat{padding:12px}#expensesView .v7-stat strong{font-size:18px}
+
+
+/* =========================================================
+   Nosso Controle 7.1 — Financial Planner
+   ========================================================= */
+.financial-planner-v71{
+  margin:16px 0;
+  padding:18px;
+  border-radius:26px;
+  border:1px solid rgba(153,123,255,.20);
+  background:
+    radial-gradient(circle at 100% 0%,rgba(48,119,126,.14),transparent 35%),
+    linear-gradient(145deg,#151629,#0f1220);
+  box-shadow:0 18px 45px rgba(0,0,0,.18);
+}
+
+.planner-head-v71{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+}
+.planner-head-v71>div>span{
+  color:#aa8cff;
+  font-size:9px;
+  font-weight:900;
+  letter-spacing:.16em;
+}
+.planner-head-v71 h2{
+  margin:5px 0 0;
+  font-size:24px;
+  text-transform:capitalize;
+}
+.planner-head-v71 p{
+  margin:5px 0 0;
+  color:#85899c;
+  font-size:10px;
+}
+.planner-goal-button-v71{
+  flex:0 0 auto;
+  display:flex;
+  align-items:center;
+  gap:6px;
+  min-height:38px;
+  padding:8px 10px;
+  border-radius:13px;
+  border:1px solid rgba(255,255,255,.07);
+  background:rgba(255,255,255,.045);
+  color:#fff;
+  font-size:10px;
+}
+
+.planner-mode-tabs-v71{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:6px;
+  margin:14px 0 10px;
+  padding:4px;
+  border-radius:14px;
+  background:#0d0f1b;
+}
+.planner-mode-tabs-v71 button{
+  min-height:34px;
+  border:0;
+  border-radius:10px;
+  background:transparent;
+  color:#7f8497;
+  font-size:10px;
+  font-weight:750;
+}
+.planner-mode-tabs-v71 button.active{
+  background:#24213d;
+  color:#cbbcff;
+  box-shadow:inset 0 0 0 1px rgba(172,145,255,.13);
+}
+
+.planner-flow-v71{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 18px minmax(0,1fr) 18px minmax(0,1fr);
+  gap:5px;
+  align-items:center;
+}
+.planner-flow-v71 article{
+  min-width:0;
+  padding:11px 9px;
+  min-height:82px;
+  border-radius:16px;
+  background:#171927;
+  border:1px solid rgba(255,255,255,.055);
+}
+.planner-flow-v71 article span,
+.planner-flow-v71 article strong,
+.planner-flow-v71 article small{display:block}
+.planner-flow-v71 article span{font-size:8px;color:#8b90a3}
+.planner-flow-v71 article strong{margin-top:6px;font-size:15px;white-space:nowrap}
+.planner-flow-v71 article small{margin-top:5px;font-size:7px;color:#707588;line-height:1.25}
+.planner-flow-v71 .income strong{color:#4ce3ac}
+.planner-flow-v71 .out strong{color:#ff7897}
+.planner-flow-v71 .free strong{color:#b79aff}
+.planner-operator-v71{
+  text-align:center;
+  color:#6f7487;
+  font-size:16px;
+  font-weight:900;
+}
+
+.planner-breakdown-v71{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:7px;
+  margin-top:9px;
+}
+.planner-breakdown-v71 article{
+  padding:10px;
+  border-radius:14px;
+  background:rgba(20,22,37,.72);
+  border:1px solid rgba(255,255,255,.045);
+}
+.planner-breakdown-v71 span,
+.planner-breakdown-v71 strong,
+.planner-breakdown-v71 small{display:block}
+.planner-breakdown-v71 span{font-size:7px;color:#858a9d}
+.planner-breakdown-v71 strong{margin-top:5px;font-size:12px}
+.planner-breakdown-v71 small{margin-top:3px;font-size:6px;color:#707588}
+
+.planner-brazil-v71{
+  margin-top:10px;
+  padding:13px;
+  border-radius:18px;
+  background:linear-gradient(135deg,rgba(26,132,85,.13),rgba(25,103,147,.10));
+  border:1px solid rgba(55,200,131,.13);
+}
+.planner-brazil-head-v71,
+.planner-brazil-foot-v71{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  gap:10px;
+}
+.planner-brazil-head-v71 span{display:block;color:#65d9a7;font-size:8px;font-weight:900;letter-spacing:.1em}
+.planner-brazil-head-v71 strong{display:block;margin-top:4px;font-size:17px}
+.planner-brazil-sent-v71{text-align:right}
+.planner-brazil-sent-v71 small{display:block;color:#7f8d8a;font-size:7px}
+.planner-brazil-sent-v71 b{display:block;margin-top:3px;font-size:11px;color:#65d9a7}
+.planner-progress-v71{
+  height:8px;
+  margin:10px 0 7px;
+  overflow:hidden;
+  border-radius:999px;
+  background:rgba(255,255,255,.07);
+}
+.planner-progress-v71 i{
+  display:block;
+  width:0;
+  height:100%;
+  border-radius:inherit;
+  background:linear-gradient(90deg,#29ba7c,#55dfab);
+  transition:width .35s ease;
+}
+.planner-brazil-foot-v71{font-size:7px;color:#8d929f}
+
+.planner-result-grid-v71{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  margin-top:9px;
+}
+.planner-result-grid-v71 article{
+  padding:12px;
+  border-radius:17px;
+  border:1px solid rgba(255,255,255,.055);
+  background:#171927;
+}
+.planner-result-grid-v71 span,
+.planner-result-grid-v71 strong,
+.planner-result-grid-v71 small{display:block}
+.planner-result-grid-v71 span{font-size:7px;color:#8e93a5}
+.planner-result-grid-v71 strong{margin-top:6px;font-size:17px}
+.planner-result-grid-v71 small{margin-top:4px;font-size:6px;color:#73788b}
+.planner-result-grid-v71 .brazil strong{color:#5fdca8}
+.planner-result-grid-v71 .leisure strong{color:#ffb15f}
+
+.planner-ai-v71{
+  margin-top:10px;
+  padding:12px;
+  border-radius:18px;
+  background:rgba(105,75,190,.09);
+  border:1px solid rgba(154,123,244,.12);
+}
+.planner-ai-title-v71{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-bottom:9px;
+}
+.planner-ai-title-v71>span{
+  width:30px;height:30px;display:grid;place-items:center;
+  border-radius:10px;background:#29214f;color:#b79aff
+}
+.planner-ai-title-v71 b,
+.planner-ai-title-v71 small{display:block}
+.planner-ai-title-v71 b{font-size:9px}
+.planner-ai-title-v71 small{margin-top:2px;font-size:6px;color:#7d8293}
+.planner-insights-v71{display:grid;gap:6px}
+.planner-insights-v71 article{
+  display:grid;
+  grid-template-columns:23px 1fr;
+  gap:7px;
+  align-items:flex-start;
+  padding:8px;
+  border-radius:11px;
+  background:rgba(18,20,34,.75);
+}
+.planner-insights-v71 article>span{
+  width:23px;height:23px;display:grid;place-items:center;
+  border-radius:8px;background:rgba(255,255,255,.04);
+  font-size:11px;
+}
+.planner-insights-v71 p{
+  margin:1px 0 0;
+  color:#a1a5b5;
+  font-size:7px;
+  line-height:1.4;
+}
+.planner-insights-v71 article.good p{color:#8edcbc}
+.planner-insights-v71 article.warn p{color:#f2b0ba}
+
+#plannerGoalDialogV71{
+  width:min(92vw,520px);
+  padding:0;
+  border:0;
+  background:transparent;
+}
+.planner-dialog-v71 label{
+  display:block;
+  margin-top:11px;
+}
+.planner-dialog-v71 input{
+  width:100%;
+  margin-top:6px;
+}
+.planner-dialog-info-v71{
+  margin-top:11px;
+  padding:10px;
+  border-radius:12px;
+  background:rgba(91,74,151,.10);
+  color:#8f94a7;
+  font-size:8px;
+  line-height:1.4;
+}
+
+@media(max-width:390px){
+  .financial-planner-v71{padding:14px}
+  .planner-head-v71 h2{font-size:21px}
+  .planner-flow-v71{grid-template-columns:1fr 12px 1fr 12px 1fr}
+  .planner-flow-v71 article{padding:9px 7px}
+  .planner-flow-v71 article strong{font-size:13px}
+  .planner-flow-v71 article small{font-size:6px}
+}

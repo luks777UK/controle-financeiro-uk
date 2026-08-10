@@ -7,13 +7,13 @@
   <meta http-equiv="Expires" content="0">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
   <meta name="theme-color" content="#080914">
-  <meta name="application-name" content="Nosso Controle 7.0.0-beta.2.3">
+  <meta name="application-name" content="Nosso Controle 7.1.0-beta.1">
   <meta name="apple-mobile-web-app-title" content="Nosso Controle">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="styles.css?v=7.0.0-beta.2.3-fresh">
-  <title>Nosso Controle 7.0.0-beta.2.3</title>
+  <link rel="stylesheet" href="styles.css?v=7.1.0-beta.1-fresh">
+  <title>Nosso Controle 7.1.0-beta.1</title>
 </head>
 <body>
   <section id="authView" class="auth-screen">
@@ -106,7 +106,136 @@
         </article>
       </section>
 
-      <section class="money-map-v6">
+      
+      <section class="financial-planner-v71" id="financialPlannerV71">
+        <div class="planner-head-v71">
+          <div>
+            <span>PLANEJADOR FINANCEIRO</span>
+            <h2 id="plannerMonthTitleV71">Previsão do mês</h2>
+            <p>Ganhos → Bills + Gastos → Brasil → Lazer</p>
+          </div>
+          <button id="openPlannerGoalV71" type="button" class="planner-goal-button-v71">
+            🇧🇷 <b>Meta Brasil</b>
+          </button>
+        </div>
+
+        <div class="planner-mode-tabs-v71">
+          <button type="button" class="active" data-planner-mode-v71="forecast">Previsto</button>
+          <button type="button" data-planner-mode-v71="realized">Realizado</button>
+        </div>
+
+        <div class="planner-flow-v71">
+          <article class="income">
+            <span>Ganhos</span>
+            <strong id="plannerIncomeV71">£0,00</strong>
+            <small id="plannerIncomeCaptionV71">Rota + outras receitas</small>
+          </article>
+          <div class="planner-operator-v71">−</div>
+          <article class="out">
+            <span>Saídas</span>
+            <strong id="plannerOutflowV71">£0,00</strong>
+            <small id="plannerOutflowCaptionV71">Bills + gastos</small>
+          </article>
+          <div class="planner-operator-v71">=</div>
+          <article class="free">
+            <span>Livre</span>
+            <strong id="plannerFreeV71">£0,00</strong>
+            <small>antes da meta Brasil</small>
+          </article>
+        </div>
+
+        <div class="planner-breakdown-v71">
+          <article>
+            <span>Rota</span>
+            <strong id="plannerRouteV71">£0,00</strong>
+            <small id="plannerRouteCaptionV71">receita</small>
+          </article>
+          <article>
+            <span>Outras receitas</span>
+            <strong id="plannerOtherIncomeV71">£0,00</strong>
+            <small>fora da Rota</small>
+          </article>
+          <article>
+            <span>Bills</span>
+            <strong id="plannerBillsV71">£0,00</strong>
+            <small id="plannerBillsCaptionV71">obrigações</small>
+          </article>
+          <article>
+            <span>Gastos variáveis</span>
+            <strong id="plannerExpensesV71">£0,00</strong>
+            <small id="plannerExpensesCaptionV71">dia a dia</small>
+          </article>
+        </div>
+
+        <section class="planner-brazil-v71">
+          <div class="planner-brazil-head-v71">
+            <div>
+              <span>🇧🇷 META BRASIL</span>
+              <strong id="plannerBrazilGoalV71">£0,00</strong>
+            </div>
+            <div class="planner-brazil-sent-v71">
+              <small>Já enviado</small>
+              <b id="plannerBrazilSentV71">£0,00</b>
+            </div>
+          </div>
+          <div class="planner-progress-v71"><i id="plannerBrazilProgressV71"></i></div>
+          <div class="planner-brazil-foot-v71">
+            <span id="plannerBrazilRemainingV71">Faltam £0,00</span>
+            <span id="plannerBrazilPctV71">0%</span>
+          </div>
+        </section>
+
+        <div class="planner-result-grid-v71">
+          <article class="brazil">
+            <span>Livre previsto</span>
+            <strong id="plannerAvailableBrazilV71">£0,00</strong>
+            <small>potencial para a meta</small>
+          </article>
+          <article class="leisure">
+            <span>🎉 Lazer disponível</span>
+            <strong id="plannerLeisureV71">£0,00</strong>
+            <small id="plannerLeisureCaptionV71">sem comprometer a meta</small>
+          </article>
+        </div>
+
+        <section class="planner-ai-v71">
+          <div class="planner-ai-title-v71">
+            <span>✦</span>
+            <div><b>Insights financeiros</b><small>Atualizados com o seu histórico</small></div>
+          </div>
+          <div id="plannerInsightsV71" class="planner-insights-v71"></div>
+        </section>
+      </section>
+
+      <dialog id="plannerGoalDialogV71">
+        <form class="dialog-card planner-dialog-v71" method="dialog">
+          <div class="dialog-heading">
+            <div>
+              <span class="page-overline">PLANEJAMENTO</span>
+              <h2>Meta Brasil</h2>
+              <p>Defina quanto vocês querem enviar neste mês.</p>
+            </div>
+            <button value="cancel" class="round-button">×</button>
+          </div>
+
+          <label>Meta mensal (£)
+            <input id="plannerBrazilGoalInputV71" type="number" min="0" step="0.01" inputmode="decimal">
+          </label>
+
+          <label>Já enviado neste mês (£)
+            <input id="plannerBrazilSentInputV71" type="number" min="0" step="0.01" inputmode="decimal">
+          </label>
+
+          <div class="planner-dialog-info-v71">
+            O valor enviado ao Brasil é tratado como destino do dinheiro, não como gasto variável, evitando contagem dupla.
+          </div>
+
+          <div id="plannerGoalFeedbackV71" class="form-feedback"></div>
+          <button id="savePlannerGoalV71" class="primary-button" type="button">Salvar meta</button>
+        </form>
+      </dialog>
+
+<section class="money-map-v6">
         <div class="money-map-head-v6">
           <div>
             <span>MAPA DO DINHEIRO</span>
@@ -1328,10 +1457,10 @@
 <div id="toast" class="toast"></div>
   <canvas id="confetti"></canvas>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=7.0.0-beta.2.3-fresh"></script>
+  <script src="app.js?v=7.1.0-beta.1-fresh"></script>
   <script>
     (async()=>{
-      const BUILD="7.0.0-beta.2.3-single";
+      const BUILD="7.1.0-beta.1-single";
       try{
         if("serviceWorker" in navigator){
           const registrations=await navigator.serviceWorker.getRegistrations();

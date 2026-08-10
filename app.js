@@ -40,7 +40,7 @@ function fatalDiagnostic313(step,error,extra={}){
     const box=document.getElementById("fatalLoginDiagnostic");
     const text=document.getElementById("fatalLoginDiagnosticText");
     const lines=[
-      `VERSÃO: 7.0.0-beta.2.3`,
+      `VERSÃO: 7.1.0-beta.1`,
       `ETAPA: ${step}`,
       `MENSAGEM: ${error?.message||String(error||"Erro desconhecido")}`
     ];
@@ -1094,6 +1094,7 @@ function renderOverview(){
   document.querySelectorAll("[data-income-edit]").forEach(button=>button.onclick=()=>editIncome(button.dataset.incomeEdit));
   document.querySelectorAll("[data-income-delete]").forEach(button=>button.onclick=()=>deleteIncome(button.dataset.incomeDelete));
   renderOverviewV6();
+  if(window.FinancialPlannerV71)window.FinancialPlannerV71.render();
 }
 function renderOverviewV6(){
   if(!state)return;
@@ -2176,7 +2177,299 @@ $("confirmVaultWithdrawV4").onclick=async()=>{
 };
 
 
-const APP_VERSION="7.0.0-beta.2.3";
+
+/* =========================================================
+   v7.1 Financial Planner
+   One financial model: income -> bills + expenses -> Brazil -> leisure
+   ========================================================= */
+(function(){
+  "use strict";
+  const P={mode:"forecast"};
+
+  P.$=id=>document.getElementById(id);
+  P.money=value=>new Intl.NumberFormat("pt-BR",{style:"currency",currency:"GBP"}).format(Number(value||0));
+  P.num=value=>Number.isFinite(Number(value))?Number(value):0;
+  P.localDate=value=>{
+    if(value instanceof Date)return new Date(value.getFullYear(),value.getMonth(),value.getDate(),12);
+    if(!value)return null;
+    const text=String(value);
+    const d=new Date(text.includes("T")?text:text+"T12:00:00");
+    return Number.isNaN(d.getTime())?null:new Date(d.getFullYear(),d.getMonth(),d.getDate(),12);
+  };
+  P.monthKey=date=>`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}`;
+  P.monthStart=date=>new Date(date.getFullYear(),date.getMonth(),1,12);
+  P.monthEnd=date=>new Date(date.getFullYear(),date.getMonth()+1,0,12);
+  P.inMonth=(value,date)=>{
+    const d=P.localDate(value);
+    return d&&d.getFullYear()===date.getFullYear()&&d.getMonth()===date.getMonth();
+  };
+  P.sum=items=>(items||[]).reduce((sum,item)=>sum+P.num(item?.amount),0);
+  P.goalState=()=>{
+    if(!state||typeof state!=="object")return {brazilGoal:0,brazilSentByMonth:{}};
+    state.financialPlanner=state.financialPlanner&&typeof state.financialPlanner==="object"?state.financialPlanner:{};
+    state.financialPlanner.brazilGoal=Math.max(0,P.num(state.financialPlanner.brazilGoal));
+    state.financialPlanner.brazilSentByMonth=state.financialPlanner.brazilSentByMonth&&typeof state.financialPlanner.brazilSentByMonth==="object"
+      ?state.financialPlanner.brazilSentByMonth:{};
+    return state.financialPlanner;
+  };
+
+  P.billAmount=bill=>{
+    if(typeof billAmount317==="function")return Math.max(0,P.num(billAmount317(bill)));
+    return Math.max(0,P.num(bill?.amount??bill?.total??bill?.value));
+  };
+  P.activeBills=()=>Array.isArray(state?.bills)?state.bills.filter(b=>!b.completed&&!b.paid):[];
+  P.billPaidThisMonth=date=>{
+    if(typeof billPaymentsForMonth==="function")return Math.max(0,P.num(billPaymentsForMonth(P.monthKey(date))));
+    return (state?.history||[])
+      .filter(h=>h?.type==="bill_payment"&&P.inMonth(h.date,date))
+      .reduce((s,h)=>s+P.num(h.amount??(P.num(h.cash)+P.num(h.card))),0);
+  };
+  P.billForecast=date=>{
+    const paid=P.billPaidThisMonth(date);
+    const remaining=P.activeBills().reduce((s,b)=>s+P.billAmount(b),0);
+    return {paid,remaining,total:paid+remaining};
+  };
+
+  P.incomesForMonth=date=>(state?.incomes||[]).filter(item=>P.inMonth(item.date,date));
+  P.expensesForMonth=date=>(state?.expenses||[]).filter(item=>P.inMonth(item.date,date));
+
+  P.historicalMonthlyAverage=(selector,months=3)=>{
+    const now=new Date(),values=[];
+    for(let i=1;i<=months;i++){
+      const d=new Date(now.getFullYear(),now.getMonth()-i,1,12);
+      const value=selector(d);
+      if(value>0)values.push(value);
+    }
+    if(!values.length)return 0;
+    let total=0,weights=0;
+    values.forEach((v,index)=>{
+      const weight=values.length-index;
+      total+=v*weight;weights+=weight;
+    });
+    return total/weights;
+  };
+
+  P.routeRealized=date=>P.incomesForMonth(date)
+    .filter(i=>i.source==="route"||i.source==="cleaning")
+    .reduce((s,i)=>s+P.num(i.amount),0);
+
+  P.otherIncomeRealized=date=>P.incomesForMonth(date)
+    .filter(i=>i.source!=="route"&&i.source!=="cleaning")
+    .reduce((s,i)=>s+P.num(i.amount),0);
+
+  P.routeHistoricalMonth=date=>P.incomesForMonth(date)
+    .filter(i=>i.source==="route"||i.source==="cleaning")
+    .reduce((s,i)=>s+P.num(i.amount),0);
+
+  P.otherHistoricalMonth=date=>P.incomesForMonth(date)
+    .filter(i=>i.source!=="route"&&i.source!=="cleaning")
+    .reduce((s,i)=>s+P.num(i.amount),0);
+
+  P.futureRouteScheduled=date=>{
+    try{
+      const R=window.RouteV5;
+      if(!R?.instances)return 0;
+      const today=P.localDate(new Date());
+      const start=date.getFullYear()===today.getFullYear()&&date.getMonth()===today.getMonth()
+        ?today:P.monthStart(date);
+      const end=P.monthEnd(date);
+      return R.instances(start,end)
+        .filter(item=>!item.cancelled&&!item.paid&&P.localDate(item.actualDate)>=start)
+        .reduce((sum,item)=>sum+P.num(item.amount),0);
+    }catch(error){
+      console.warn("Planner route forecast:",error);
+      return 0;
+    }
+  };
+
+  P.expenseForecast=date=>{
+    const realized=P.sum(P.expensesForMonth(date));
+    const today=new Date();
+    if(date.getFullYear()!==today.getFullYear()||date.getMonth()!==today.getMonth())return realized;
+    const daysInMonth=P.monthEnd(date).getDate();
+    const elapsed=Math.max(1,today.getDate());
+    const pace=realized/elapsed*daysInMonth;
+    const historical=P.historicalMonthlyAverage(d=>P.sum(P.expensesForMonth(d)),3);
+    const projected=historical>0?historical*.6+pace*.4:pace;
+    return Math.max(realized,projected);
+  };
+
+  P.otherIncomeForecast=date=>{
+    const realized=P.otherIncomeRealized(date);
+    const historical=P.historicalMonthlyAverage(d=>P.otherHistoricalMonth(d),3);
+    const today=new Date();
+    const same=date.getFullYear()===today.getFullYear()&&date.getMonth()===today.getMonth();
+    if(!same)return Math.max(realized,historical);
+    const days=P.monthEnd(date).getDate(),elapsed=Math.max(1,today.getDate());
+    const pace=realized/elapsed*days;
+    return Math.max(realized,historical>0?historical*.55+pace*.45:pace);
+  };
+
+  P.routeForecast=date=>{
+    const realized=P.routeRealized(date);
+    const scheduled=P.futureRouteScheduled(date);
+    const reliable=realized+scheduled;
+    const historical=P.historicalMonthlyAverage(d=>P.routeHistoricalMonth(d),3);
+    // Schedule is primary; history only prevents an obviously incomplete forecast.
+    return Math.max(reliable,historical>0?historical*.85:0);
+  };
+
+  P.snapshot=()=>{
+    const now=new Date(),date=new Date(now.getFullYear(),now.getMonth(),1,12);
+    const routeRealized=P.routeRealized(date);
+    const otherRealized=P.otherIncomeRealized(date);
+    const realizedIncome=routeRealized+otherRealized;
+    const bills=P.billForecast(date);
+    const expenseRealized=P.sum(P.expensesForMonth(date));
+    const realizedOut=bills.paid+expenseRealized;
+    const realizedFree=realizedIncome-realizedOut;
+
+    const routeForecast=P.routeForecast(date);
+    const otherForecast=P.otherIncomeForecast(date);
+    const forecastIncome=routeForecast+otherForecast;
+    const expenseForecast=P.expenseForecast(date);
+    const forecastBills=bills.total;
+    const forecastOut=forecastBills+expenseForecast;
+    const forecastFree=forecastIncome-forecastOut;
+
+    const planner=P.goalState();
+    const monthKey=P.monthKey(date);
+    const goal=Math.max(0,P.num(planner.brazilGoal));
+    const sent=Math.max(0,P.num(planner.brazilSentByMonth[monthKey]));
+    const remainingGoal=Math.max(0,goal-sent);
+    const leisure=Math.max(0,forecastFree-goal);
+    const projectedAfterBrazil=forecastFree-goal;
+    const daysLeft=Math.max(1,P.monthEnd(date).getDate()-now.getDate()+1);
+    const weeksLeft=Math.max(1,daysLeft/7);
+    const gap=Math.max(0,goal-forecastFree);
+    const extraPerWeek=gap/weeksLeft;
+    const leisurePerDay=leisure/daysLeft;
+
+    return {
+      date,routeRealized,otherRealized,realizedIncome,bills,
+      expenseRealized,realizedOut,realizedFree,
+      routeForecast,otherForecast,forecastIncome,
+      expenseForecast,forecastBills,forecastOut,forecastFree,
+      goal,sent,remainingGoal,leisure,projectedAfterBrazil,
+      daysLeft,weeksLeft,gap,extraPerWeek,leisurePerDay
+    };
+  };
+
+  P.setText=(id,text)=>{const el=P.$(id);if(el)el.textContent=text};
+  P.renderInsights=s=>{
+    const insights=[];
+    if(s.goal<=0){
+      insights.push({type:"info",icon:"🇧🇷",text:"Defina a Meta Brasil para eu calcular quanto pode sobrar para lazer sem comprometer o objetivo."});
+    }else if(s.gap>0){
+      insights.push({type:"warn",icon:"⚠️",text:`No ritmo previsto, faltariam ${P.money(s.gap)} para a Meta Brasil. A rota precisaria gerar cerca de ${P.money(s.extraPerWeek)} extras por semana até o fim do mês.`});
+    }else{
+      insights.push({type:"good",icon:"✓",text:`Mantendo o ritmo atual, a Meta Brasil de ${P.money(s.goal)} está coberta e ainda sobrariam ${P.money(s.leisure)} para lazer.`});
+    }
+
+    if(s.expenseForecast>s.expenseRealized&&s.expenseRealized>0){
+      const remaining=Math.max(0,s.expenseForecast-s.expenseRealized);
+      insights.push({type:"info",icon:"📊",text:`O modelo espera aproximadamente mais ${P.money(remaining)} em gastos variáveis até o fim do mês.`});
+    }
+
+    if(s.leisure>0){
+      insights.push({type:"good",icon:"🎉",text:`Para preservar a meta, o limite médio de lazer adicional é cerca de ${P.money(s.leisurePerDay)} por dia até o fim do mês.`});
+    }else if(s.goal>0){
+      insights.push({type:"warn",icon:"🎯",text:"Neste momento não há margem prevista para lazer sem reduzir a Meta Brasil."});
+    }
+
+    const routeShare=s.forecastIncome>0?s.routeForecast/s.forecastIncome*100:0;
+    if(routeShare>0){
+      insights.push({type:"info",icon:"▦",text:`A Rota representa aproximadamente ${routeShare.toFixed(0)}% dos ganhos previstos deste mês.`});
+    }
+
+    const box=P.$("plannerInsightsV71");
+    if(box)box.innerHTML=insights.map(i=>`<article class="${i.type}"><span>${i.icon}</span><p>${i.text}</p></article>`).join("");
+  };
+
+  P.render=()=>{
+    if(!state)return;
+    const s=P.snapshot();
+    const forecast=P.mode==="forecast";
+
+    P.setText("plannerMonthTitleV71",new Intl.DateTimeFormat("pt-BR",{month:"long",year:"numeric"}).format(s.date));
+
+    const income=forecast?s.forecastIncome:s.realizedIncome;
+    const out=forecast?s.forecastOut:s.realizedOut;
+    const free=forecast?s.forecastFree:s.realizedFree;
+    const route=forecast?s.routeForecast:s.routeRealized;
+    const other=forecast?s.otherForecast:s.otherRealized;
+    const bills=forecast?s.forecastBills:s.bills.paid;
+    const expenses=forecast?s.expenseForecast:s.expenseRealized;
+
+    P.setText("plannerIncomeV71",P.money(income));
+    P.setText("plannerOutflowV71",P.money(out));
+    P.setText("plannerFreeV71",P.money(free));
+    P.setText("plannerRouteV71",P.money(route));
+    P.setText("plannerOtherIncomeV71",P.money(other));
+    P.setText("plannerBillsV71",P.money(bills));
+    P.setText("plannerExpensesV71",P.money(expenses));
+    P.setText("plannerIncomeCaptionV71",forecast?"recebido + previsão":"recebido até hoje");
+    P.setText("plannerOutflowCaptionV71",forecast?"Bills + gastos previstos":"já pagos/registrados");
+    P.setText("plannerBillsCaptionV71",forecast?"pagas + ainda ativas":"Bills pagas");
+    P.setText("plannerExpensesCaptionV71",forecast?"real + tendência":"registrados");
+
+    P.setText("plannerBrazilGoalV71",P.money(s.goal));
+    P.setText("plannerBrazilSentV71",P.money(s.sent));
+    P.setText("plannerBrazilRemainingV71",s.remainingGoal>0?`Faltam ${P.money(s.remainingGoal)}`:"Meta atingida");
+    const pct=s.goal>0?Math.max(0,Math.min(100,s.sent/s.goal*100)):0;
+    P.setText("plannerBrazilPctV71",`${pct.toFixed(0)}%`);
+    const progress=P.$("plannerBrazilProgressV71");
+    if(progress)progress.style.width=`${pct}%`;
+
+    P.setText("plannerAvailableBrazilV71",P.money(Math.max(0,s.forecastFree)));
+    P.setText("plannerLeisureV71",P.money(s.leisure));
+    P.setText("plannerLeisureCaptionV71",
+      s.goal<=0?"defina a meta Brasil":
+      s.projectedAfterBrazil>=0?"sem comprometer a meta":"meta acima da sobra prevista"
+    );
+
+    P.renderInsights(s);
+  };
+
+  P.openGoal=()=>{
+    const s=P.snapshot();
+    P.$("plannerBrazilGoalInputV71").value=s.goal||"";
+    P.$("plannerBrazilSentInputV71").value=s.sent||"";
+    P.setText("plannerGoalFeedbackV71","");
+    P.$("plannerGoalDialogV71")?.showModal();
+  };
+
+  P.saveGoal=async()=>{
+    const goal=Math.max(0,P.num(P.$("plannerBrazilGoalInputV71")?.value));
+    const sent=Math.max(0,P.num(P.$("plannerBrazilSentInputV71")?.value));
+    const planner=P.goalState();
+    planner.brazilGoal=goal;
+    planner.brazilSentByMonth[P.monthKey(new Date())]=sent;
+    P.$("plannerGoalDialogV71")?.close();
+    P.render();
+    await persist("Meta Brasil atualizada");
+  };
+
+  P.bind=()=>{
+    P.$("openPlannerGoalV71")?.addEventListener("click",P.openGoal);
+    P.$("savePlannerGoalV71")?.addEventListener("click",P.saveGoal);
+    document.querySelectorAll("[data-planner-mode-v71]").forEach(button=>{
+      button.addEventListener("click",()=>{
+        P.mode=button.dataset.plannerModeV71;
+        document.querySelectorAll("[data-planner-mode-v71]").forEach(b=>b.classList.toggle("active",b===button));
+        P.render();
+      });
+    });
+  };
+
+  document.addEventListener("DOMContentLoaded",()=>{
+    P.bind();
+    setTimeout(P.render,450);
+  });
+  window.FinancialPlannerV71=P;
+})();
+
+const APP_VERSION="7.1.0-beta.1";
 
 /* v7 expense intelligence */
 (function(){const A={weekOffset:0};
@@ -2201,7 +2494,7 @@ A.render=()=>{let now=new Date(),ws=A.ws(now);ws.setDate(ws.getDate()+A.weekOffs
 for(let i=1;i<=8;i++){let b=A.ws(now);b.setDate(b.getDate()-7*(i-1));let a=new Date(b);a.setDate(a.getDate()-7);let t=A.total(ex,a,b);if(t>0)hist.push(t)}
 let avg=hist.length?hist.reduce((a,b)=>a+b,0)/hist.length:0,current=A.weekOffset===0,past=A.weekOffset<0,elapsed=current?Math.max(1,Math.min(7,Math.floor((now-ws)/864e5)+1)):7,pace=w/elapsed*7,fw=past?w:(hist.length>=2?avg*.65+(current?pace:avg)*.35:(current?pace:avg)),fm=hist.length>=2?(avg*dim/7)*.55+(m/day*dim)*.45:m/day*dim;
 let x=document.getElementById("expenseWeekTitleV7");if(x)x.textContent=current?"Esta semana":A.weekOffset===-1?"Semana passada":A.weekOffset===1?"Próxima semana":"Semana selecionada";x=document.getElementById("expenseWeekRangeV7");if(x)x.textContent=A.range(ws,we);
-x=document.getElementById("expenseSummaryV7");if(x)x.innerHTML=A.card(current?"Esta semana":"Semana selecionada",A.money(w),A.range(ws,we),"v7-purple")+A.card("Este mês",A.money(m),`${day}/${dim} dias`,"v7-pink")+A.card("Média semanal",A.money(avg),hist.length?`${hist.length} semanas analisadas`:"criando histórico","v7-blue")+A.card("Média diária",A.money(m/day),"mês atual","v7-orange");
+x=document.getElementById("expenseSummaryV7");if(x)x.innerHTML=A.card(current?"Esta semana":"Semana selecionada",A.money(w),A.range(ws,we),"v7-purple")+A.card("Gastos variáveis",A.money(m),`${day}/${dim} dias · Bills separadas`,"v7-pink")+A.card("Média semanal",A.money(avg),hist.length?`${hist.length} semanas analisadas`:"criando histórico","v7-blue")+A.card("Média diária",A.money(m/day),"mês atual","v7-orange");
 x=document.getElementById("expenseForecastWeekV7");if(x)x.textContent=past?`${A.money(w)} gastos naquela semana`:`${A.money(fw)} previstos na semana`;x=document.getElementById("expenseForecastMonthV7");if(x)x.textContent=`${A.money(fm)} previstos neste mês`;x=document.getElementById("expenseForecastConfidenceV7");if(x)x.textContent=past?"Fechado":hist.length>=6?"Boa base":hist.length>=2?"Aprendendo":"Poucos dados";
 let cws=A.ws(now),cwe=A.we(now),vw=A.total(va,cws,cwe,true),vm=A.total(va,ms,me,true),pms=new Date(now.getFullYear(),now.getMonth()-1,1),pm=A.total(va,pms,ms,true),proj=vm/day*dim;
 x=document.getElementById("vaultSummaryV7");if(x)x.innerHTML=A.card("Esta semana",A.money(vw),"saldo líquido","v7-green")+A.card("Este mês",A.money(vm),"saldo líquido","v7-green")+A.card("Mês anterior",A.money(pm),"comparativo","v7-purple")+A.card("Média diária",A.money(vm/day),"mês atual","v7-blue");
@@ -2209,9 +2502,10 @@ x=document.getElementById("vaultForecastWeekV7");if(x)x.textContent=`${A.money(v
 document.addEventListener("DOMContentLoaded",()=>{document.getElementById("expensePrevWeekV7")?.addEventListener("click",()=>{A.weekOffset--;A.render()});document.getElementById("expenseNextWeekV7")?.addEventListener("click",()=>{A.weekOffset++;A.render()});document.getElementById("expenseCurrentWeekV7")?.addEventListener("click",()=>{A.weekOffset=0;A.render()});setTimeout(A.render,350)});setInterval(A.render,5000);window.FinanceAIv7=A})(); 
 
 const RELEASE_NOTES=[
-{version:"7.0.0-beta.2.3",date:"10/08/2026",title:"Historical Data Recognition Fix",changes:["A inteligência financeira agora lê diretamente state.expenses e reconhece todo o histórico já salvo.","Semanas anteriores passam a mostrar automaticamente os gastos antigos, sem recadastro.","Histórico antigo também entra no cálculo da média e das previsões.","Cofre passa a usar a mesma fonte real de dados do app."]},
-{version:"7.0.0-beta.2.3",date:"10/08/2026",title:"Expenses Legacy DOM Cleanup",changes:["Corrigido expenseCategoryStrip ausente.","Protegidas as referências de renderExpenses a elementos visuais removidos.","Evita a sequência de erros null causada pela limpeza do layout antigo."]},
-  {version:"7.0.0-beta.2.3",date:"10/08/2026",title:"Expense Render Compatibility Fix",changes:["Corrigido erro ao abrir os dados após remover o card mensal antigo.","renderExpenses agora ignora elementos legados que não existem mais.","Resumo financeiro e navegação semanal da beta.2 foram preservados."]},
+  {version:"7.1.0-beta.1",date:"10/08/2026",title:"Financial Planner",changes:["Novo fluxo financeiro unificado: Ganhos → Bills + Gastos → Meta Brasil → Lazer.","Receitas da Rota e outras receitas alimentam automaticamente a previsão.","Bills entram como despesa geral sem serem duplicadas em Gastos variáveis.","Novo comparativo Realizado x Previsto.","Meta Brasil mensal configurável com valor já enviado.","Cálculo automático de Livre previsto e Lazer disponível.","Insights mostram falta para a meta, renda extra semanal necessária e limite diário de lazer.","Previsões usam agenda da Rota, gastos atuais e histórico mensal recente."]},
+{version:"7.1.0-beta.1",date:"10/08/2026",title:"Historical Data Recognition Fix",changes:["A inteligência financeira agora lê diretamente state.expenses e reconhece todo o histórico já salvo.","Semanas anteriores passam a mostrar automaticamente os gastos antigos, sem recadastro.","Histórico antigo também entra no cálculo da média e das previsões.","Cofre passa a usar a mesma fonte real de dados do app."]},
+{version:"7.1.0-beta.1",date:"10/08/2026",title:"Expenses Legacy DOM Cleanup",changes:["Corrigido expenseCategoryStrip ausente.","Protegidas as referências de renderExpenses a elementos visuais removidos.","Evita a sequência de erros null causada pela limpeza do layout antigo."]},
+  {version:"7.1.0-beta.1",date:"10/08/2026",title:"Expense Render Compatibility Fix",changes:["Corrigido erro ao abrir os dados após remover o card mensal antigo.","renderExpenses agora ignora elementos legados que não existem mais.","Resumo financeiro e navegação semanal da beta.2 foram preservados."]},
 {version:"7.0.0-beta.2",date:"10/08/2026",title:"Expenses Layout & Week Navigation",changes:["Adicionar gasto movido para o topo.","Resumo mensal grande duplicado removido.","Navegação entre semanas anteriores e futuras adicionada.","Resumo e previsão acompanham a semana selecionada."]},
   {version:"7.0.0-beta.2",date:"10/08/2026",title:"Financial Intelligence",changes:["Gastos agora mostra resumo semanal e mensal.","Previsão adaptativa estima os gastos da semana e do mês a partir do histórico e ritmo atual.","Cofre ganhou visão semanal, mensal, comparação e projeção.","O indicador informa quando ainda há poucos dados para uma previsão confiável."]},
   {version:"6.0.0-beta.6",date:"10/08/2026",title:"Client List Readability",changes:["Rota voltou para o centro da navegação inferior, entre Bills e Gastos.","Nomes, informações e botões da Lista de clientes ficaram maiores e mais legíveis.","Nenhuma lógica dos clientes foi alterada."]},
