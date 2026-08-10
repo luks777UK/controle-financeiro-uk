@@ -2235,3 +2235,30 @@ html{scroll-behavior:smooth}
 .route-client-preview-single-v604>div{
   text-align:center;
 }
+
+
+/* v6.0.0-beta.6 — Client List Readability */
+.route-client-list-modal-v6 .route-client-list-name-v6,
+.route-client-list-v6 strong,
+.route-client-list-item-v6 strong{
+  font-size:17px!important;
+  line-height:1.25!important;
+  font-weight:750!important;
+  letter-spacing:.01em;
+}
+.route-client-list-modal-v6 .route-client-list-meta-v6,
+.route-client-list-v6 small,
+.route-client-list-item-v6 small{
+  font-size:13px!important;
+  line-height:1.35!important;
+}
+.route-client-list-modal-v6 button,
+.route-client-list-item-v6 button{
+  font-size:13px!important;
+  min-height:38px;
+  padding:8px 11px;
+}
+.route-client-list-modal-v6 input,
+#routeClientListSearchV6{
+  font-size:17px!important;
+}

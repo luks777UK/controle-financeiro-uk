@@ -40,7 +40,7 @@ function fatalDiagnostic313(step,error,extra={}){
     const box=document.getElementById("fatalLoginDiagnostic");
     const text=document.getElementById("fatalLoginDiagnosticText");
     const lines=[
-      `VERSÃO: 6.0.0-beta.4`,
+      `VERSÃO: 6.0.0-beta.6`,
       `ETAPA: ${step}`,
       `MENSAGEM: ${error?.message||String(error||"Erro desconhecido")}`
     ];
@@ -2175,8 +2175,10 @@ $("confirmVaultWithdrawV4").onclick=async()=>{
 };
 
 
-const APP_VERSION="6.0.0-beta.4";
+const APP_VERSION="6.0.0-beta.6";
 const RELEASE_NOTES=[
+  {version:"6.0.0-beta.6",date:"10/08/2026",title:"Client List Readability",changes:["Rota voltou para o centro da navegação inferior, entre Bills e Gastos.","Nomes, informações e botões da Lista de clientes ficaram maiores e mais legíveis.","Nenhuma lógica dos clientes foi alterada."]},
+  {version:"6.0.0-beta.5",date:"10/08/2026",title:"Route Navigation Position",changes:["Rota movida para ficar imediatamente entre Geral e Bills.","Todas as outras abas mantiveram sua ordem relativa.","Nenhuma função ou cálculo foi alterado."]},
   {version:"6.0.0-beta.4",date:"10/08/2026",title:"Route Navigation & Client Notes",changes:["A aba Rota ganhou destaque permanente na navegação.","Campo Notas adicionado ao cadastro e edição de clientes.","Custos, estacionamento e endereço removidos do formulário.","Preview de cliente simplificado para Receita prevista."]},
   {version:"6.0.0-beta.1",date:"07/08/2026",title:"Finance & Business Dashboard",changes:["Novo Mapa do Dinheiro na aba Geral.","Análise automática das categorias de gastos.","Receitas da Rota ficam protegidas e sincronizadas com a Geral.","Previsão financeira da Rota para 30 dias.","Média semanal, média por hora, cancelamentos perdidos e dia mais cheio.","Clientes agora podem guardar horário, postcode e endereço.","Painel Mostrar mais da Rota foi reconstruído e simplificado."]},
   {version:"5.0.0-beta.14",date:"07/08/2026",title:"Fontes maiores e integração com Receitas",changes:["Fontes dos cards principais aumentadas novamente.","Todo pagamento confirmado na Rota cria ou atualiza automaticamente uma Receita na aba Geral.","Alterações de valor, data ou forma de pagamento permanecem sincronizadas.","Ao desmarcar pagamento, a Receita vinculada é removida.","Receitas antigas da Rota são reconciliadas automaticamente sem duplicação."]},
