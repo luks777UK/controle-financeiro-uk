@@ -7,13 +7,13 @@
   <meta http-equiv="Expires" content="0">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
   <meta name="theme-color" content="#080914">
-  <meta name="application-name" content="Nosso Controle 7.0.0-beta.1">
+  <meta name="application-name" content="Nosso Controle 7.0.0-beta.2">
   <meta name="apple-mobile-web-app-title" content="Nosso Controle">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="styles.css?v=7.0.0-beta.1-fresh">
-  <title>Nosso Controle 7.0.0-beta.1</title>
+  <link rel="stylesheet" href="styles.css?v=7.0.0-beta.2-fresh">
+  <title>Nosso Controle 7.0.0-beta.2</title>
 </head>
 <body>
   <section id="authView" class="auth-screen">
@@ -443,23 +443,10 @@
     </section>
 
     <section id="expensesView" class="app-section">
-<div class="v7-insights-shell" id="expenseInsightsV7"><div class="v7-period-head"><div><span class="v7-kicker">CONTROLE DE GASTOS</span><h2>Resumo financeiro</h2></div><span class="v7-learning-badge">✦ Previsão inteligente</span></div><div class="v7-summary-grid" id="expenseSummaryV7"></div><div class="v7-forecast-card"><div class="v7-ai-icon">✦</div><div class="v7-forecast-copy"><span>EXPECTATIVA DE GASTOS</span><strong id="expenseForecastWeekV7">£0,00 esta semana</strong><small id="expenseForecastMonthV7">£0,00 neste mês</small></div><div class="v7-confidence" id="expenseForecastConfidenceV7">Aprendendo</div></div></div>
-      <div class="section-page-header">
-        <div>
-          <span class="page-overline">DIA A DIA</span>
-          <h2>Gastos</h2>
-          <p>Registre mercado, gasolina, lanches e lazer.</p>
-        </div>
-        <button id="openExpense" class="page-add-button">＋</button>
-      </div>
-
-      <section class="expense-summary-card">
-        <span>Gasto neste mês</span>
-        <strong id="expenseMonthTotal">£0,00</strong>
-        <div class="expense-category-strip" id="expenseCategoryStrip"></div>
-      </section>
-
-      <div class="section-heading compact-heading">
+<div class="section-page-header v7-expense-main-head"><div><span class="page-overline">DIA A DIA</span><h2>Gastos</h2><p>Registre mercado, gasolina, lanches e lazer.</p></div><button id="openExpense" class="page-add-button">＋</button></div>
+<div class="v7-week-nav"><button id="expensePrevWeekV7">‹</button><button id="expenseCurrentWeekV7" class="v7-week-label"><strong id="expenseWeekTitleV7">Esta semana</strong><small id="expenseWeekRangeV7">—</small></button><button id="expenseNextWeekV7">›</button></div>
+<div class="v7-insights-shell" id="expenseInsightsV7"><div class="v7-period-head"><div><span class="v7-kicker">CONTROLE DE GASTOS</span><h2>Resumo financeiro</h2></div><span class="v7-learning-badge">✦ Previsão inteligente</span></div><div class="v7-summary-grid" id="expenseSummaryV7"></div><div class="v7-forecast-card"><div class="v7-ai-icon">✦</div><div class="v7-forecast-copy"><span>EXPECTATIVA DE GASTOS</span><strong id="expenseForecastWeekV7">£0,00 na semana</strong><small id="expenseForecastMonthV7">£0,00 neste mês</small></div><div class="v7-confidence" id="expenseForecastConfidenceV7">Aprendendo</div></div></div>
+<div class="section-heading compact-heading">
         <div><h2>Últimos gastos</h2><p>Organizados do mais recente.</p></div>
       </div>
       <section id="expenseList" class="expense-list"></section>
@@ -1341,10 +1328,10 @@
 <div id="toast" class="toast"></div>
   <canvas id="confetti"></canvas>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=7.0.0-beta.1-fresh"></script>
+  <script src="app.js?v=7.0.0-beta.2-fresh"></script>
   <script>
     (async()=>{
-      const BUILD="7.0.0-beta.1-single";
+      const BUILD="7.0.0-beta.2-single";
       try{
         if("serviceWorker" in navigator){
           const registrations=await navigator.serviceWorker.getRegistrations();

@@ -40,7 +40,7 @@ function fatalDiagnostic313(step,error,extra={}){
     const box=document.getElementById("fatalLoginDiagnostic");
     const text=document.getElementById("fatalLoginDiagnosticText");
     const lines=[
-      `VERSÃO: 7.0.0-beta.1`,
+      `VERSÃO: 7.0.0-beta.2`,
       `ETAPA: ${step}`,
       `MENSAGEM: ${error?.message||String(error||"Erro desconhecido")}`
     ];
@@ -2175,36 +2175,32 @@ $("confirmVaultWithdrawV4").onclick=async()=>{
 };
 
 
-const APP_VERSION="7.0.0-beta.1";
+const APP_VERSION="7.0.0-beta.2";
 
-/* v7 local adaptive financial forecast */
-(function(){
- const A={};
- A.money=n=>new Intl.NumberFormat("pt-BR",{style:"currency",currency:"GBP"}).format(Number(n||0));
- A.n=v=>Number.isFinite(Number(v))?Number(v):0;
- A.d=v=>{if(!v)return null;let d=new Date(String(v).length<=10?String(v)+"T12:00:00":v);return isNaN(d)?null:d};
- A.ws=d=>{let x=new Date(d),q=(x.getDay()+6)%7;x.setHours(0,0,0,0);x.setDate(x.getDate()-q);return x};
- A.we=d=>{let x=A.ws(d);x.setDate(x.getDate()+7);return x}; A.ms=d=>new Date(d.getFullYear(),d.getMonth(),1); A.me=d=>new Date(d.getFullYear(),d.getMonth()+1,1);
- A.arr=(...ks)=>{for(const k of ks){if(Array.isArray(window.state?.[k]))return window.state[k];if(Array.isArray(window.appState?.[k]))return window.appState[k]}return[]};
- A.amt=o=>A.n(o?.amount??o?.value??o?.total??o?.price??o?.cost); A.date=o=>A.d(o?.date??o?.createdAt??o?.created_at??o?.timestamp??o?.paidAt);
- A.total=(xs,a,b,vault=false)=>xs.reduce((s,o)=>{let d=A.date(o);if(!d||d<a||d>=b)return s;let n=Math.abs(A.amt(o));if(vault&&/withdraw|retir|sa[ií]da|out/.test(String(o?.type??o?.kind??"").toLowerCase()))n=-n;return s+n},0);
- A.card=(l,v,s,c)=>`<div class="v7-stat ${c}"><span>${l}</span><strong>${v}</strong><small>${s}</small></div>`;
- A.render=()=>{
-  let now=new Date(),ws=A.ws(now),we=A.we(now),ms=A.ms(now),me=A.me(now),ex=A.arr("expenses","expenseHistory","spendings","gastos"),va=A.arr("vaultHistory","vaultTransactions","cofreHistory","savingsHistory");
-  let w=A.total(ex,ws,we),m=A.total(ex,ms,me),day=Math.max(1,now.getDate()),dim=new Date(now.getFullYear(),now.getMonth()+1,0).getDate(),elapsed=Math.max(1,Math.floor((now-ws)/864e5)+1);
-  let hist=[];for(let i=1;i<=8;i++){let b=A.ws(now);b.setDate(b.getDate()-7*(i-1));let a=new Date(b);a.setDate(a.getDate()-7);let t=A.total(ex,a,b);if(t>0)hist.push(t)}
-  let avg=hist.length?hist.reduce((a,b)=>a+b,0)/hist.length:0,paceW=w/elapsed*7,paceM=m/day*dim,fw=hist.length>=2?avg*.65+paceW*.35:paceW,fm=hist.length>=2?(avg*dim/7)*.55+paceM*.45:paceM;
-  let e=document.getElementById("expenseSummaryV7");if(e)e.innerHTML=A.card("Esta semana",A.money(w),`${elapsed}/7 dias`,"v7-purple")+A.card("Este mês",A.money(m),`${day}/${dim} dias`,"v7-pink")+A.card("Média semanal",A.money(avg),hist.length?`${hist.length} semanas analisadas`:"criando histórico","v7-blue")+A.card("Média diária",A.money(m/day),"mês atual","v7-orange");
-  let x=document.getElementById("expenseForecastWeekV7");if(x)x.textContent=`${A.money(fw)} esta semana`;x=document.getElementById("expenseForecastMonthV7");if(x)x.textContent=`${A.money(fm)} neste mês`;x=document.getElementById("expenseForecastConfidenceV7");if(x)x.textContent=hist.length>=6?"Boa base":hist.length>=2?"Aprendendo":"Poucos dados";
-  let vw=A.total(va,ws,we,true),vm=A.total(va,ms,me,true),pms=new Date(now.getFullYear(),now.getMonth()-1,1),pm=A.total(va,pms,ms,true),proj=vm/day*dim;
-  let v=document.getElementById("vaultSummaryV7");if(v)v.innerHTML=A.card("Esta semana",A.money(vw),"saldo líquido","v7-green")+A.card("Este mês",A.money(vm),"saldo líquido","v7-green")+A.card("Mês anterior",A.money(pm),"comparativo","v7-purple")+A.card("Média diária",A.money(vm/day),"mês atual","v7-blue");
-  x=document.getElementById("vaultForecastWeekV7");if(x)x.textContent=`${A.money(vw)} nesta semana`;x=document.getElementById("vaultForecastMonthV7");if(x)x.textContent=`${A.money(proj)} projetados no mês`;x=document.getElementById("vaultTrendV7");if(x)x.textContent=pm?(proj>=pm?"Tendência positiva":"Abaixo do mês anterior"):"Criando histórico";
- };
- document.addEventListener("DOMContentLoaded",()=>setTimeout(A.render,350));setInterval(A.render,5000);window.FinanceAIv7=A;
-})();
+/* v7 expense intelligence */
+(function(){const A={weekOffset:0};
+A.money=n=>new Intl.NumberFormat("pt-BR",{style:"currency",currency:"GBP"}).format(Number(n||0));A.n=v=>Number.isFinite(Number(v))?Number(v):0;
+A.d=v=>{if(!v)return null;let d=new Date(String(v).length<=10?String(v)+"T12:00:00":v);return isNaN(d)?null:d};
+A.ws=d=>{let x=new Date(d),q=(x.getDay()+6)%7;x.setHours(0,0,0,0);x.setDate(x.getDate()-q);return x};A.we=d=>{let x=A.ws(d);x.setDate(x.getDate()+7);return x};
+A.arr=(...ks)=>{for(const k of ks){if(Array.isArray(window.state?.[k]))return window.state[k];if(Array.isArray(window.appState?.[k]))return window.appState[k]}return[]};
+A.amt=o=>A.n(o?.amount??o?.value??o?.total??o?.price??o?.cost);A.date=o=>A.d(o?.date??o?.createdAt??o?.created_at??o?.timestamp??o?.paidAt);
+A.total=(xs,a,b,vault=false)=>xs.reduce((s,o)=>{let d=A.date(o);if(!d||d<a||d>=b)return s;let n=Math.abs(A.amt(o));if(vault&&/withdraw|retir|sa[ií]da|out/.test(String(o?.type??o?.kind??"").toLowerCase()))n=-n;return s+n},0);
+A.card=(l,v,s,c)=>`<div class="v7-stat ${c}"><span>${l}</span><strong>${v}</strong><small>${s}</small></div>`;
+A.range=(a,b)=>{let z=new Date(b-1);return`${String(a.getDate()).padStart(2,"0")}/${String(a.getMonth()+1).padStart(2,"0")} — ${String(z.getDate()).padStart(2,"0")}/${String(z.getMonth()+1).padStart(2,"0")}`};
+A.render=()=>{let now=new Date(),ws=A.ws(now);ws.setDate(ws.getDate()+A.weekOffset*7);let we=A.we(ws),ms=new Date(now.getFullYear(),now.getMonth(),1),me=new Date(now.getFullYear(),now.getMonth()+1,1),ex=A.arr("expenses","expenseHistory","spendings","gastos"),va=A.arr("vaultHistory","vaultTransactions","cofreHistory","savingsHistory"),w=A.total(ex,ws,we),m=A.total(ex,ms,me),day=Math.max(1,now.getDate()),dim=new Date(now.getFullYear(),now.getMonth()+1,0).getDate(),hist=[];
+for(let i=1;i<=8;i++){let b=A.ws(now);b.setDate(b.getDate()-7*(i-1));let a=new Date(b);a.setDate(a.getDate()-7);let t=A.total(ex,a,b);if(t>0)hist.push(t)}
+let avg=hist.length?hist.reduce((a,b)=>a+b,0)/hist.length:0,current=A.weekOffset===0,past=A.weekOffset<0,elapsed=current?Math.max(1,Math.min(7,Math.floor((now-ws)/864e5)+1)):7,pace=w/elapsed*7,fw=past?w:(hist.length>=2?avg*.65+(current?pace:avg)*.35:(current?pace:avg)),fm=hist.length>=2?(avg*dim/7)*.55+(m/day*dim)*.45:m/day*dim;
+let x=document.getElementById("expenseWeekTitleV7");if(x)x.textContent=current?"Esta semana":A.weekOffset===-1?"Semana passada":A.weekOffset===1?"Próxima semana":"Semana selecionada";x=document.getElementById("expenseWeekRangeV7");if(x)x.textContent=A.range(ws,we);
+x=document.getElementById("expenseSummaryV7");if(x)x.innerHTML=A.card(current?"Esta semana":"Semana selecionada",A.money(w),A.range(ws,we),"v7-purple")+A.card("Este mês",A.money(m),`${day}/${dim} dias`,"v7-pink")+A.card("Média semanal",A.money(avg),hist.length?`${hist.length} semanas analisadas`:"criando histórico","v7-blue")+A.card("Média diária",A.money(m/day),"mês atual","v7-orange");
+x=document.getElementById("expenseForecastWeekV7");if(x)x.textContent=past?`${A.money(w)} gastos naquela semana`:`${A.money(fw)} previstos na semana`;x=document.getElementById("expenseForecastMonthV7");if(x)x.textContent=`${A.money(fm)} previstos neste mês`;x=document.getElementById("expenseForecastConfidenceV7");if(x)x.textContent=past?"Fechado":hist.length>=6?"Boa base":hist.length>=2?"Aprendendo":"Poucos dados";
+let cws=A.ws(now),cwe=A.we(now),vw=A.total(va,cws,cwe,true),vm=A.total(va,ms,me,true),pms=new Date(now.getFullYear(),now.getMonth()-1,1),pm=A.total(va,pms,ms,true),proj=vm/day*dim;
+x=document.getElementById("vaultSummaryV7");if(x)x.innerHTML=A.card("Esta semana",A.money(vw),"saldo líquido","v7-green")+A.card("Este mês",A.money(vm),"saldo líquido","v7-green")+A.card("Mês anterior",A.money(pm),"comparativo","v7-purple")+A.card("Média diária",A.money(vm/day),"mês atual","v7-blue");
+x=document.getElementById("vaultForecastWeekV7");if(x)x.textContent=`${A.money(vw)} nesta semana`;x=document.getElementById("vaultForecastMonthV7");if(x)x.textContent=`${A.money(proj)} projetados no mês`;x=document.getElementById("vaultTrendV7");if(x)x.textContent=pm?(proj>=pm?"Tendência positiva":"Abaixo do mês anterior"):"Criando histórico"};
+document.addEventListener("DOMContentLoaded",()=>{document.getElementById("expensePrevWeekV7")?.addEventListener("click",()=>{A.weekOffset--;A.render()});document.getElementById("expenseNextWeekV7")?.addEventListener("click",()=>{A.weekOffset++;A.render()});document.getElementById("expenseCurrentWeekV7")?.addEventListener("click",()=>{A.weekOffset=0;A.render()});setTimeout(A.render,350)});setInterval(A.render,5000);window.FinanceAIv7=A})(); 
 
 const RELEASE_NOTES=[
-  {version:"7.0.0-beta.1",date:"10/08/2026",title:"Financial Intelligence",changes:["Gastos agora mostra resumo semanal e mensal.","Previsão adaptativa estima os gastos da semana e do mês a partir do histórico e ritmo atual.","Cofre ganhou visão semanal, mensal, comparação e projeção.","O indicador informa quando ainda há poucos dados para uma previsão confiável."]},
+{version:"7.0.0-beta.2",date:"10/08/2026",title:"Expenses Layout & Week Navigation",changes:["Adicionar gasto movido para o topo.","Resumo mensal grande duplicado removido.","Navegação entre semanas anteriores e futuras adicionada.","Resumo e previsão acompanham a semana selecionada."]},
+  {version:"7.0.0-beta.2",date:"10/08/2026",title:"Financial Intelligence",changes:["Gastos agora mostra resumo semanal e mensal.","Previsão adaptativa estima os gastos da semana e do mês a partir do histórico e ritmo atual.","Cofre ganhou visão semanal, mensal, comparação e projeção.","O indicador informa quando ainda há poucos dados para uma previsão confiável."]},
   {version:"6.0.0-beta.6",date:"10/08/2026",title:"Client List Readability",changes:["Rota voltou para o centro da navegação inferior, entre Bills e Gastos.","Nomes, informações e botões da Lista de clientes ficaram maiores e mais legíveis.","Nenhuma lógica dos clientes foi alterada."]},
   {version:"6.0.0-beta.5",date:"10/08/2026",title:"Route Navigation Position",changes:["Rota movida para ficar imediatamente entre Geral e Bills.","Todas as outras abas mantiveram sua ordem relativa.","Nenhuma função ou cálculo foi alterado."]},
   {version:"6.0.0-beta.4",date:"10/08/2026",title:"Route Navigation & Client Notes",changes:["A aba Rota ganhou destaque permanente na navegação.","Campo Notas adicionado ao cadastro e edição de clientes.","Custos, estacionamento e endereço removidos do formulário.","Preview de cliente simplificado para Receita prevista."]},
