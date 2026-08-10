@@ -40,7 +40,7 @@ function fatalDiagnostic313(step,error,extra={}){
     const box=document.getElementById("fatalLoginDiagnostic");
     const text=document.getElementById("fatalLoginDiagnosticText");
     const lines=[
-      `VERSÃO: 7.0.0-beta.2.2`,
+      `VERSÃO: 7.0.0-beta.2.3`,
       `ETAPA: ${step}`,
       `MENSAGEM: ${error?.message||String(error||"Erro desconhecido")}`
     ];
@@ -1223,6 +1223,7 @@ function renderExpenses(){
   </article>`).join(""):'<div class="empty-state">Nenhum gasto registrado ainda.</div>';
   document.querySelectorAll("[data-expense-edit]").forEach(b=>b.onclick=()=>editExpense(b.dataset.expenseEdit));
   document.querySelectorAll("[data-expense-delete]").forEach(b=>b.onclick=()=>deleteExpense(b.dataset.expenseDelete));
+  if(window.FinanceAIv7)window.FinanceAIv7.render();
 }
 function editExpense(id){
   const item=state.expenses.find(x=>x.id===id);
@@ -2175,14 +2176,23 @@ $("confirmVaultWithdrawV4").onclick=async()=>{
 };
 
 
-const APP_VERSION="7.0.0-beta.2.2";
+const APP_VERSION="7.0.0-beta.2.3";
 
 /* v7 expense intelligence */
 (function(){const A={weekOffset:0};
 A.money=n=>new Intl.NumberFormat("pt-BR",{style:"currency",currency:"GBP"}).format(Number(n||0));A.n=v=>Number.isFinite(Number(v))?Number(v):0;
 A.d=v=>{if(!v)return null;let d=new Date(String(v).length<=10?String(v)+"T12:00:00":v);return isNaN(d)?null:d};
 A.ws=d=>{let x=new Date(d),q=(x.getDay()+6)%7;x.setHours(0,0,0,0);x.setDate(x.getDate()-q);return x};A.we=d=>{let x=A.ws(d);x.setDate(x.getDate()+7);return x};
-A.arr=(...ks)=>{for(const k of ks){if(Array.isArray(window.state?.[k]))return window.state[k];if(Array.isArray(window.appState?.[k]))return window.appState[k]}return[]};
+A.arr=(...ks)=>{
+  if(typeof state!=="undefined"&&state){
+    for(const k of ks)if(Array.isArray(state[k]))return state[k];
+  }
+  for(const k of ks){
+    if(Array.isArray(window.state?.[k]))return window.state[k];
+    if(Array.isArray(window.appState?.[k]))return window.appState[k];
+  }
+  return[];
+};
 A.amt=o=>A.n(o?.amount??o?.value??o?.total??o?.price??o?.cost);A.date=o=>A.d(o?.date??o?.createdAt??o?.created_at??o?.timestamp??o?.paidAt);
 A.total=(xs,a,b,vault=false)=>xs.reduce((s,o)=>{let d=A.date(o);if(!d||d<a||d>=b)return s;let n=Math.abs(A.amt(o));if(vault&&/withdraw|retir|sa[ií]da|out/.test(String(o?.type??o?.kind??"").toLowerCase()))n=-n;return s+n},0);
 A.card=(l,v,s,c)=>`<div class="v7-stat ${c}"><span>${l}</span><strong>${v}</strong><small>${s}</small></div>`;
@@ -2199,8 +2209,9 @@ x=document.getElementById("vaultForecastWeekV7");if(x)x.textContent=`${A.money(v
 document.addEventListener("DOMContentLoaded",()=>{document.getElementById("expensePrevWeekV7")?.addEventListener("click",()=>{A.weekOffset--;A.render()});document.getElementById("expenseNextWeekV7")?.addEventListener("click",()=>{A.weekOffset++;A.render()});document.getElementById("expenseCurrentWeekV7")?.addEventListener("click",()=>{A.weekOffset=0;A.render()});setTimeout(A.render,350)});setInterval(A.render,5000);window.FinanceAIv7=A})(); 
 
 const RELEASE_NOTES=[
-{version:"7.0.0-beta.2.2",date:"10/08/2026",title:"Expenses Legacy DOM Cleanup",changes:["Corrigido expenseCategoryStrip ausente.","Protegidas as referências de renderExpenses a elementos visuais removidos.","Evita a sequência de erros null causada pela limpeza do layout antigo."]},
-  {version:"7.0.0-beta.2.2",date:"10/08/2026",title:"Expense Render Compatibility Fix",changes:["Corrigido erro ao abrir os dados após remover o card mensal antigo.","renderExpenses agora ignora elementos legados que não existem mais.","Resumo financeiro e navegação semanal da beta.2 foram preservados."]},
+{version:"7.0.0-beta.2.3",date:"10/08/2026",title:"Historical Data Recognition Fix",changes:["A inteligência financeira agora lê diretamente state.expenses e reconhece todo o histórico já salvo.","Semanas anteriores passam a mostrar automaticamente os gastos antigos, sem recadastro.","Histórico antigo também entra no cálculo da média e das previsões.","Cofre passa a usar a mesma fonte real de dados do app."]},
+{version:"7.0.0-beta.2.3",date:"10/08/2026",title:"Expenses Legacy DOM Cleanup",changes:["Corrigido expenseCategoryStrip ausente.","Protegidas as referências de renderExpenses a elementos visuais removidos.","Evita a sequência de erros null causada pela limpeza do layout antigo."]},
+  {version:"7.0.0-beta.2.3",date:"10/08/2026",title:"Expense Render Compatibility Fix",changes:["Corrigido erro ao abrir os dados após remover o card mensal antigo.","renderExpenses agora ignora elementos legados que não existem mais.","Resumo financeiro e navegação semanal da beta.2 foram preservados."]},
 {version:"7.0.0-beta.2",date:"10/08/2026",title:"Expenses Layout & Week Navigation",changes:["Adicionar gasto movido para o topo.","Resumo mensal grande duplicado removido.","Navegação entre semanas anteriores e futuras adicionada.","Resumo e previsão acompanham a semana selecionada."]},
   {version:"7.0.0-beta.2",date:"10/08/2026",title:"Financial Intelligence",changes:["Gastos agora mostra resumo semanal e mensal.","Previsão adaptativa estima os gastos da semana e do mês a partir do histórico e ritmo atual.","Cofre ganhou visão semanal, mensal, comparação e projeção.","O indicador informa quando ainda há poucos dados para uma previsão confiável."]},
   {version:"6.0.0-beta.6",date:"10/08/2026",title:"Client List Readability",changes:["Rota voltou para o centro da navegação inferior, entre Bills e Gastos.","Nomes, informações e botões da Lista de clientes ficaram maiores e mais legíveis.","Nenhuma lógica dos clientes foi alterada."]},
