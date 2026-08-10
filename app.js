@@ -40,7 +40,7 @@ function fatalDiagnostic313(step,error,extra={}){
     const box=document.getElementById("fatalLoginDiagnostic");
     const text=document.getElementById("fatalLoginDiagnosticText");
     const lines=[
-      `VERSÃO: 7.0.0-beta.2`,
+      `VERSÃO: 7.0.0-beta.2.1`,
       `ETAPA: ${step}`,
       `MENSAGEM: ${error?.message||String(error||"Erro desconhecido")}`
     ];
@@ -1209,7 +1209,7 @@ function renderExpenses(){
     return d.getFullYear()===year&&d.getMonth()===month;
   });
   const total=monthItems.reduce((s,x)=>s+Number(x.amount||0),0);
-  $("expenseMonthTotal").textContent=money(total);
+  if($("expenseMonthTotal"))$("expenseMonthTotal").textContent=money(total);
   const cats={gasolina:0,mercado:0,lanche:0,lazer:0,casa:0,carro:0,saude:0,outros:0};
   monthItems.forEach(x=>cats[x.category]=(cats[x.category]||0)+Number(x.amount||0));
   $("expenseCategoryStrip").innerHTML=Object.entries(cats).filter(([,v])=>v>0)
@@ -2175,7 +2175,7 @@ $("confirmVaultWithdrawV4").onclick=async()=>{
 };
 
 
-const APP_VERSION="7.0.0-beta.2";
+const APP_VERSION="7.0.0-beta.2.1";
 
 /* v7 expense intelligence */
 (function(){const A={weekOffset:0};
@@ -2199,6 +2199,7 @@ x=document.getElementById("vaultForecastWeekV7");if(x)x.textContent=`${A.money(v
 document.addEventListener("DOMContentLoaded",()=>{document.getElementById("expensePrevWeekV7")?.addEventListener("click",()=>{A.weekOffset--;A.render()});document.getElementById("expenseNextWeekV7")?.addEventListener("click",()=>{A.weekOffset++;A.render()});document.getElementById("expenseCurrentWeekV7")?.addEventListener("click",()=>{A.weekOffset=0;A.render()});setTimeout(A.render,350)});setInterval(A.render,5000);window.FinanceAIv7=A})(); 
 
 const RELEASE_NOTES=[
+  {version:"7.0.0-beta.2.1",date:"10/08/2026",title:"Expense Render Compatibility Fix",changes:["Corrigido erro ao abrir os dados após remover o card mensal antigo.","renderExpenses agora ignora elementos legados que não existem mais.","Resumo financeiro e navegação semanal da beta.2 foram preservados."]},
 {version:"7.0.0-beta.2",date:"10/08/2026",title:"Expenses Layout & Week Navigation",changes:["Adicionar gasto movido para o topo.","Resumo mensal grande duplicado removido.","Navegação entre semanas anteriores e futuras adicionada.","Resumo e previsão acompanham a semana selecionada."]},
   {version:"7.0.0-beta.2",date:"10/08/2026",title:"Financial Intelligence",changes:["Gastos agora mostra resumo semanal e mensal.","Previsão adaptativa estima os gastos da semana e do mês a partir do histórico e ritmo atual.","Cofre ganhou visão semanal, mensal, comparação e projeção.","O indicador informa quando ainda há poucos dados para uma previsão confiável."]},
   {version:"6.0.0-beta.6",date:"10/08/2026",title:"Client List Readability",changes:["Rota voltou para o centro da navegação inferior, entre Bills e Gastos.","Nomes, informações e botões da Lista de clientes ficaram maiores e mais legíveis.","Nenhuma lógica dos clientes foi alterada."]},
