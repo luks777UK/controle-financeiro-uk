@@ -2623,3 +2623,78 @@ html{scroll-behavior:smooth}
 .wise-manual-fields-v723{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:10px}.wise-manual-fields-v723.hidden{display:none}.wise-manual-fields-v723 label{margin:0!important;font-size:8px!important}.wise-manual-fields-v723 input{margin-top:5px!important}
 .brazil72-result{grid-template-columns:repeat(2,1fr)!important}.brazil72-result .brl{grid-column:1/-1!important}
 @media(max-width:390px){.wise-manual-fields-v723{grid-template-columns:1fr}}
+
+/* v7.3.0-beta.1 — Bill Cycles */
+.bill-menu-trigger-v73{
+  border:0;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+  transition:transform .15s ease,box-shadow .15s ease;
+}
+.bill-menu-trigger-v73:active{transform:scale(.93)}
+
+#billQuickMenuV73{
+  width:min(92vw,430px);
+  padding:0;
+  border:0;
+  background:transparent;
+}
+.bill-quick-menu-v73{
+  padding:17px;
+  border-radius:24px;
+  background:#151725;
+  border:1px solid rgba(160,132,255,.17);
+  box-shadow:0 24px 70px rgba(0,0,0,.45);
+}
+.bill-quick-head-v73{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+}
+.bill-quick-head-v73 span{
+  color:#aa8cff;
+  font-size:9px;
+  font-weight:900;
+  letter-spacing:.15em;
+}
+.bill-quick-head-v73 h2{margin:4px 0 0;font-size:22px}
+.bill-quick-head-v73 p{margin:5px 0 0;font-size:10px;color:#858a9d}
+.bill-cycle-field-v73{display:block;margin-top:14px}
+.bill-cycle-field-v73 select{width:100%;margin-top:6px}
+.bill-cycle-explain-v73{
+  margin-top:8px;
+  padding:9px 10px;
+  border-radius:11px;
+  background:rgba(116,86,215,.08);
+  color:#9b9fb0;
+  font-size:9px;
+  line-height:1.4;
+}
+.bill-quick-actions-v73{
+  display:grid;
+  gap:7px;
+  margin-top:10px;
+}
+.bill-quick-actions-v73>button{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  width:100%;
+  padding:10px;
+  border:1px solid rgba(255,255,255,.055);
+  border-radius:14px;
+  background:#1b1d2d;
+  color:#fff;
+  text-align:left;
+}
+.bill-quick-actions-v73>button>span{
+  width:34px;height:34px;display:grid;place-items:center;
+  border-radius:11px;background:#29234b;color:#beaaff
+}
+.bill-quick-actions-v73 b,.bill-quick-actions-v73 small{display:block}
+.bill-quick-actions-v73 b{font-size:11px}
+.bill-quick-actions-v73 small{margin-top:2px;font-size:8px;color:#808598}
+.bill-quick-actions-v73 .danger>span{background:rgba(255,100,128,.09);color:#ff7896}
+.bill-quick-actions-v73 .danger b{color:#ff8ba3}
+#saveBillCycleV73{margin-top:10px}

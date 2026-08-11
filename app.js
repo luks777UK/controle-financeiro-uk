@@ -40,7 +40,7 @@ function fatalDiagnostic313(step,error,extra={}){
     const box=document.getElementById("fatalLoginDiagnostic");
     const text=document.getElementById("fatalLoginDiagnosticText");
     const lines=[
-      `VERSÃO: 7.2.0-beta.3`,
+      `VERSÃO: 7.3.0-beta.1`,
       `ETAPA: ${step}`,
       `MENSAGEM: ${error?.message||String(error||"Erro desconhecido")}`
     ];
@@ -198,14 +198,21 @@ async function loadState(){
   if(!Array.isArray(state.bills))state.bills=structuredClone(initialState.bills);
 
   state.vaultEntries=state.vaultEntries.map(x=>({...x,location:x.location||"envelope"}));
-  state.bills=state.bills.map(b=>({
-    frequency:b.frequency||"monthly",
-    type:b.type||"fixed",
-    currentInstallment:b.currentInstallment||null,
-    totalInstallments:b.totalInstallments||null,
-    completed:false,
-    ...b
-  }));
+  state.bills=state.bills.map(b=>{
+    const normalized={
+      frequency:b.frequency||"monthly",
+      type:b.type||"fixed",
+      currentInstallment:b.currentInstallment||null,
+      totalInstallments:b.totalInstallments||null,
+      completed:false,
+      ...b
+    };
+    if(normalized.frequency!=="once"&&normalized.type!=="installment"){
+      normalized.completed=false;
+      normalized.paid=false;
+    }
+    return normalized;
+  });
 
   render();
   setTimeout(()=>uploadAutomaticBackupV410({force:false,silent:true}),500);
@@ -2473,7 +2480,7 @@ $("confirmVaultWithdrawV4").onclick=async()=>{
 
 
 /* =========================================================
-   v7.2.0-beta.3 Vault & Brazil Box — Live FX + Wise Calibration
+   v7.3.0-beta.1 Vault & Brazil Box — Live FX + Wise Calibration
    ========================================================= */
 (function(){
   "use strict";
@@ -2692,7 +2699,7 @@ $("confirmVaultWithdrawV4").onclick=async()=>{
   window.BrazilVaultV72=B;
 })();
 
-const APP_VERSION="7.2.0-beta.3";
+const APP_VERSION="7.3.0-beta.1";
 
 /* v7 expense intelligence */
 (function(){const A={weekOffset:0};
@@ -2725,13 +2732,14 @@ x=document.getElementById("vaultForecastWeekV7");if(x)x.textContent=`${A.money(v
 document.addEventListener("DOMContentLoaded",()=>{document.getElementById("expensePrevWeekV7")?.addEventListener("click",()=>{A.weekOffset--;A.render()});document.getElementById("expenseNextWeekV7")?.addEventListener("click",()=>{A.weekOffset++;A.render()});document.getElementById("expenseCurrentWeekV7")?.addEventListener("click",()=>{A.weekOffset=0;A.render()});setTimeout(A.render,350)});setInterval(A.render,5000);window.FinanceAIv7=A})(); 
 
 const RELEASE_NOTES=[
-  {version:"7.2.0-beta.3",date:"10/08/2026",title:"Wise Fee Calibration",changes:["Tarifa Wise deixou de ser uma porcentagem fixa.","Novo modelo calibrado usa £0,305 + 0,525% para tarifa Wise e 0,375% para IOF.","Modelo reproduz os quotes observados de £70, £100 e £500 e se aproxima do quote de £1.000.","Modal agora separa Tarifa Wise, IOF e Total em tarifas.","Parâmetros continuam ajustáveis para futuras recalibrações.","Histórico Brasil passa a salvar Wise e IOF separadamente."]},
-  {version:"7.2.0-beta.3",date:"10/08/2026",title:"Live Exchange Rate",changes:["Cotação GBP/BRL agora tenta fontes intraday em cascata.","Fonte e horário da cotação aparecem no modal.","Cotação salva só é usada quando todas as consultas ao vivo falham e isso fica claramente indicado.","Adicionado câmbio efetivo estimado após tarifa e custo percentual da conversão.","Tarifa Wise padrão ajustada para 0,931% com base no quote observado, continuando editável.","Histórico Brasil passa a guardar cotação de mercado e câmbio efetivo."]},
-  {version:"7.2.0-beta.3",date:"10/08/2026",title:"Vault & Brazil Box",changes:["Cofre totalmente reorganizado para representar o dinheiro realmente separado.","Nova Caixinha Brasil com histórico em BRL.","Envio ao Brasil retira automaticamente do Cartão do Cofre e atualiza a Meta Brasil.","Cotação GBP/BRL atualizável pela internet com fallback salvo.","Estimativa de tarifa Wise com percentual e taxa fixa editáveis.","Nova meta editável de Reserva de emergência.","Fontes do Planejador Financeiro na aba Geral aumentadas para melhor leitura."]},
-  {version:"7.2.0-beta.3",date:"10/08/2026",title:"Financial Planner",changes:["Novo fluxo financeiro unificado: Ganhos → Bills + Gastos → Meta Brasil → Lazer.","Receitas da Rota e outras receitas alimentam automaticamente a previsão.","Bills entram como despesa geral sem serem duplicadas em Gastos variáveis.","Novo comparativo Realizado x Previsto.","Meta Brasil mensal configurável com valor já enviado.","Cálculo automático de Livre previsto e Lazer disponível.","Insights mostram falta para a meta, renda extra semanal necessária e limite diário de lazer.","Previsões usam agenda da Rota, gastos atuais e histórico mensal recente."]},
-{version:"7.2.0-beta.3",date:"10/08/2026",title:"Historical Data Recognition Fix",changes:["A inteligência financeira agora lê diretamente state.expenses e reconhece todo o histórico já salvo.","Semanas anteriores passam a mostrar automaticamente os gastos antigos, sem recadastro.","Histórico antigo também entra no cálculo da média e das previsões.","Cofre passa a usar a mesma fonte real de dados do app."]},
-{version:"7.2.0-beta.3",date:"10/08/2026",title:"Expenses Legacy DOM Cleanup",changes:["Corrigido expenseCategoryStrip ausente.","Protegidas as referências de renderExpenses a elementos visuais removidos.","Evita a sequência de erros null causada pela limpeza do layout antigo."]},
-  {version:"7.2.0-beta.3",date:"10/08/2026",title:"Expense Render Compatibility Fix",changes:["Corrigido erro ao abrir os dados após remover o card mensal antigo.","renderExpenses agora ignora elementos legados que não existem mais.","Resumo financeiro e navegação semanal da beta.2 foram preservados."]},
+  {version:"7.3.0-beta.1",date:"11/08/2026",title:"Recurring Bills Cycles",changes:["Bills recorrentes não somem mais depois de pagas.","Mensal, semanal, quinzenal e anual avançam automaticamente para o próximo vencimento.","Somente Bill Única e última parcela são concluídas/removidas.","Tocar no ícone de uma Bill abre um menu compacto de gerenciamento.","O menu permite alterar o ciclo, editar detalhes, pagar ou excluir.","Bills legadas sem frequência continuam sendo tratadas como mensais."]},
+  {version:"7.3.0-beta.1",date:"10/08/2026",title:"Wise Fee Calibration",changes:["Tarifa Wise deixou de ser uma porcentagem fixa.","Novo modelo calibrado usa £0,305 + 0,525% para tarifa Wise e 0,375% para IOF.","Modelo reproduz os quotes observados de £70, £100 e £500 e se aproxima do quote de £1.000.","Modal agora separa Tarifa Wise, IOF e Total em tarifas.","Parâmetros continuam ajustáveis para futuras recalibrações.","Histórico Brasil passa a salvar Wise e IOF separadamente."]},
+  {version:"7.3.0-beta.1",date:"10/08/2026",title:"Live Exchange Rate",changes:["Cotação GBP/BRL agora tenta fontes intraday em cascata.","Fonte e horário da cotação aparecem no modal.","Cotação salva só é usada quando todas as consultas ao vivo falham e isso fica claramente indicado.","Adicionado câmbio efetivo estimado após tarifa e custo percentual da conversão.","Tarifa Wise padrão ajustada para 0,931% com base no quote observado, continuando editável.","Histórico Brasil passa a guardar cotação de mercado e câmbio efetivo."]},
+  {version:"7.3.0-beta.1",date:"10/08/2026",title:"Vault & Brazil Box",changes:["Cofre totalmente reorganizado para representar o dinheiro realmente separado.","Nova Caixinha Brasil com histórico em BRL.","Envio ao Brasil retira automaticamente do Cartão do Cofre e atualiza a Meta Brasil.","Cotação GBP/BRL atualizável pela internet com fallback salvo.","Estimativa de tarifa Wise com percentual e taxa fixa editáveis.","Nova meta editável de Reserva de emergência.","Fontes do Planejador Financeiro na aba Geral aumentadas para melhor leitura."]},
+  {version:"7.3.0-beta.1",date:"10/08/2026",title:"Financial Planner",changes:["Novo fluxo financeiro unificado: Ganhos → Bills + Gastos → Meta Brasil → Lazer.","Receitas da Rota e outras receitas alimentam automaticamente a previsão.","Bills entram como despesa geral sem serem duplicadas em Gastos variáveis.","Novo comparativo Realizado x Previsto.","Meta Brasil mensal configurável com valor já enviado.","Cálculo automático de Livre previsto e Lazer disponível.","Insights mostram falta para a meta, renda extra semanal necessária e limite diário de lazer.","Previsões usam agenda da Rota, gastos atuais e histórico mensal recente."]},
+{version:"7.3.0-beta.1",date:"10/08/2026",title:"Historical Data Recognition Fix",changes:["A inteligência financeira agora lê diretamente state.expenses e reconhece todo o histórico já salvo.","Semanas anteriores passam a mostrar automaticamente os gastos antigos, sem recadastro.","Histórico antigo também entra no cálculo da média e das previsões.","Cofre passa a usar a mesma fonte real de dados do app."]},
+{version:"7.3.0-beta.1",date:"10/08/2026",title:"Expenses Legacy DOM Cleanup",changes:["Corrigido expenseCategoryStrip ausente.","Protegidas as referências de renderExpenses a elementos visuais removidos.","Evita a sequência de erros null causada pela limpeza do layout antigo."]},
+  {version:"7.3.0-beta.1",date:"10/08/2026",title:"Expense Render Compatibility Fix",changes:["Corrigido erro ao abrir os dados após remover o card mensal antigo.","renderExpenses agora ignora elementos legados que não existem mais.","Resumo financeiro e navegação semanal da beta.2 foram preservados."]},
 {version:"7.0.0-beta.2",date:"10/08/2026",title:"Expenses Layout & Week Navigation",changes:["Adicionar gasto movido para o topo.","Resumo mensal grande duplicado removido.","Navegação entre semanas anteriores e futuras adicionada.","Resumo e previsão acompanham a semana selecionada."]},
   {version:"7.0.0-beta.2",date:"10/08/2026",title:"Financial Intelligence",changes:["Gastos agora mostra resumo semanal e mensal.","Previsão adaptativa estima os gastos da semana e do mês a partir do histórico e ritmo atual.","Cofre ganhou visão semanal, mensal, comparação e projeção.","O indicador informa quando ainda há poucos dados para uma previsão confiável."]},
   {version:"6.0.0-beta.6",date:"10/08/2026",title:"Client List Readability",changes:["Rota voltou para o centro da navegação inferior, entre Bills e Gastos.","Nomes, informações e botões da Lista de clientes ficaram maiores e mais legíveis.","Nenhuma lógica dos clientes foi alterada."]},
@@ -2856,7 +2864,7 @@ function renderCleanBills(){
 
     card.innerHTML=`
       <div class="bill-v4-head">
-        <div class="bill-v4-icon">${billEmoji(bill.name)}</div>
+        <button class="bill-v4-icon bill-menu-trigger-v73" type="button" data-bill-menu-v73="${bill.id}" aria-label="Gerenciar ${escapeText(bill.name)}">${billEmoji(bill.name)}</button>
         <div class="bill-v4-name">
           <strong>${escapeText(bill.name)}</strong>
           <small>${formatDate(bill.due)} · ${frequencyLabel(bill.frequency)}</small>
@@ -2886,6 +2894,7 @@ function renderCleanBills(){
     card.querySelector(".edit").onclick=()=>openBillCreateDialog(bill.id);
     card.querySelector(".delete").onclick=()=>deleteBillV4(bill.id);
     card.querySelector(".paid").onclick=()=>openBillPaymentV4(bill.id);
+    card.querySelector("[data-bill-menu-v73]")?.addEventListener("click",()=>openBillQuickMenuV73(bill.id));
     list.appendChild(card);
   }
 
@@ -2893,6 +2902,80 @@ function renderCleanBills(){
   updateBillTopCards319(bills);
   renderBillActivityV4();
 }
+
+
+function billCycleDescriptionV73(value){
+  return ({
+    once:"Depois de paga, esta Bill é concluída e sai das Bills ativas.",
+    weekly:"Depois de paga, permanece ativa e o vencimento avança 7 dias.",
+    biweekly:"Depois de paga, permanece ativa e o vencimento avança 14 dias.",
+    monthly:"Depois de paga, permanece ativa e o vencimento avança para o próximo mês.",
+    yearly:"Depois de paga, permanece ativa e o vencimento avança para o próximo ano."
+  })[value]||"";
+}
+
+function openBillQuickMenuV73(id){
+  const bill=(state.bills||[]).find(item=>String(item.id)===String(id));
+  if(!bill)return;
+
+  $("billQuickIdV73").value=String(id);
+  $("billQuickNameV73").textContent=bill.name||"Bill";
+  $("billQuickMetaV73").textContent=`${money(Number(bill.amount||0))} · vence ${formatDate(bill.due)}`;
+  $("billQuickFrequencyV73").value=bill.frequency||"monthly";
+  $("billCycleExplainV73").textContent=billCycleDescriptionV73($("billQuickFrequencyV73").value);
+
+  try{$("billQuickMenuV73").showModal()}
+  catch{$("billQuickMenuV73").setAttribute("open","")}
+}
+
+async function saveBillCycleV73(){
+  const id=$("billQuickIdV73").value;
+  const bill=(state.bills||[]).find(item=>String(item.id)===String(id));
+  if(!bill)return;
+
+  const oldFrequency=bill.frequency||"monthly";
+  const frequency=$("billQuickFrequencyV73").value||"monthly";
+  bill.frequency=frequency;
+  bill.completed=false;
+  bill.paid=false;
+
+  state.history=Array.isArray(state.history)?state.history:[];
+  if(oldFrequency!==frequency){
+    state.history.push({
+      id:crypto.randomUUID?.()||String(Date.now()),
+      type:"bill_updated",
+      text:`Ciclo alterado · ${bill.name}`,
+      bill:bill.name,
+      from:oldFrequency,
+      to:frequency,
+      date:new Date().toISOString()
+    });
+  }
+
+  try{$("billQuickMenuV73").close()}catch{}
+  await persist(`Ciclo de ${bill.name}: ${frequencyLabel(frequency)}`);
+}
+
+$("billQuickFrequencyV73")?.addEventListener("change",()=>{
+  $("billCycleExplainV73").textContent=billCycleDescriptionV73($("billQuickFrequencyV73").value);
+});
+$("closeBillQuickMenuV73")?.addEventListener("click",()=>{try{$("billQuickMenuV73").close()}catch{}});
+$("saveBillCycleV73")?.addEventListener("click",saveBillCycleV73);
+$("billQuickEditV73")?.addEventListener("click",()=>{
+  const id=$("billQuickIdV73").value;
+  try{$("billQuickMenuV73").close()}catch{}
+  openBillCreateDialog(id);
+});
+$("billQuickPayV73")?.addEventListener("click",()=>{
+  const id=$("billQuickIdV73").value;
+  try{$("billQuickMenuV73").close()}catch{}
+  openBillPaymentV4(id);
+});
+$("billQuickDeleteV73")?.addEventListener("click",()=>{
+  const id=$("billQuickIdV73").value;
+  try{$("billQuickMenuV73").close()}catch{}
+  deleteBillV4(id);
+});
 
 async function deleteBillV4(id){
   const bill=(state.bills||[]).find(item=>String(item.id)===String(id));
@@ -3069,12 +3152,10 @@ async function confirmBillPaymentV4(){
     feedback("billPaymentFeedbackV4",`Envelope insuficiente. Disponível: ${money(Number(state.cash||0))}`);
     return;
   }
-
   if(card>Number(state.card||0)){
     feedback("billPaymentFeedbackV4",`Cartão insuficiente. Disponível: ${money(Number(state.card||0))}`);
     return;
   }
-
   if(entered!==expected){
     feedback("billPaymentFeedbackV4",`A soma deve ser exatamente ${money(total)}.`);
     return;
@@ -3090,11 +3171,10 @@ async function confirmBillPaymentV4(){
     state.card=Math.max(0,Number(state.card||0)-card);
 
     const target=(state.bills||[]).find(item=>String(item.id)===String(id));
-    target.reserved=0;
-    target.paid=true;
-    target.completed=true;
-    target.paidAt=new Date().toISOString();
-    target.paidFrom={envelope,card};
+    if(!target)throw new Error("Bill não encontrada");
+
+    const paidDue=target.due;
+    const cycle=target.frequency||"monthly";
 
     state.history=Array.isArray(state.history)?state.history:[];
     state.history.push({
@@ -3102,20 +3182,59 @@ async function confirmBillPaymentV4(){
       type:"bill_payment",
       text:`Bill paga · ${target.name}`,
       bill:target.name,
+      billId:target.id,
       amount:total,
       cash:envelope,
       card,
+      duePaid:paidDue,
+      frequency:cycle,
       date:new Date().toISOString()
     });
+
+    target.reserved=0;
+    target.paidAt=new Date().toISOString();
+    target.paidFrom={envelope,card};
+
+    const isInstallment=target.type==="installment";
+    const installmentFinished=isInstallment &&
+      Number(target.currentInstallment||1)>=Number(target.totalInstallments||1);
+    const oneOff=cycle==="once";
+
+    if(installmentFinished||oneOff){
+      target.paid=true;
+      target.completed=true;
+      state.completedBills=Array.isArray(state.completedBills)?state.completedBills:[];
+      state.completedBills.push({
+        ...structuredClone(target),
+        completedAt:new Date().toISOString()
+      });
+      state.bills=(state.bills||[]).filter(item=>String(item.id)!==String(id));
+    }else{
+      if(isInstallment){
+        target.currentInstallment=Math.max(1,Number(target.currentInstallment||1))+1;
+      }
+      target.due=advanceDueDate(target.due,cycle);
+      target.paid=false;
+      target.completed=false;
+      target.reserved=0;
+    }
 
     state.dailyGoal=calculateFixedWorkdayGoal321(state.bills);
 
     try{$("billPaymentDialogV4").close()}catch{}
-    await persist("Bill paga com sucesso");
+
+    if(installmentFinished){
+      await persist(`${target.name} · parcelamento concluído`);
+    }else if(oneOff){
+      await persist(`${target.name} · Bill única concluída`);
+    }else{
+      await persist(`${target.name} paga · próximo ciclo ${formatDate(target.due)}`);
+    }
+    confetti();
   }catch(error){
     state=backup;
     render();
-    fatalDiagnostic313("Pagamento de Bill 4.0.2",error,{bill_id:id});
+    fatalDiagnostic313("Pagamento recorrente de Bill 7.3",error,{bill_id:id});
     feedback("billPaymentFeedbackV4","Não foi possível concluir o pagamento.");
   }finally{
     button.disabled=false;

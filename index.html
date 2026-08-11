@@ -7,13 +7,13 @@
   <meta http-equiv="Expires" content="0">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
   <meta name="theme-color" content="#080914">
-  <meta name="application-name" content="Nosso Controle 7.2.0-beta.3">
+  <meta name="application-name" content="Nosso Controle 7.3.0-beta.1">
   <meta name="apple-mobile-web-app-title" content="Nosso Controle">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="styles.css?v=7.2.0-beta.3-fresh">
-  <title>Nosso Controle 7.2.0-beta.3</title>
+  <link rel="stylesheet" href="styles.css?v=7.3.0-beta.1-fresh">
+  <title>Nosso Controle 7.3.0-beta.1</title>
 </head>
 <body>
   <section id="authView" class="auth-screen">
@@ -1158,7 +1158,43 @@
     </section>
   </dialog>
 
-  <dialog id="expenseDialog">
+  
+  <dialog id="billQuickMenuV73">
+    <section class="bill-quick-menu-v73">
+      <div class="bill-quick-head-v73">
+        <div>
+          <span>GERENCIAR BILL</span>
+          <h2 id="billQuickNameV73">Bill</h2>
+          <p id="billQuickMetaV73">—</p>
+        </div>
+        <button id="closeBillQuickMenuV73" class="round-button" type="button">×</button>
+      </div>
+
+      <input id="billQuickIdV73" type="hidden">
+
+      <label class="bill-cycle-field-v73">Ciclo
+        <select id="billQuickFrequencyV73">
+          <option value="once">Única</option>
+          <option value="weekly">Semanal</option>
+          <option value="biweekly">Quinzenal</option>
+          <option value="monthly">Mensal</option>
+          <option value="yearly">Anual</option>
+        </select>
+      </label>
+
+      <div class="bill-cycle-explain-v73" id="billCycleExplainV73"></div>
+
+      <div class="bill-quick-actions-v73">
+        <button id="billQuickEditV73" type="button"><span>✎</span><div><b>Editar detalhes</b><small>Nome, valor e vencimento</small></div></button>
+        <button id="billQuickPayV73" type="button"><span>£✓</span><div><b>Pagar agora</b><small>Envelope ou cartão</small></div></button>
+        <button id="billQuickDeleteV73" class="danger" type="button"><span>🗑</span><div><b>Excluir permanentemente</b><small>Remove esta Bill</small></div></button>
+      </div>
+
+      <button id="saveBillCycleV73" class="primary-button" type="button">Salvar ciclo</button>
+    </section>
+  </dialog>
+
+<dialog id="expenseDialog">
     <form method="dialog" class="dialog-card">
       <input id="expenseEditId" type="hidden">
       <div class="dialog-heading">
@@ -1559,10 +1595,10 @@
 <div id="toast" class="toast"></div>
   <canvas id="confetti"></canvas>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=7.2.0-beta.3-fresh"></script>
+  <script src="app.js?v=7.3.0-beta.1-fresh"></script>
   <script>
     (async()=>{
-      const BUILD="7.2.0-beta.3-single";
+      const BUILD="7.3.0-beta.1-single";
       try{
         if("serviceWorker" in navigator){
           const registrations=await navigator.serviceWorker.getRegistrations();
