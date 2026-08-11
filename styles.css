@@ -2698,3 +2698,64 @@ html{scroll-behavior:smooth}
 .bill-quick-actions-v73 .danger>span{background:rgba(255,100,128,.09);color:#ff7896}
 .bill-quick-actions-v73 .danger b{color:#ff8ba3}
 #saveBillCycleV73{margin-top:10px}
+
+/* v7.3.0-beta.2 — Editable Bill Wallet */
+.wallet-edit-trigger-v732{
+  width:100%;
+  border:1px solid rgba(255,255,255,.06);
+  color:inherit;
+  text-align:left;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+.wallet-edit-trigger-v732 small{
+  display:block;
+  margin-top:3px;
+  color:#73788b;
+  font-size:8px;
+}
+.wallet-edit-trigger-v732:active{transform:scale(.98)}
+
+#billWalletEditDialogV732{
+  width:min(92vw,430px);
+  padding:0;
+  border:0;
+  background:transparent;
+}
+.wallet-edit-current-v732{
+  margin:10px 0 12px;
+  padding:12px;
+  border-radius:15px;
+  background:rgba(98,78,175,.08);
+  border:1px solid rgba(157,130,255,.11);
+}
+.wallet-edit-current-v732 span,
+.wallet-edit-current-v732 strong{display:block}
+.wallet-edit-current-v732 span{
+  color:#8e93a4;
+  font-size:9px;
+}
+.wallet-edit-current-v732 strong{
+  margin-top:5px;
+  font-size:22px;
+  color:#bba6ff;
+}
+.wallet-edit-diff-v732{
+  margin-top:10px;
+  padding:9px 10px;
+  border-radius:11px;
+  font-size:10px;
+  font-weight:750;
+}
+.wallet-edit-diff-v732.neutral{
+  color:#8d92a3;
+  background:rgba(255,255,255,.035);
+}
+.wallet-edit-diff-v732.added{
+  color:#55dca9;
+  background:rgba(69,220,164,.08);
+}
+.wallet-edit-diff-v732.removed{
+  color:#ff829b;
+  background:rgba(255,111,139,.08);
+}

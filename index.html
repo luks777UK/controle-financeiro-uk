@@ -7,13 +7,13 @@
   <meta http-equiv="Expires" content="0">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
   <meta name="theme-color" content="#080914">
-  <meta name="application-name" content="Nosso Controle 7.3.0-beta.1">
+  <meta name="application-name" content="Nosso Controle 7.3.0-beta.2">
   <meta name="apple-mobile-web-app-title" content="Nosso Controle">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="styles.css?v=7.3.0-beta.1-fresh">
-  <title>Nosso Controle 7.3.0-beta.1</title>
+  <link rel="stylesheet" href="styles.css?v=7.3.0-beta.2-fresh">
+  <title>Nosso Controle 7.3.0-beta.2</title>
 </head>
 <body>
   <section id="authView" class="auth-screen">
@@ -522,14 +522,14 @@
     </section>
 
     <section class="bill-wallet-grid" aria-label="Saldos guardados">
-      <article class="bill-wallet-card">
+      <button class="bill-wallet-card wallet-edit-trigger-v732" id="editBillEnvelopeV732" type="button">
         <div class="bill-wallet-icon envelope">£</div>
-        <div><span>Envelope</span><strong id="billEnvelopeBalance">£0,00</strong></div>
-      </article>
-      <article class="bill-wallet-card">
+        <div><span>Envelope</span><strong id="billEnvelopeBalance">£0,00</strong><small>Toque para editar</small></div>
+      </button>
+      <button class="bill-wallet-card wallet-edit-trigger-v732" id="editBillCardV732" type="button">
         <div class="bill-wallet-icon card">▰</div>
-        <div><span>Cartão</span><strong id="billCardBalance">£0,00</strong></div>
-      </article>
+        <div><span>Cartão</span><strong id="billCardBalance">£0,00</strong><small>Toque para editar</small></div>
+      </button>
     </section>
 
     <section class="bill-daily-goal-card bill-workday-summary">
@@ -1159,7 +1159,40 @@
   </dialog>
 
   
-  <dialog id="billQuickMenuV73">
+  
+  <dialog id="billWalletEditDialogV732">
+    <form class="dialog-card bill-wallet-edit-v732" method="dialog">
+      <input id="billWalletEditTypeV732" type="hidden">
+      <div class="dialog-heading">
+        <div>
+          <span class="page-overline">SALDO DAS BILLS</span>
+          <h2 id="billWalletEditTitleV732">Editar saldo</h2>
+          <p>Corrija o valor real guardado sem criar um depósito fictício.</p>
+        </div>
+        <button value="cancel" class="round-button">×</button>
+      </div>
+
+      <section class="wallet-edit-current-v732">
+        <span>Saldo atual</span>
+        <strong id="billWalletCurrentV732">£0,00</strong>
+      </section>
+
+      <label>Novo saldo (£)
+        <input id="billWalletNewValueV732" type="number" min="0" step="0.01" inputmode="decimal">
+      </label>
+
+      <label>Motivo opcional
+        <input id="billWalletEditNoteV732" type="text" maxlength="80" placeholder="Ex.: corrigi o valor real">
+      </label>
+
+      <div id="billWalletEditDifferenceV732" class="wallet-edit-diff-v732"></div>
+      <div id="billWalletEditFeedbackV732" class="form-feedback"></div>
+
+      <button id="saveBillWalletEditV732" class="primary-button" type="button">Salvar saldo</button>
+    </form>
+  </dialog>
+
+<dialog id="billQuickMenuV73">
     <section class="bill-quick-menu-v73">
       <div class="bill-quick-head-v73">
         <div>
@@ -1595,10 +1628,10 @@
 <div id="toast" class="toast"></div>
   <canvas id="confetti"></canvas>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=7.3.0-beta.1-fresh"></script>
+  <script src="app.js?v=7.3.0-beta.2-fresh"></script>
   <script>
     (async()=>{
-      const BUILD="7.3.0-beta.1-single";
+      const BUILD="7.3.0-beta.2-single";
       try{
         if("serviceWorker" in navigator){
           const registrations=await navigator.serviceWorker.getRegistrations();
