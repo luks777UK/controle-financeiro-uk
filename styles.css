@@ -2782,3 +2782,7 @@ html{scroll-behavior:smooth}
 .wallet-edit-trigger-v732:active .wallet-edit-pencil-v733{
   transform:scale(.94);
 }
+
+/* v7.3.0-beta.4 — Bills deposit date */
+.deposit-date-v734{display:block;margin-top:10px}
+.deposit-date-v734 input{width:100%;margin-top:6px;color-scheme:dark}
