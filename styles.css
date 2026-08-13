@@ -2786,3 +2786,17 @@ html{scroll-behavior:smooth}
 /* v7.3.0-beta.4 — Bills deposit date */
 .deposit-date-v734{display:block;margin-top:10px}
 .deposit-date-v734 input{width:100%;margin-top:6px;color-scheme:dark}
+
+/* v7.3.0-beta.5 — reserve reconciliation */
+.bill-wallet-grid::after{
+  content:"As reservas das Bills são recalculadas automaticamente com base no saldo real de Envelope + Cartão.";
+  grid-column:1/-1;
+  display:block;
+  margin-top:2px;
+  padding:7px 9px;
+  border-radius:10px;
+  background:rgba(92,156,255,.06);
+  color:#7f8798;
+  font-size:8px;
+  line-height:1.35;
+}
