@@ -2759,3 +2759,26 @@ html{scroll-behavior:smooth}
   color:#ff829b;
   background:rgba(255,111,139,.08);
 }
+
+/* v7.3.0-beta.3 — Visible wallet editing */
+.wallet-edit-trigger-v732{
+  display:grid!important;
+  grid-template-columns:auto 1fr auto!important;
+  align-items:center!important;
+  gap:10px!important;
+}
+.wallet-edit-copy-v733{min-width:0}
+.wallet-edit-pencil-v733{
+  width:34px;
+  height:34px;
+  display:grid;
+  place-items:center;
+  border-radius:11px;
+  background:rgba(151,124,255,.10);
+  color:#bba7ff;
+  font-size:15px;
+  border:1px solid rgba(151,124,255,.10);
+}
+.wallet-edit-trigger-v732:active .wallet-edit-pencil-v733{
+  transform:scale(.94);
+}
