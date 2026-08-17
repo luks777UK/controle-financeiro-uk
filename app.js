@@ -40,7 +40,7 @@ function fatalDiagnostic313(step,error,extra={}){
     const box=document.getElementById("fatalLoginDiagnostic");
     const text=document.getElementById("fatalLoginDiagnosticText");
     const lines=[
-      `VERSÃO: 7.3.0-beta.5`,
+      `VERSÃO: 7.3.0-beta.7`,
       `ETAPA: ${step}`,
       `MENSAGEM: ${error?.message||String(error||"Erro desconhecido")}`
     ];
@@ -263,7 +263,7 @@ function calculateBillsGoal320(bills){
     .filter(b=>!b.completed&&!b.paid)
     .map(b=>{
       const amount=readAmount(b?.amount??b?.total??b?.value??b?.price);
-      const reserved=readAmount(b?.reserved??b?.saved??b?.allocated??b?.paidAmount);
+      const reserved=billReservedAmountV736(bill);
       return {
         due:readDate(b?.due??b?.dueDate??b?.date,b),
         remaining:Math.max(0,amount-reserved)
@@ -1018,7 +1018,7 @@ function renderOverview(){
   const vault=sumItems(vaultMonth);
   const vaultEnvelope=sumItems(vaultMonth.filter(x=>(x.location||"envelope")==="envelope"));
   const vaultCard=sumItems(vaultMonth.filter(x=>x.location==="card"));
-  const bills=state.bills.filter(b=>!b.paid).reduce((sum,b)=>sum+Number(b.reserved||0),0);
+  const bills=state.bills.filter(b=>!b.paid).reduce((sum,b)=>sum+billReservedAmountV736(b),0);
 
   const todayKey=currentLocalDate();
   const todayIncome=sumItems(state.incomes.filter(x=>x.date===todayKey));
@@ -1116,7 +1116,7 @@ function renderOverviewV6(){
   const otherIncome=income-routeIncome;
   const expenseTotal=expenses.reduce((s,x)=>s+Number(x.amount||0),0);
   const vaultTotal=vaultEntries.reduce((s,x)=>s+Number(x.amount||0),0);
-  const billsReserved=(state.bills||[]).filter(b=>!b.paid).reduce((s,b)=>s+Number(b.reserved||0),0);
+  const billsReserved=(state.bills||[]).filter(b=>!b.paid).reduce((s,b)=>s+billReservedAmountV736(b),0);
   const free=income-billsReserved-expenseTotal-vaultTotal;
   const safe=Math.max(income,0.0001);
 
@@ -1700,11 +1700,11 @@ function allocateDepositV404(value,id){
 
   for(const bill of targets){
     if(!bill||left<=0)break;
-    const room=Math.max(0,Number(bill.amount||0)-Number(bill.reserved||0));
+    const room=Math.max(0,Number(bill.amount||0)-billReservedAmountV736(bill));
     const used=Math.min(left,room);
     if(used<=0)continue;
 
-    bill.reserved=Number(bill.reserved||0)+used;
+    bill.reserved=billReservedAmountV736(bill)+used;
     allocations.push({billId:String(bill.id),amount:used});
     left-=used;
   }
@@ -1722,7 +1722,7 @@ function reverseDepositAllocationsV404(entry){
     for(const allocation of exact){
       const bill=(state.bills||[]).find(b=>String(b.id)===String(allocation.billId));
       if(!bill)continue;
-      bill.reserved=Math.max(0,Number(bill.reserved||0)-Number(allocation.amount||0));
+      bill.reserved=Math.max(0,billReservedAmountV736(bill)-Number(allocation.amount||0));
     }
     return;
   }
@@ -1731,21 +1731,21 @@ function reverseDepositAllocationsV404(entry){
   if(entry.bill&&entry.bill!=="Distribuição automática"){
     const bill=(state.bills||[]).find(b=>b.name===entry.bill);
     if(bill){
-      bill.reserved=Math.max(0,Number(bill.reserved||0)-total);
+      bill.reserved=Math.max(0,billReservedAmountV736(bill)-total);
     }
     return;
   }
 
   let left=total;
   const bills=(state.bills||[])
-    .filter(b=>Number(b.reserved||0)>0)
+    .filter(b=>billReservedAmountV736(b)>0)
     .slice()
     .sort((a,b)=>new Date(b.due)-new Date(a.due));
 
   for(const bill of bills){
     if(left<=0)break;
-    const remove=Math.min(left,Number(bill.reserved||0));
-    bill.reserved=Math.max(0,Number(bill.reserved||0)-remove);
+    const remove=Math.min(left,billReservedAmountV736(bill));
+    bill.reserved=Math.max(0,billReservedAmountV736(bill)-remove);
     left-=remove;
   }
 }
@@ -1984,7 +1984,7 @@ function paymentRecordForBill(bill){
     type:"bill_payment",
     bill:bill.name,
     amount:Number(bill.amount||0),
-    reservedUsed:Number(bill.reserved||0),
+    reservedUsed:billReservedAmountV736(bill),
     duePaid:bill.due,
     cash:0,
     card:0
@@ -1995,7 +1995,7 @@ async function togglePaid(id){
   const bill=state.bills.find(x=>x.id===id);
   if(!bill)return;
 
-  const oldReserved=Number(bill.reserved||0);
+  const oldReserved=billReservedAmountV736(bill);
   state.history=state.history||[];
   state.history.push(paymentRecordForBill(bill));
 
@@ -2483,7 +2483,7 @@ $("confirmVaultWithdrawV4").onclick=async()=>{
 
 
 /* =========================================================
-   v7.3.0-beta.5 Vault & Brazil Box — Live FX + Wise Calibration
+   v7.3.0-beta.7 Vault & Brazil Box — Live FX + Wise Calibration
    ========================================================= */
 (function(){
   "use strict";
@@ -2702,7 +2702,7 @@ $("confirmVaultWithdrawV4").onclick=async()=>{
   window.BrazilVaultV72=B;
 })();
 
-const APP_VERSION="7.3.0-beta.5";
+const APP_VERSION="7.3.0-beta.7";
 
 /* v7 expense intelligence */
 (function(){const A={weekOffset:0};
@@ -2735,18 +2735,20 @@ x=document.getElementById("vaultForecastWeekV7");if(x)x.textContent=`${A.money(v
 document.addEventListener("DOMContentLoaded",()=>{document.getElementById("expensePrevWeekV7")?.addEventListener("click",()=>{A.weekOffset--;A.render()});document.getElementById("expenseNextWeekV7")?.addEventListener("click",()=>{A.weekOffset++;A.render()});document.getElementById("expenseCurrentWeekV7")?.addEventListener("click",()=>{A.weekOffset=0;A.render()});setTimeout(A.render,350)});setInterval(A.render,5000);window.FinanceAIv7=A})(); 
 
 const RELEASE_NOTES=[
-  {version:"7.3.0-beta.5",date:"13/08/2026",title:"Bill Reserve Reconciliation",changes:["Editar Envelope ou Cartão agora recalcula imediatamente as reservas das Bills.","A soma reservada nunca pode ultrapassar Envelope + Cartão.","O saldo disponível é redistribuído pela ordem de vencimento das Bills.","Reservas antigas inconsistentes são corrigidas automaticamente ao abrir Bills.","Histórico registra o ajuste manual e a reconciliação das reservas."]},
-  {version:"7.3.0-beta.5",date:"13/08/2026",title:"Deposit Date Selection",changes:["Ao adicionar depósito em Bills agora é possível escolher a data.","O campo abre preenchido com a data atual.","Ao editar um depósito, a data original também pode ser alterada.","Calendário, histórico e estatísticas passam a respeitar a data escolhida."]},
-  {version:"7.3.0-beta.5",date:"13/08/2026",title:"Visible Wallet Editing",changes:["Envelope e Cartão continuam editáveis diretamente na aba Bills.","Adicionado ícone de lápis para deixar a função de edição visível.","Texto dos cards alterado para Editar saldo.","Editor mantém saldo atual, novo saldo, diferença e histórico do ajuste."]},
-  {version:"7.3.0-beta.5",date:"11/08/2026",title:"Editable Bill Wallet Balances",changes:["Envelope e Cartão das Bills agora podem ser editados tocando nos próprios cards.","Editor mostra saldo atual, novo saldo e diferença antes de salvar.","Ajustes manuais ficam registrados no histórico.","Aumento aparece em verde e redução em vermelho no histórico.","A edição corrige o saldo real sem criar depósitos ou retiradas fictícias."]},
-  {version:"7.3.0-beta.5",date:"11/08/2026",title:"Recurring Bills Cycles",changes:["Bills recorrentes não somem mais depois de pagas.","Mensal, semanal, quinzenal e anual avançam automaticamente para o próximo vencimento.","Somente Bill Única e última parcela são concluídas/removidas.","Tocar no ícone de uma Bill abre um menu compacto de gerenciamento.","O menu permite alterar o ciclo, editar detalhes, pagar ou excluir.","Bills legadas sem frequência continuam sendo tratadas como mensais."]},
-  {version:"7.3.0-beta.5",date:"10/08/2026",title:"Wise Fee Calibration",changes:["Tarifa Wise deixou de ser uma porcentagem fixa.","Novo modelo calibrado usa £0,305 + 0,525% para tarifa Wise e 0,375% para IOF.","Modelo reproduz os quotes observados de £70, £100 e £500 e se aproxima do quote de £1.000.","Modal agora separa Tarifa Wise, IOF e Total em tarifas.","Parâmetros continuam ajustáveis para futuras recalibrações.","Histórico Brasil passa a salvar Wise e IOF separadamente."]},
-  {version:"7.3.0-beta.5",date:"10/08/2026",title:"Live Exchange Rate",changes:["Cotação GBP/BRL agora tenta fontes intraday em cascata.","Fonte e horário da cotação aparecem no modal.","Cotação salva só é usada quando todas as consultas ao vivo falham e isso fica claramente indicado.","Adicionado câmbio efetivo estimado após tarifa e custo percentual da conversão.","Tarifa Wise padrão ajustada para 0,931% com base no quote observado, continuando editável.","Histórico Brasil passa a guardar cotação de mercado e câmbio efetivo."]},
-  {version:"7.3.0-beta.5",date:"10/08/2026",title:"Vault & Brazil Box",changes:["Cofre totalmente reorganizado para representar o dinheiro realmente separado.","Nova Caixinha Brasil com histórico em BRL.","Envio ao Brasil retira automaticamente do Cartão do Cofre e atualiza a Meta Brasil.","Cotação GBP/BRL atualizável pela internet com fallback salvo.","Estimativa de tarifa Wise com percentual e taxa fixa editáveis.","Nova meta editável de Reserva de emergência.","Fontes do Planejador Financeiro na aba Geral aumentadas para melhor leitura."]},
-  {version:"7.3.0-beta.5",date:"10/08/2026",title:"Financial Planner",changes:["Novo fluxo financeiro unificado: Ganhos → Bills + Gastos → Meta Brasil → Lazer.","Receitas da Rota e outras receitas alimentam automaticamente a previsão.","Bills entram como despesa geral sem serem duplicadas em Gastos variáveis.","Novo comparativo Realizado x Previsto.","Meta Brasil mensal configurável com valor já enviado.","Cálculo automático de Livre previsto e Lazer disponível.","Insights mostram falta para a meta, renda extra semanal necessária e limite diário de lazer.","Previsões usam agenda da Rota, gastos atuais e histórico mensal recente."]},
-{version:"7.3.0-beta.5",date:"10/08/2026",title:"Historical Data Recognition Fix",changes:["A inteligência financeira agora lê diretamente state.expenses e reconhece todo o histórico já salvo.","Semanas anteriores passam a mostrar automaticamente os gastos antigos, sem recadastro.","Histórico antigo também entra no cálculo da média e das previsões.","Cofre passa a usar a mesma fonte real de dados do app."]},
-{version:"7.3.0-beta.5",date:"10/08/2026",title:"Expenses Legacy DOM Cleanup",changes:["Corrigido expenseCategoryStrip ausente.","Protegidas as referências de renderExpenses a elementos visuais removidos.","Evita a sequência de erros null causada pela limpeza do layout antigo."]},
-  {version:"7.3.0-beta.5",date:"10/08/2026",title:"Expense Render Compatibility Fix",changes:["Corrigido erro ao abrir os dados após remover o card mensal antigo.","renderExpenses agora ignora elementos legados que não existem mais.","Resumo financeiro e navegação semanal da beta.2 foram preservados."]},
+  {version:"7.3.0-beta.7",date:"17/08/2026",title:"Reservation Recursion Fix",changes:["Corrigida recursão infinita ao ler o valor reservado de uma Bill.","Editar Envelope ou Cartão volta a salvar normalmente.","Reconciliação automática das reservas foi mantida.","Ordenação por vencimento ganhou fallback seguro para evitar erro no parser de datas."]},
+  {version:"7.3.0-beta.7",date:"13/08/2026",title:"Unified Bill Reservations",changes:["Cards das Bills agora usam a mesma reserva reconciliada do saldo Envelope + Cartão.","Removida a divergência onde o topo mostrava um saldo e o card mantinha reserva antiga.","Reservado, restante, barra de progresso e resumo geral usam a mesma fonte de dados.","Bills pagas/concluídas não podem manter reserva ativa.","Reservas antigas são corrigidas ao renderizar a aba Bills."]},
+  {version:"7.3.0-beta.7",date:"13/08/2026",title:"Bill Reserve Reconciliation",changes:["Editar Envelope ou Cartão agora recalcula imediatamente as reservas das Bills.","A soma reservada nunca pode ultrapassar Envelope + Cartão.","O saldo disponível é redistribuído pela ordem de vencimento das Bills.","Reservas antigas inconsistentes são corrigidas automaticamente ao abrir Bills.","Histórico registra o ajuste manual e a reconciliação das reservas."]},
+  {version:"7.3.0-beta.7",date:"13/08/2026",title:"Deposit Date Selection",changes:["Ao adicionar depósito em Bills agora é possível escolher a data.","O campo abre preenchido com a data atual.","Ao editar um depósito, a data original também pode ser alterada.","Calendário, histórico e estatísticas passam a respeitar a data escolhida."]},
+  {version:"7.3.0-beta.7",date:"13/08/2026",title:"Visible Wallet Editing",changes:["Envelope e Cartão continuam editáveis diretamente na aba Bills.","Adicionado ícone de lápis para deixar a função de edição visível.","Texto dos cards alterado para Editar saldo.","Editor mantém saldo atual, novo saldo, diferença e histórico do ajuste."]},
+  {version:"7.3.0-beta.7",date:"11/08/2026",title:"Editable Bill Wallet Balances",changes:["Envelope e Cartão das Bills agora podem ser editados tocando nos próprios cards.","Editor mostra saldo atual, novo saldo e diferença antes de salvar.","Ajustes manuais ficam registrados no histórico.","Aumento aparece em verde e redução em vermelho no histórico.","A edição corrige o saldo real sem criar depósitos ou retiradas fictícias."]},
+  {version:"7.3.0-beta.7",date:"11/08/2026",title:"Recurring Bills Cycles",changes:["Bills recorrentes não somem mais depois de pagas.","Mensal, semanal, quinzenal e anual avançam automaticamente para o próximo vencimento.","Somente Bill Única e última parcela são concluídas/removidas.","Tocar no ícone de uma Bill abre um menu compacto de gerenciamento.","O menu permite alterar o ciclo, editar detalhes, pagar ou excluir.","Bills legadas sem frequência continuam sendo tratadas como mensais."]},
+  {version:"7.3.0-beta.7",date:"10/08/2026",title:"Wise Fee Calibration",changes:["Tarifa Wise deixou de ser uma porcentagem fixa.","Novo modelo calibrado usa £0,305 + 0,525% para tarifa Wise e 0,375% para IOF.","Modelo reproduz os quotes observados de £70, £100 e £500 e se aproxima do quote de £1.000.","Modal agora separa Tarifa Wise, IOF e Total em tarifas.","Parâmetros continuam ajustáveis para futuras recalibrações.","Histórico Brasil passa a salvar Wise e IOF separadamente."]},
+  {version:"7.3.0-beta.7",date:"10/08/2026",title:"Live Exchange Rate",changes:["Cotação GBP/BRL agora tenta fontes intraday em cascata.","Fonte e horário da cotação aparecem no modal.","Cotação salva só é usada quando todas as consultas ao vivo falham e isso fica claramente indicado.","Adicionado câmbio efetivo estimado após tarifa e custo percentual da conversão.","Tarifa Wise padrão ajustada para 0,931% com base no quote observado, continuando editável.","Histórico Brasil passa a guardar cotação de mercado e câmbio efetivo."]},
+  {version:"7.3.0-beta.7",date:"10/08/2026",title:"Vault & Brazil Box",changes:["Cofre totalmente reorganizado para representar o dinheiro realmente separado.","Nova Caixinha Brasil com histórico em BRL.","Envio ao Brasil retira automaticamente do Cartão do Cofre e atualiza a Meta Brasil.","Cotação GBP/BRL atualizável pela internet com fallback salvo.","Estimativa de tarifa Wise com percentual e taxa fixa editáveis.","Nova meta editável de Reserva de emergência.","Fontes do Planejador Financeiro na aba Geral aumentadas para melhor leitura."]},
+  {version:"7.3.0-beta.7",date:"10/08/2026",title:"Financial Planner",changes:["Novo fluxo financeiro unificado: Ganhos → Bills + Gastos → Meta Brasil → Lazer.","Receitas da Rota e outras receitas alimentam automaticamente a previsão.","Bills entram como despesa geral sem serem duplicadas em Gastos variáveis.","Novo comparativo Realizado x Previsto.","Meta Brasil mensal configurável com valor já enviado.","Cálculo automático de Livre previsto e Lazer disponível.","Insights mostram falta para a meta, renda extra semanal necessária e limite diário de lazer.","Previsões usam agenda da Rota, gastos atuais e histórico mensal recente."]},
+{version:"7.3.0-beta.7",date:"10/08/2026",title:"Historical Data Recognition Fix",changes:["A inteligência financeira agora lê diretamente state.expenses e reconhece todo o histórico já salvo.","Semanas anteriores passam a mostrar automaticamente os gastos antigos, sem recadastro.","Histórico antigo também entra no cálculo da média e das previsões.","Cofre passa a usar a mesma fonte real de dados do app."]},
+{version:"7.3.0-beta.7",date:"10/08/2026",title:"Expenses Legacy DOM Cleanup",changes:["Corrigido expenseCategoryStrip ausente.","Protegidas as referências de renderExpenses a elementos visuais removidos.","Evita a sequência de erros null causada pela limpeza do layout antigo."]},
+  {version:"7.3.0-beta.7",date:"10/08/2026",title:"Expense Render Compatibility Fix",changes:["Corrigido erro ao abrir os dados após remover o card mensal antigo.","renderExpenses agora ignora elementos legados que não existem mais.","Resumo financeiro e navegação semanal da beta.2 foram preservados."]},
 {version:"7.0.0-beta.2",date:"10/08/2026",title:"Expenses Layout & Week Navigation",changes:["Adicionar gasto movido para o topo.","Resumo mensal grande duplicado removido.","Navegação entre semanas anteriores e futuras adicionada.","Resumo e previsão acompanham a semana selecionada."]},
   {version:"7.0.0-beta.2",date:"10/08/2026",title:"Financial Intelligence",changes:["Gastos agora mostra resumo semanal e mensal.","Previsão adaptativa estima os gastos da semana e do mês a partir do histórico e ritmo atual.","Cofre ganhou visão semanal, mensal, comparação e projeção.","O indicador informa quando ainda há poucos dados para uma previsão confiável."]},
   {version:"6.0.0-beta.6",date:"10/08/2026",title:"Client List Readability",changes:["Rota voltou para o centro da navegação inferior, entre Bills e Gastos.","Nomes, informações e botões da Lista de clientes ficaram maiores e mais legíveis.","Nenhuma lógica dos clientes foi alterada."]},
@@ -2806,7 +2808,7 @@ function monthSummary(){
   const total=list=>(list||[]).filter(x=>String(x.date||"").slice(0,7)===month).reduce((s,x)=>s+Number(x.amount||0),0);
   const bills=(state?.bills||[]).filter(x=>!x.completed);
   const income=total(state?.incomes),expense=total(state?.expenses),vault=total(state?.vaultEntries);
-  const reserved=bills.reduce((s,x)=>s+Number(x.reserved||0),0);
+  const reserved=bills.reduce((s,x)=>s+billReservedAmountV736(x),0);
   return {income,expense,vault,reserved,bills,free:income-expense-vault-reserved};
 }
 function daysSafe(date){const a=new Date(`${currentLocalDate()}T12:00:00`),b=new Date(`${date}T12:00:00`);return Math.ceil((b-a)/86400000)}
@@ -2857,7 +2859,7 @@ function renderCleanBills(){
 
   for(const bill of bills){
     const amount=Number(bill.amount||0);
-    const reserved=Number(bill.reserved||0);
+    const reserved=billReservedAmountV736(bill);
     const remaining=Math.max(0,amount-reserved);
     const percent=amount?Math.min(100,reserved/amount*100):100;
     const days=daysSafe(bill.due);
@@ -2953,14 +2955,30 @@ function updateBillWalletEditPreviewV732(){
 
 
 function billSortDateV735(bill){
-  const d=parseBillDate317?.(bill?.due);
+  let d=null;
+  try{
+    if(typeof parseBillDate317==="function")d=parseBillDate317(bill?.due);
+    else if(bill?.due)d=new Date(`${bill.due}T12:00:00`);
+  }catch{}
   return d instanceof Date&&!Number.isNaN(d.getTime())?d:new Date("2999-12-31T12:00:00");
 }
 
-function reconcileBillReservationsV735(){
-  if(!state)return {available:0,reserved:0};
 
-  const available=Math.max(0,Number(state.cash||0))+Math.max(0,Number(state.card||0));
+function billReservedAmountV736(bill){
+  if(!bill)return 0;
+  const amount=Math.max(0,Number(bill.amount||0));
+  const reserved=Math.max(0,Number(bill.reserved||0));
+  return Math.min(amount,reserved);
+}
+
+function reconcileBillReservationsV735(){
+  if(!state)return {available:0,reserved:0,unallocated:0,changed:0};
+
+  const available=Math.round((
+    Math.max(0,Number(state.cash||0))+
+    Math.max(0,Number(state.card||0))
+  )*100)/100;
+
   const bills=(state.bills||[])
     .filter(b=>!b.completed&&!b.paid)
     .sort((a,b)=>{
@@ -2972,19 +2990,33 @@ function reconcileBillReservationsV735(){
 
   let remaining=available;
   let reservedTotal=0;
+  let changed=0;
 
   for(const bill of bills){
     const amount=Math.max(0,Number(bill.amount||0));
-    const reserve=Math.min(amount,remaining);
-    bill.reserved=Math.round(reserve*100)/100;
-    remaining=Math.max(0,Math.round((remaining-reserve)*100)/100);
-    reservedTotal+=bill.reserved;
+    const nextReserved=Math.round(Math.min(amount,remaining)*100)/100;
+    const oldReserved=Math.round(Math.max(0,Number(bill.reserved||0))*100)/100;
+
+    if(Math.abs(nextReserved-oldReserved)>=0.005)changed++;
+
+    bill.reserved=nextReserved;
+    remaining=Math.max(0,Math.round((remaining-nextReserved)*100)/100);
+    reservedTotal=Math.round((reservedTotal+nextReserved)*100)/100;
+  }
+
+  // Completed/paid bills must not keep active reserves.
+  for(const bill of (state.bills||[])){
+    if((bill.completed||bill.paid)&&Number(bill.reserved||0)!==0){
+      bill.reserved=0;
+      changed++;
+    }
   }
 
   return {
-    available:Math.round(available*100)/100,
-    reserved:Math.round(reservedTotal*100)/100,
-    unallocated:Math.round(remaining*100)/100
+    available,
+    reserved:reservedTotal,
+    unallocated:Math.round(remaining*100)/100,
+    changed
   };
 }
 
@@ -3051,7 +3083,7 @@ async function saveBillWalletEditV732(){
   }catch(error){
     state=backup;
     render();
-    fatalDiagnostic313("Reconciliar reservas após editar saldo 7.3.5",error,{wallet:type});
+    fatalDiagnostic313("Reconciliar reservas após editar saldo 7.3.0-beta.7",error,{wallet:type});
     $("billWalletEditFeedbackV732").textContent="Não foi possível salvar e recalcular as reservas.";
   }
 }

@@ -2800,3 +2800,9 @@ html{scroll-behavior:smooth}
   font-size:8px;
   line-height:1.35;
 }
+
+/* v7.3.0-beta.6 — unified reservation source */
+.bill-v4-card [data-reserved],
+.bill-card [data-reserved]{
+  font-variant-numeric:tabular-nums;
+}
