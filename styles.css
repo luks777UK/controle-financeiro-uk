@@ -2806,3 +2806,20 @@ html{scroll-behavior:smooth}
 .bill-card [data-reserved]{
   font-variant-numeric:tabular-nums;
 }
+
+/* v7.4.0-beta.1 — Route Tips & Daily Hours */
+.route-dashboard-card-v512.tips{
+  border-color:rgba(255,177,95,.16);
+  background:linear-gradient(145deg,rgba(255,177,95,.055),rgba(21,23,37,.96));
+}
+.route-dashboard-card-v512.tips strong{color:#ffb15f}
+.route-tip-help-v74{
+  display:block;
+  margin-top:5px;
+  color:#7f8496;
+  font-size:9px;
+}
+.route-day-tab-v5 small{
+  white-space:nowrap;
+  font-size:8px;
+}

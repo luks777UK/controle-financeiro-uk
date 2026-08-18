@@ -7,13 +7,13 @@
   <meta http-equiv="Expires" content="0">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
   <meta name="theme-color" content="#080914">
-  <meta name="application-name" content="Nosso Controle 7.3.0-beta.7">
+  <meta name="application-name" content="Nosso Controle 7.4.0-beta.1">
   <meta name="apple-mobile-web-app-title" content="Nosso Controle">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="styles.css?v=7.3.0-beta.7-fresh">
-  <title>Nosso Controle 7.3.0-beta.7</title>
+  <link rel="stylesheet" href="styles.css?v=7.4.0-beta.1-fresh">
+  <title>Nosso Controle 7.4.0-beta.1</title>
 </head>
 <body>
   <section id="authView" class="auth-screen">
@@ -749,6 +749,7 @@
         <article class="route-dashboard-card-v512 expected"><span>Esperado</span><strong id="routeExpectedV5">£0,00</strong><small id="routeExpectedCountV512">0 serviços</small></article>
         <article class="route-dashboard-card-v512 received"><span>Recebido</span><strong id="routeReceivedV5">£0,00</strong><small id="routeReceivedCountV512">0 pagamentos</small></article>
         <article class="route-dashboard-card-v512 extra"><span>Extra</span><strong id="routeExtraWeeklyV511">£0,00</strong><small id="routeExtraWeeklyCountV511">0 serviços</small></article>
+        <article class="route-dashboard-card-v512 tips"><span>Tips</span><strong id="routeTipsWeeklyV74">£0,00</strong><small id="routeTipsWeeklyCountV74">0 pagamentos com tip</small></article>
         <article class="route-dashboard-card-v512 hours"><span>Horas</span><strong id="routeHoursV5">0h</strong><small id="routeWorkedHoursV5">0h concluídas</small></article>
         <button id="toggleRouteOverdueV5" class="route-dashboard-card-v512 overdue" type="button"><span>Atrasados</span><strong id="routeOverdueAmountV5">£0,00</strong><small id="routeOverdueSubtitleV5">0 clientes</small><em id="routeOverdueCountV5">0</em></button>
         <button id="toggleRouteCancelledV56" class="route-dashboard-card-v512 cancelled" type="button"><span>Cancelados</span><strong id="routeCancelledAmountV56">£0,00</strong><small id="routeCancelledSubtitleV56">0 clientes</small><em id="routeCancelledCountV56">0</em></button>
@@ -1586,6 +1587,11 @@
         <input id="routePaymentAmountV5" type="number" min="0" step="0.01" inputmode="decimal">
       </label>
 
+      <label>Tips (£)
+        <input id="routePaymentTipV74" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0.00">
+        <small class="route-tip-help-v74">Gorjeta recebida além do valor da limpeza.</small>
+      </label>
+
       <label>Como recebeu?
         <select id="routePaymentMethodV5">
           <option value="card">Cartão / transferência</option>
@@ -1633,10 +1639,10 @@
 <div id="toast" class="toast"></div>
   <canvas id="confetti"></canvas>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=7.3.0-beta.7-fresh"></script>
+  <script src="app.js?v=7.4.0-beta.1-fresh"></script>
   <script>
     (async()=>{
-      const BUILD="7.3.0-beta.7-single";
+      const BUILD="7.4.0-beta.1-single";
       try{
         if("serviceWorker" in navigator){
           const registrations=await navigator.serviceWorker.getRegistrations();
